@@ -9,6 +9,7 @@ import { Clock, BookOpen, Heart, Bookmark } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import StoryCard from "@/components/StoryCard";
 import Footer from "./Footer";
+import { useAuth } from "@/context/AuthContext";
 
 const MAX_RECOMMENDATIONS = 6;
 
@@ -25,7 +26,6 @@ const cleanContent = (content) => {
   return content;
 };
 
-// --- NEW/UPDATED FUNCTION: Fetch Recommended Stories (Max 6) ---
 const fetchRecommendations = (currentStory) => {
   if (!currentStory) return [];
 
@@ -33,7 +33,6 @@ const fetchRecommendations = (currentStory) => {
   const currentGenres = currentStory.genres || [];
   let recommendedStories = new Set();
 
-  // 1. Gather stories by matching genres (including multi-genre matches)
   currentGenres.forEach((genre) => {
     storiesData.forEach((story) => {
       if (story.id !== currentStoryId && story.genres.includes(genre)) {
@@ -42,10 +41,8 @@ const fetchRecommendations = (currentStory) => {
     });
   });
 
-  // Convert Set to Array for easier manipulation
   let finalRecs = Array.from(recommendedStories);
 
-  // Simple shuffle function for a bit of diversity
   const shuffleArray = (array) => {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -54,10 +51,8 @@ const fetchRecommendations = (currentStory) => {
     return array;
   };
 
-  // Shuffle the genre-matched results
   finalRecs = shuffleArray(finalRecs);
 
-  // 2. Fill the gap with random stories if needed
   if (finalRecs.length < MAX_RECOMMENDATIONS) {
     const storiesToExclude = new Set([
       currentStoryId,
@@ -67,31 +62,31 @@ const fetchRecommendations = (currentStory) => {
       (story) => !storiesToExclude.has(story.id)
     );
 
-    // Shuffle the remaining pool
     const shuffledOthers = shuffleArray(allOtherStories);
-
     const needed = MAX_RECOMMENDATIONS - finalRecs.length;
-
-    // Add random stories up to the maximum needed
     finalRecs.push(...shuffledOthers.slice(0, needed));
   }
 
-  // 3. Cap the list at MAX_RECOMMENDATIONS (6)
   return finalRecs.slice(0, MAX_RECOMMENDATIONS);
 };
-// ----------------------------------------------------------------
 
 export default function StoryPage() {
   const params = useParams();
   const storyId = params.storyId;
   const router = useRouter();
+  const { user } = useAuth();
 
   const [story, setStory] = useState(null);
   const [authorName, setAuthorName] = useState("Unknown Author");
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Like/Save states
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+
+  // Login prompt modal state (for like/save when not logged in)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   useEffect(() => {
     if (storyId) {
@@ -112,6 +107,29 @@ export default function StoryPage() {
         // Fetch Recommendations
         const fetchedRecommendations = fetchRecommendations(fetchedStory);
         setRecommendations(fetchedRecommendations);
+
+        // initialize like/save based on localStorage user state (if available)
+        try {
+          const raw = localStorage.getItem("sf_user");
+          if (raw) {
+            const sf = JSON.parse(raw);
+            setIsLiked(
+              Array.isArray(sf.likedStories) &&
+                sf.likedStories.includes(fetchedStory.id)
+            );
+            setIsSaved(
+              Array.isArray(sf.savedStories) &&
+                sf.savedStories.includes(fetchedStory.id)
+            );
+          } else {
+            setIsLiked(false);
+            setIsSaved(false);
+          }
+        } catch (e) {
+          console.error("Failed to read sf_user:", e);
+          setIsLiked(false);
+          setIsSaved(false);
+        }
       } else {
         setStory(null);
         setRecommendations([]);
@@ -119,6 +137,97 @@ export default function StoryPage() {
       setLoading(false);
     }
   }, [storyId]);
+
+  // helper: ensure user is logged in or show modal
+  const ensureAuthOrPrompt = () => {
+    if (user) return true;
+    setShowLoginPrompt(true);
+    return false;
+  };
+
+  // helper: update localStorage's sf_user likedStories/savedStories arrays
+  const updateLocalSfUserArrays = ({ add = true, listName, storyId }) => {
+    try {
+      const raw = localStorage.getItem("sf_user");
+      let sf = raw ? JSON.parse(raw) : null;
+      if (!sf) {
+        // If there's no sf_user yet, create a minimal structure
+        sf = {
+          id: null,
+          email: "",
+          username: "",
+          name: "",
+          bio: "",
+          profileImage: "",
+          followers: [],
+          following: [],
+          savedStories: [],
+          likedStories: [],
+        };
+      }
+
+      const arr = Array.isArray(sf[listName]) ? [...sf[listName]] : [];
+      const idx = arr.indexOf(storyId);
+      if (add) {
+        if (idx === -1) arr.push(storyId);
+      } else {
+        if (idx !== -1) arr.splice(idx, 1);
+      }
+      sf[listName] = arr;
+
+      localStorage.setItem("sf_user", JSON.stringify(sf));
+    } catch (e) {
+      console.error("Failed to update sf_user in localStorage:", e);
+    }
+  };
+
+  // Handler for Like button
+  const handleLikeClick = async () => {
+    if (!ensureAuthOrPrompt()) return;
+
+    // toggle local state for instant feedback
+    const newLiked = !isLiked;
+    setIsLiked(newLiked);
+
+    // update localStorage sf_user
+    updateLocalSfUserArrays({
+      add: newLiked,
+      listName: "likedStories",
+      storyId: story.id,
+    });
+
+    // TODO: persist to server (example)
+    // try {
+    //   await fetch('/api/stories/like', {
+    //     method: 'POST',
+    //     headers: {'Content-Type': 'application/json'},
+    //     body: JSON.stringify({ storyId: story.id, userId: user.id, like: newLiked })
+    //   });
+    // } catch (e) { console.error('Failed to persist like', e); }
+  };
+
+  // Handler for Save button
+  const handleSaveClick = async () => {
+    if (!ensureAuthOrPrompt()) return;
+
+    const newSaved = !isSaved;
+    setIsSaved(newSaved);
+
+    updateLocalSfUserArrays({
+      add: newSaved,
+      listName: "savedStories",
+      storyId: story.id,
+    });
+
+    // TODO: persist to server (example)
+    // try {
+    //   await fetch('/api/stories/save', {
+    //     method: 'POST',
+    //     headers: {'Content-Type': 'application/json'},
+    //     body: JSON.stringify({ storyId: story.id, userId: user.id, save: newSaved })
+    //   });
+    // } catch (e) { console.error('Failed to persist save', e); }
+  };
 
   if (loading) {
     return (
@@ -140,13 +249,13 @@ export default function StoryPage() {
   }
 
   const finalContent = cleanContent(story.content);
-  const primaryGenre = story.genres[0]; // Used for the "View More" button text
+  const primaryGenre = story.genres[0];
 
   return (
     <>
       <SiteHeader />
       <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-        {/* Hero/Header Section (Content Unchanged) */}
+        {/* Hero/Header Section */}
         <div className="pt-24 pb-16 px-6">
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16 items-center">
@@ -183,9 +292,10 @@ export default function StoryPage() {
                     <span className="text-sm">{story.readTime} min</span>
                   </div>
                 </div>
+
                 <div className="flex items-center gap-3 pt-2">
                   <button
-                    onClick={() => setIsLiked(!isLiked)}
+                    onClick={handleLikeClick}
                     className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all ${
                       isLiked
                         ? "bg-red-50 text-red-600 border border-red-200"
@@ -199,8 +309,9 @@ export default function StoryPage() {
                       {isLiked ? "Liked" : "Like"}
                     </span>
                   </button>
+
                   <button
-                    onClick={() => setIsSaved(!isSaved)}
+                    onClick={handleSaveClick}
                     className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all ${
                       isSaved
                         ? "bg-blue-50 text-blue-600 border border-blue-200"
@@ -216,6 +327,7 @@ export default function StoryPage() {
                   </button>
                 </div>
               </div>
+
               {/* Right: Image */}
               <div className="relative flex justify-center lg:justify-center lg:col-span-1">
                 <div className="relative w-64 md:w-72 rounded-2xl overflow-hidden border border-[var(--foreground)]/10 shadow-xl">
@@ -235,7 +347,7 @@ export default function StoryPage() {
           <div className="h-px bg-gradient-to-r from-transparent via-[var(--foreground)]/10 to-transparent"></div>
         </div>
 
-        {/* Story Content (Unchanged) */}
+        {/* Story Content */}
         <div className="py-20 px-6">
           <div className="max-w-3xl mx-auto">
             <style jsx global>{`
@@ -314,7 +426,7 @@ export default function StoryPage() {
           </div>
         </div>
 
-        {/* --- RECOMMENDED STORIES SECTION (Now with up to 6 stories) --- */}
+        {/* RECOMMENDED STORIES */}
         {recommendations.length > 0 && (
           <div className="py-16 px-6 bg-[var(--foreground)]/5 border-t border-[var(--foreground)]/10">
             <div className="max-w-6xl mx-auto">
@@ -322,7 +434,6 @@ export default function StoryPage() {
                 You May Also Like
               </h2>
 
-              {/* Grid updated to support up to 6 stories across various screen sizes */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
                 {recommendations.map((recStory) => (
                   <StoryCard key={recStory.id} story={recStory} />
@@ -330,7 +441,6 @@ export default function StoryPage() {
               </div>
 
               <div className="text-center pt-10">
-                {/* The "View More" button links to the primary genre of the story */}
                 <button
                   onClick={() => router.push(`/?genre=${primaryGenre}`)}
                   className="px-6 py-2 border border-[var(--foreground)]/20 text-[var(--foreground)]/80 rounded-full text-sm hover:bg-[var(--foreground)]/10 transition-colors"
@@ -341,11 +451,66 @@ export default function StoryPage() {
             </div>
           </div>
         )}
-        {/* ------------------------------------------------------------- */}
 
-        {/* Footer (Unchanged) */}
         <Footer />
       </div>
+
+      {/* Login Prompt Modal (for Like/Save) */}
+      {showLoginPrompt && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          aria-labelledby="login-prompt-title"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowLoginPrompt(false)}
+          />
+          <div className="relative bg-[var(--background)] rounded-3xl shadow-2xl w-full max-w-md p-6 z-10">
+            <h3
+              id="login-prompt-title"
+              className="text-lg font-bold mb-2 text-[var(--foreground)]"
+            >
+              Please log in to continue
+            </h3>
+            <p className="text-sm text-[var(--foreground)]/70 mb-6">
+              You need an account to like or save stories. Log in to continue,
+              or create a new account.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowLoginPrompt(false);
+                  router.push("/login");
+                }}
+                className="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+              >
+                Log in
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowLoginPrompt(false);
+                  router.push("/signup");
+                }}
+                className="flex-1 px-4 py-2 rounded-xl border border-[var(--foreground)]/20 text-[var(--foreground)] font-semibold hover:bg-[var(--foreground)]/5 transition"
+              >
+                Create account
+              </button>
+
+              <button
+                onClick={() => setShowLoginPrompt(false)}
+                className="absolute top-3 right-3 text-[var(--foreground)]/60 hover:text-[var(--foreground)]"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

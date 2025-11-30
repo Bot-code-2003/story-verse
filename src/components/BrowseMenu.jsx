@@ -121,9 +121,7 @@ export default function BrowseMenu({ isMobile = false }) {
       onMouseLeave={handleMouseLeave}
     >
       {/* Trigger */}
-      <button
-        className="text-sm font-medium text-[var(--foreground)]/80 hover:text-[var(--foreground)] transition flex items-center gap-1"
-      >
+      <button className="text-sm font-medium text-[var(--foreground)]/80 hover:text-[var(--foreground)] transition flex items-center gap-1">
         Browse
         <ChevronDown
           size={16}

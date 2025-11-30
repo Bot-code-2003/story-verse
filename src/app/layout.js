@@ -1,4 +1,5 @@
 import { ThemeProvider } from "@/context/ThemeContext";
+import { AuthProvider } from "@/context/AuthContext";
 import "./globals.css";
 
 export default function RootLayout({ children }) {
@@ -6,7 +7,9 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       {/* IMPORTANT: Apply theme to <body> via provider */}
       <body suppressHydrationWarning>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

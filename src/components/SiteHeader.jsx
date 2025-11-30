@@ -4,14 +4,21 @@ import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 import { Sun, Moon, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import SearchBar from "./SearchBar";
 import AuthButtons from "./AuthButtons";
 import BrowseMenu from "./BrowseMenu";
+import { useAuth } from "@/context/AuthContext";
 
 export default function SiteHeader() {
   const { theme, toggleTheme } = useTheme();
+  const router = useRouter();
+  const { user } = useAuth();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sfUser, setSfUser] = useState(null); // added state to store sf_user
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false); // modal when not logged in
 
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
@@ -19,7 +26,7 @@ export default function SiteHeader() {
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
-    if (mobileMenuOpen) {
+    if (mobileMenuOpen || showLoginPrompt) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
@@ -28,7 +35,28 @@ export default function SiteHeader() {
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, showLoginPrompt]);
+
+  // Load sf_user from localStorage
+  useEffect(() => {
+    try {
+      const stored =
+        typeof window !== "undefined" ? localStorage.getItem("sf_user") : null;
+      if (stored) setSfUser(JSON.parse(stored));
+    } catch (err) {
+      console.error("Failed to read sf_user from localStorage:", err);
+    }
+  }, []);
+
+  // Handler for Write click
+  const handleWriteClick = (opts = { closeMobile: false }) => {
+    if (opts.closeMobile) closeMobileMenu();
+    if (user) {
+      router.push("/write");
+    } else {
+      setShowLoginPrompt(true);
+    }
+  };
 
   return (
     <>
@@ -40,31 +68,32 @@ export default function SiteHeader() {
           </h1>
         </Link>
 
-        {/* Desktop Navigation - Hidden on Mobile */}
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
           <div className="flex items-center gap-8">
             <BrowseMenu isMobile={false} />
-            <Link
-              href="/write"
+            {/* Write as a button (permission-checked) */}
+            <button
+              onClick={() => handleWriteClick({ closeMobile: false })}
               className="text-sm font-medium text-[var(--foreground)]/80 hover:text-[var(--foreground)] transition"
             >
               Write
-            </Link>
+            </button>
           </div>
           <SearchBar />
         </nav>
 
         {/* Right: Auth + Theme + Mobile Menu */}
         <div className="flex items-center gap-5">
-          {/* Desktop Auth + Theme - Hidden on Mobile */}
+          {/* Desktop Auth + Theme */}
           <div className="hidden md:flex items-center gap-5">
             <AuthButtons />
             <button
               onClick={toggleTheme}
               className="
-              p-2 rounded-full border border-[var(--foreground)]/10 
-              text-[var(--foreground)]/80 hover:bg-[var(--foreground)]/5 transition
-            "
+                p-2 rounded-full border border-[var(--foreground)]/10 
+                text-[var(--foreground)]/80 hover:bg-[var(--foreground)]/5 transition
+              "
               aria-label={`Switch to ${
                 theme === "light" ? "dark" : "light"
               } mode`}
@@ -92,14 +121,14 @@ export default function SiteHeader() {
         </div>
       </header>
 
-      {/* Mobile Menu - Full Screen Overlay */}
+      {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="fixed top-0 left-0 right-0 bottom-0 md:hidden bg-[var(--background)] z-40 overflow-y-auto pt-20">
           <div className="px-4 py-6 space-y-4">
             {/* Search Bar */}
             <SearchBar />
 
-            {/* Theme Toggle & Write Button - Same Row */}
+            {/* Theme + Write */}
             <div className="flex gap-3">
               <button
                 onClick={() => {
@@ -116,40 +145,95 @@ export default function SiteHeader() {
                 <span>{theme === "light" ? "Dark" : "Light"}</span>
               </button>
 
-              <Link
-                href="/write"
+              <button
+                onClick={() => handleWriteClick({ closeMobile: true })}
                 className="flex-1 flex items-center justify-center py-3 px-4 rounded-lg border border-[var(--foreground)]/20 text-[var(--foreground)] hover:bg-[var(--foreground)]/5 transition font-medium text-sm"
-                onClick={() => setMobileMenuOpen(false)}
               >
                 Write
-              </Link>
+              </button>
             </div>
 
+            {/* Profile Preview + Auth */}
             <div className="border-t border-[var(--foreground)]/10 pt-4">
+              {/* Mobile User Info */}
+              {sfUser && (
+                <div className="flex items-center gap-3 mb-4">
+                  {sfUser.profileImage ? (
+                    <img
+                      src={sfUser.profileImage}
+                      alt={sfUser.username || sfUser.name || "User"}
+                      className="w-10 h-10 rounded-full object-cover border border-[var(--foreground)]/20"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-[var(--foreground)]/10 flex items-center justify-center text-sm font-semibold text-[var(--foreground)]">
+                      {(sfUser.username || sfUser.name || "U")
+                        .charAt(0)
+                        .toUpperCase()}
+                    </div>
+                  )}
+                  <span className="text-sm font-medium text-[var(--foreground)]">
+                    {sfUser.username || sfUser.name}
+                  </span>
+                </div>
+              )}
+
               <div className="flex gap-3">
-                <Link
-                  href="/login"
-                  className="flex-1 text-center py-3 px-4 rounded-lg border border-[var(--foreground)]/20 text-[var(--foreground)] hover:bg-[var(--foreground)]/5 transition font-medium"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Log In
-                </Link>
-                <Link
-                  href="/signup"
-                  className="flex-1 text-center py-3 px-4 rounded-lg bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 transition font-medium"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Sign Up
-                </Link>
+                <AuthButtons />
               </div>
             </div>
 
-            {/* Browse Menu - Grid View on Mobile */}
+            {/* Browse Menu */}
             <div onClick={closeMobileMenu} className="pt-2">
               <BrowseMenu isMobile={true} />
             </div>
+          </div>
+        </div>
+      )}
 
-            {/* Auth Buttons - Same Row */}
+      {/* Login Prompt Modal (shown when user tries to Write but not logged in) */}
+      {showLoginPrompt && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          aria-labelledby="login-prompt-title"
+          role="dialog"
+          aria-modal="true"
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowLoginPrompt(false)}
+          />
+          {/* Modal */}
+          <div className="relative bg-[var(--background)] rounded-3xl shadow-2xl w-full max-w-md p-6 z-10">
+            <h3
+              id="login-prompt-title"
+              className="text-lg font-bold mb-2 text-[var(--foreground)]"
+            >
+              Please log in to write
+            </h3>
+            <p className="text-sm text-[var(--foreground)]/70 mb-6">
+              You need an account to create and publish stories. Log in to
+              continue, or create a new account.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowLoginPrompt(false);
+                  router.push("/login");
+                }}
+                className="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+              >
+                Log in
+              </button>
+
+              <button
+                onClick={() => setShowLoginPrompt(false)}
+                className="flex-1 px-4 py-2 rounded-xl border border-[var(--foreground)]/20 text-[var(--foreground)] font-semibold hover:bg-[var(--foreground)]/5 transition"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
