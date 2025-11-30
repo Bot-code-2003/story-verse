@@ -1,0 +1,37 @@
+[
+  {
+    "id": "c1",
+    "story": "s1",
+    "user": "u3",
+    "content": "Bro this felt so peaceful, the pacing was perfect.",
+    "createdAt": "2024-12-02T12:30:00Z"
+  },
+  {
+    "id": "c2",
+    "story": "s2",
+    "user": "u1",
+    "content": "The dream marketplace idea is insane. Want more!!",
+    "createdAt": "2024-12-06T09:00:00Z"
+  },
+  {
+    "id": "c3",
+    "story": "s3",
+    "user": "u2",
+    "content": "Short, simple, beautiful.",
+    "createdAt": "2024-12-01T10:20:00Z"
+  },
+  {
+    "id": "c4",
+    "story": "s12",
+    "user": "u9",
+    "content": "Chills. Literal chills. 3AM reading this was a mistake.",
+    "createdAt": "2024-12-15T04:00:00Z"
+  },
+  {
+    "id": "c5",
+    "story": "s14",
+    "user": "u8",
+    "content": "Reminds me of a real moment in my life. Beautiful writing.",
+    "createdAt": "2024-12-19T15:00:00Z"
+  }
+]

@@ -1,65 +1,123 @@
-import Image from "next/image";
+"use client";
+
+import storiesData from "@/data/stories.json";
+import usersData from "@/data/users.json"; // Imported but not used directly here
+
+import Carousel from "@/components/Carousel";
+import StoryCard from "@/components/StoryCard";
+import SiteHeader from "@/components/SiteHeader"; // Global header with theme toggle
+import ShortReads from "@/components/ShortReads";
+import DiscoverGenres from "@/components/DiscoverGenres";
+import BecomeAuthorBanner from "@/components/BecomeAuthorBanner";
+import FeaturedAuthor from "@/components/FeaturedAuthor";
+import EditorsPick from "@/components/EditorsPick";
+import Footer from "@/components/Footer";
 
 export default function Home() {
+  const stories = storiesData;
+
+  // --- Data Filtering and Sorting for Sections ---
+  const trending = stories.slice(0, 6);
+  const newReleases = [...stories]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 6);
+
+  const adventure = stories
+    .filter((s) => s.genres.includes("Adventure"))
+    .slice(0, 6);
+
+  const horror = stories.filter((s) => s.genres.includes("Horror")).slice(0, 6);
+
+  const magicrealism = stories
+    .filter((s) => s.genres.includes("Magic Realism"))
+    .slice(0, 6);
+
+  const mystery = stories
+    .filter((s) => s.genres.includes("Mystery"))
+    .slice(0, 6);
+  const fantasy = stories
+    .filter((s) => s.genres.includes("Fantasy"))
+    .slice(0, 6);
+  const sliceOfLife = stories
+    .filter((s) => s.genres.includes("Slice of Life"))
+    .slice(0, 6);
+  const sciFi = stories.filter((s) => s.genres.includes("Sci-Fi")).slice(0, 6);
+
+  const thrillers = stories
+    .filter((s) => s.genres.includes("Thriller"))
+    .slice(0, 6);
+
+  const drama = stories.filter((s) => s.genres.includes("Drama")).slice(0, 6);
+  const romance = stories
+    .filter((s) => s.genres.includes("Romance"))
+    .slice(0, 6);
+  const poetry = stories.filter((s) => s.genres.includes("Poetry")).slice(0, 6);
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    // FIX: Apply the background CSS variable to the main container.
+    // This ensures the primary page background color changes with the theme toggle.
+    <main className="min-h-screen w-full bg-[var(--background)]">
+      {/* Global Header (includes theme toggle) */}
+      <SiteHeader />
+
+      {/* Main Content Area */}
+      <div className="px-4 md:px-10 py-6">
+        <Carousel />
+
+        {/* ---------------------- SECTIONS ---------------------- */}
+        <Section title="Trending Now" items={trending} />
+        <ShortReads stories={stories} />
+        <Section title="New Releases" items={newReleases} />
+        <DiscoverGenres />
+        {fantasy.length > 3 && (
+          <Section title="Fantasy Picks" items={fantasy} />
+        )}
+        {sliceOfLife.length > 3 && (
+          <Section title="Slice of Life" items={sliceOfLife} />
+        )}
+        {drama.length > 3 && <Section title="Dramatic Reads" items={drama} />}
+        {adventure.length > 3 && (
+          <Section title="Adventure Tales" items={adventure} />
+        )}
+        <BecomeAuthorBanner />
+        {thrillers.length > 3 && (
+          <Section title="Thrillers" items={thrillers} />
+        )}
+        {romance.length > 0 && (
+          <Section title="Romance Stories" items={romance} />
+        )}
+        {sciFi.length > 0 && <Section title="Sci-Fi & Mystery" items={sciFi} />}
+        {horror.length > 0 && <Section title="Horror Stories" items={horror} />}
+        <FeaturedAuthor />
+        <EditorsPick stories={stories} />
+      </div>
+
+      <Footer />
+    </main>
+  );
+}
+
+/* ---------------------- SECTION COMPONENT (Reusable Story List Row) ---------------------- */
+
+function Section({ title, items }) {
+  if (items.length === 0) return null;
+
+  return (
+    <section className="mb-10">
+      {/* Uses CSS variable for color to ensure it flips with the theme */}
+      <h3 className="text-xl font-semibold mb-4 text-[var(--foreground)]">
+        {title}
+      </h3>
+
+      {/* overflow-x-auto allows for horizontal scrolling on mobile */}
+      <div className="overflow-x-auto scrollbar-hide">
+        <div className="flex gap-5 pb-4">
+          {items.map((story) => (
+            // IMPORTANT: StoryCard must also use the [var(--foreground)]/etc. notation
+            // for its internal elements (text, backgrounds, borders)
+            <StoryCard key={story.id} story={story} />
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </div>
+    </section>
   );
 }
