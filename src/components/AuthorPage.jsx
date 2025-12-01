@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { BookOpen, Calendar, Edit2 } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import EditProfileModal from "@/components/EditProfileModal";
 import { useAuth } from "@/context/AuthContext";
+import StoryCard from "@/components/StoryCard"; // <-- use the existing StoryCard
 
 export default function AuthorPage() {
   const params = useParams();
@@ -16,7 +16,7 @@ export default function AuthorPage() {
 
   // Normalize param: decode percent encoding, remove leading @, trim, lowercase for comparisons
   const decoded = decodeURIComponent(rawParam || "");
-  const authorUsername = decoded.replace(/^@/, "").trim();
+  const authorUsername = decoded.trim();
   const authorUsernameForFetch = authorUsername; // use this in API calls
 
   const [author, setAuthor] = useState(null);
@@ -28,11 +28,7 @@ export default function AuthorPage() {
 
   // compute logged-in username normalized (no @)
   const loggedUsername =
-    (loggedInUser?.username || "")
-      .toString()
-      .replace(/^@/, "")
-      .trim()
-      .toLowerCase() || null;
+    (loggedInUser?.username || "").toString().trim().toLowerCase() || null;
 
   const isOwnProfile = !!(
     loggedUsername &&
@@ -41,6 +37,7 @@ export default function AuthorPage() {
   );
 
   useEffect(() => {
+    console.log("authorUser: ", authorUsernameForFetch);
     if (!authorUsernameForFetch) {
       setError("Invalid author");
       setLoading(false);
@@ -55,6 +52,7 @@ export default function AuthorPage() {
   async function fetchAuthorData() {
     try {
       // fetch author by normalized username (no leading @)
+      console.log("Fetching data for author:", authorUsernameForFetch);
       const authorRes = await fetch(
         `/api/authors/${encodeURIComponent(authorUsernameForFetch)}`
       );
@@ -70,7 +68,36 @@ export default function AuthorPage() {
       );
       if (storiesRes.ok) {
         const storiesData = await storiesRes.json();
-        setStories(Array.isArray(storiesData) ? storiesData : []);
+        const arr = Array.isArray(storiesData) ? storiesData : [];
+
+        // If we have authorData from /api/authors/... use it to normalize story.author
+        const normalized = arr.map((s) => {
+          // if author is already an object with username, keep it
+          if (s.author && typeof s.author === "object" && s.author.username) {
+            return {
+              ...s,
+              author: {
+                ...s.author,
+                username: String(s.author.username).replace(/^@/, ""),
+              },
+            };
+          }
+
+          // Otherwise replace with the author we already fetched
+          const clientAuthorObj = {
+            id: authorData?.id || authorData?._id || null,
+            username:
+              (authorData?.username || authorData?.username === ""
+                ? String(authorData.username || "").replace(/^@/, "")
+                : authorUsername) || authorUsername,
+            name: authorData?.name || null,
+            profileImage: authorData?.profileImage || null,
+          };
+
+          return { ...s, author: clientAuthorObj };
+        });
+
+        setStories(normalized);
       } else {
         setStories([]);
       }
@@ -142,7 +169,7 @@ export default function AuthorPage() {
   }
 
   // Display name: prefer name, else username (but show @ in UI)
-  const displayName = author.username;
+  const displayName = author.name || author.username;
   const displayedWithAt =
     "@" +
     (author.username ? author.username.replace(/^@/, "") : authorUsername);
@@ -166,7 +193,7 @@ export default function AuthorPage() {
                 ) : (
                   <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-5xl shadow-2xl">
                     {(author.name || author.username || authorUsername || "U")
-                      .charAt(0)
+                      .charAt(1)
                       .toUpperCase()}
                   </div>
                 )}
@@ -243,40 +270,8 @@ export default function AuthorPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {stories.map((story) => (
-                  <Link
-                    key={story.id}
-                    href={`/stories/${story.id}`}
-                    className="group block"
-                  >
-                    <article className="h-full bg-[var(--background)] border border-[var(--foreground)]/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                      <div className="relative aspect-[4/3] overflow-hidden bg-[var(--foreground)]/5">
-                        <img
-                          src={story.coverImage}
-                          alt={story.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-
-                      <div className="p-6 space-y-3">
-                        <h3 className="text-xl font-bold text-[var(--foreground)] group-hover:text-blue-600 transition-colors line-clamp-2">
-                          {story.title}
-                        </h3>
-
-                        {story.description && (
-                          <p className="text-sm text-[var(--foreground)]/70 line-clamp-2 leading-relaxed">
-                            {story.description}
-                          </p>
-                        )}
-
-                        <div className="flex items-center gap-4 pt-2 text-xs text-[var(--foreground)]/60">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            <span>{story.readTime} min read</span>
-                          </div>
-                        </div>
-                      </div>
-                    </article>
-                  </Link>
+                  // StoryCard already handles its own Link; don't wrap it
+                  <StoryCard key={story.id} story={story} />
                 ))}
               </div>
             )}

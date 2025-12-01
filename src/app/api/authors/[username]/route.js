@@ -1,3 +1,5 @@
+// /api/authors/[username]/route.js
+
 import { connectToDB } from "@/lib/mongodb";
 import User from "@/models/User";
 import mongoose from "mongoose";
@@ -6,15 +8,11 @@ export async function GET(req, { params }) {
   try {
     // Await params (keeps compatibility with previous pattern)
     const { username } = await params;
+    console.log("Fetching user for username:", username);
 
     await connectToDB();
 
-    console.log("=== API Request ===");
-    console.log("Fetching author with username:", username);
-    console.log("Username type:", typeof username);
-    console.log("Username length:", username?.length);
-
-    const dbUsername = `@${username}`;
+    const dbUsername = `${username}`;
 
     // Find by username (exact match)
     let user = await User.findOne({ username: dbUsername }).lean();

@@ -8,7 +8,7 @@ export default function EditorsPick({ stories }) {
   if (pickedStories.length === 0) return null;
 
   return (
-    <section className="mb-20 bg-[var(--foreground)]/5 p-6 rounded-3xl">
+    <section className="mb-20 bg-gradient-to-b from-[var(--foreground)]/10 to-transparent p-6 rounded-3xl">
       {/* Hero Banner with Background */}
       <div className="relative rounded-3xl overflow-hidden mb-12">
         {/* Background Image */}

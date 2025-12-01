@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 export default function BecomeAuthorBanner() {
   return (
@@ -28,9 +29,12 @@ export default function BecomeAuthorBanner() {
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                <button className="px-8 py-4 rounded-full font-semibold text-white bg-black hover:bg-black/90 transition-colors">
+                <Link
+                  href="/login"
+                  className="px-8 py-4 rounded-full font-semibold text-white bg-black hover:bg-black/90 transition-colors"
+                >
                   Sign Up to Write
-                </button>
+                </Link>
                 <button className="px-8 py-4 rounded-full font-semibold text-[var(--foreground)] border-2 border-[var(--foreground)]/20 hover:border-[var(--foreground)]/40 transition-colors">
                   Learn More
                 </button>

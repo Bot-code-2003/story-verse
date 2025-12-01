@@ -1,24 +1,90 @@
+// src/app/stories/[storyId]/page.js (Assuming this is the file location)
+
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react"; // Added useCallback
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import storiesData from "@/data/stories.json";
-import usersData from "@/data/users.json";
+// Removed static data imports:
+// import storiesData from "@/data/stories.json";
+// import usersData from "@/data/users.json";
+
 import { Clock, BookOpen, Heart, Bookmark } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import StoryCard from "@/components/StoryCard";
-import Footer from "./Footer";
+import Footer from "@/components/Footer"; // Corrected import path (assuming Footer is in components)
 import { useAuth } from "@/context/AuthContext";
 
 const MAX_RECOMMENDATIONS = 6;
 
-const fetchStoryById = (id) => {
-  return storiesData.find((story) => story.id === id);
+// --- API FETCH UTILITIES ---
+
+/**
+ * Fetches the story and author data from the new API endpoint.
+ * @param {string} id - The story ID.
+ * @returns {{story: object, authorData: object | null}}
+ */
+const fetchStoryAndAuthor = async (id) => {
+  const url = `/api/stories/${encodeURIComponent(id)}`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    // Check for 404 specifically
+    if (response.status === 404) return { story: null, authorData: null };
+    throw new Error(`Failed to fetch story ${id}: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  console.log("Fetched story data:", data);
+  return {
+    story: data.story,
+    authorData: data.authorData,
+  };
 };
 
-const fetchUserById = (id) => {
-  return usersData.find((user) => user.id === id);
+// NOTE: Since the `storiesData` is gone, we cannot perform client-side
+// recommendations based on all stories. We will use a simplified approach
+// by fetching recommendations by the primary genre using the `/api/stories?genre=` endpoint.
+
+/**
+ * Fetches recommended stories by genre using the index API.
+ * @param {object} currentStory - The story object.
+ */
+const fetchRecommendations = async (currentStory) => {
+  if (!currentStory || !currentStory.genres || currentStory.genres.length === 0)
+    return [];
+
+  const primaryGenre = currentStory.genres[0];
+
+  try {
+    const url = `/api/stories?genre=${encodeURIComponent(primaryGenre)}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      console.error("Failed to fetch recommendations:", response.statusText);
+      return [];
+    }
+
+    const data = await response.json();
+    let recs = data.stories || [];
+
+    // Filter out the current story itself
+    recs = recs.filter((s) => s.id !== currentStory.id);
+
+    // Simple shuffle (optional, but good practice)
+    const shuffleArray = (array) => {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    };
+
+    return shuffleArray(recs).slice(0, MAX_RECOMMENDATIONS);
+  } catch (error) {
+    console.error("Error fetching recommendations:", error);
+    return [];
+  }
 };
 
 const cleanContent = (content) => {
@@ -26,60 +92,24 @@ const cleanContent = (content) => {
   return content;
 };
 
-const fetchRecommendations = (currentStory) => {
-  if (!currentStory) return [];
-
-  const currentStoryId = currentStory.id;
-  const currentGenres = currentStory.genres || [];
-  let recommendedStories = new Set();
-
-  currentGenres.forEach((genre) => {
-    storiesData.forEach((story) => {
-      if (story.id !== currentStoryId && story.genres.includes(genre)) {
-        recommendedStories.add(story);
-      }
-    });
-  });
-
-  let finalRecs = Array.from(recommendedStories);
-
-  const shuffleArray = (array) => {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  };
-
-  finalRecs = shuffleArray(finalRecs);
-
-  if (finalRecs.length < MAX_RECOMMENDATIONS) {
-    const storiesToExclude = new Set([
-      currentStoryId,
-      ...finalRecs.map((s) => s.id),
-    ]);
-    const allOtherStories = storiesData.filter(
-      (story) => !storiesToExclude.has(story.id)
-    );
-
-    const shuffledOthers = shuffleArray(allOtherStories);
-    const needed = MAX_RECOMMENDATIONS - finalRecs.length;
-    finalRecs.push(...shuffledOthers.slice(0, needed));
-  }
-
-  return finalRecs.slice(0, MAX_RECOMMENDATIONS);
-};
+// --- MAIN COMPONENT ---
 
 export default function StoryPage() {
   const params = useParams();
-  const storyId = params.storyId;
+  // Ensure storyId is treated as a string, not array of strings
+  const storyId = Array.isArray(params.storyId)
+    ? params.storyId[0]
+    : params.storyId;
   const router = useRouter();
   const { user } = useAuth();
 
   const [story, setStory] = useState(null);
   const [authorName, setAuthorName] = useState("Unknown Author");
+  // ⬇️ MODIFIED: ADDED authorData state
+  const [authorData, setAuthorData] = useState({});
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Like/Save states
   const [isLiked, setIsLiked] = useState(false);
@@ -88,27 +118,72 @@ export default function StoryPage() {
   // Login prompt modal state (for like/save when not logged in)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
+  // Memoized helper function for local storage updates
+  const updateLocalSfUserArrays = useCallback(
+    ({ add = true, listName, storyId }) => {
+      // Your existing updateLocalSfUserArrays logic goes here
+      try {
+        const raw = localStorage.getItem("sf_user");
+        let sf = raw ? JSON.parse(raw) : null;
+
+        // Simplified User structure if not present
+        if (!sf) {
+          sf = { id: null, likedStories: [], savedStories: [] };
+        }
+
+        const arr = Array.isArray(sf[listName]) ? [...sf[listName]] : [];
+        const idx = arr.indexOf(storyId);
+
+        if (add) {
+          if (idx === -1) arr.push(storyId);
+        } else {
+          if (idx !== -1) arr.splice(idx, 1);
+        }
+        sf[listName] = arr;
+
+        localStorage.setItem("sf_user", JSON.stringify(sf));
+      } catch (e) {
+        console.error("Failed to update sf_user in localStorage:", e);
+      }
+    },
+    []
+  ); // Empty dependency array means this function is stable
+
+  // Main Data Fetching Effect
   useEffect(() => {
-    if (storyId) {
+    if (!storyId) return;
+
+    const loadData = async () => {
       setLoading(true);
-      const fetchedStory = fetchStoryById(storyId);
+      setError(null);
 
-      if (fetchedStory) {
+      try {
+        // Renamed inner variable to avoid shadowing, then used the new state.
+        const { story: fetchedStory, authorData: fetchedAuthorData } =
+          await fetchStoryAndAuthor(storyId);
+
+        if (!fetchedStory) {
+          setStory(null);
+          setError("Story not found.");
+          setLoading(false);
+          return;
+        }
+
         setStory(fetchedStory);
+        setAuthorData(fetchedAuthorData || {}); // ⬅️ SET authorData state
 
-        // Fetch Author
-        const fetchedAuthor = fetchUserById(fetchedStory.author);
+        // Set Author Name
         setAuthorName(
-          fetchedAuthor
-            ? fetchedAuthor.name || `User ${fetchedAuthor.id}`
-            : `User ${fetchedStory.author}`
+          fetchedAuthorData?.name ||
+            fetchedAuthorData?.username ||
+            `User ${fetchedStory.author || "N/A"}`
         );
 
-        // Fetch Recommendations
-        const fetchedRecommendations = fetchRecommendations(fetchedStory);
+        // Fetch Recommendations using the new API method
+        const fetchedRecommendations = await fetchRecommendations(fetchedStory);
         setRecommendations(fetchedRecommendations);
 
-        // initialize like/save based on localStorage user state (if available)
+        // Initialize like/save based on localStorage
         try {
           const raw = localStorage.getItem("sf_user");
           if (raw) {
@@ -130,13 +205,18 @@ export default function StoryPage() {
           setIsLiked(false);
           setIsSaved(false);
         }
-      } else {
-        setStory(null);
-        setRecommendations([]);
+      } catch (err) {
+        console.error("Error loading story data:", err);
+        setError("An error occurred while loading the story.");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }
-  }, [storyId]);
+    };
+
+    loadData();
+    // Include updateLocalSfUserArrays in dependency array as it's used within a scope
+    // Though it's memoized to be stable, linting requires it if used outside of its definition scope.
+  }, [storyId, updateLocalSfUserArrays]);
 
   // helper: ensure user is logged in or show modal
   const ensureAuthOrPrompt = () => {
@@ -145,89 +225,33 @@ export default function StoryPage() {
     return false;
   };
 
-  // helper: update localStorage's sf_user likedStories/savedStories arrays
-  const updateLocalSfUserArrays = ({ add = true, listName, storyId }) => {
-    try {
-      const raw = localStorage.getItem("sf_user");
-      let sf = raw ? JSON.parse(raw) : null;
-      if (!sf) {
-        // If there's no sf_user yet, create a minimal structure
-        sf = {
-          id: null,
-          email: "",
-          username: "",
-          name: "",
-          bio: "",
-          profileImage: "",
-          followers: [],
-          following: [],
-          savedStories: [],
-          likedStories: [],
-        };
-      }
-
-      const arr = Array.isArray(sf[listName]) ? [...sf[listName]] : [];
-      const idx = arr.indexOf(storyId);
-      if (add) {
-        if (idx === -1) arr.push(storyId);
-      } else {
-        if (idx !== -1) arr.splice(idx, 1);
-      }
-      sf[listName] = arr;
-
-      localStorage.setItem("sf_user", JSON.stringify(sf));
-    } catch (e) {
-      console.error("Failed to update sf_user in localStorage:", e);
-    }
-  };
-
-  // Handler for Like button
-  const handleLikeClick = async () => {
+  // Handler for Like button (remains largely the same, now relying on the stable update helper)
+  const handleLikeClick = () => {
     if (!ensureAuthOrPrompt()) return;
-
-    // toggle local state for instant feedback
     const newLiked = !isLiked;
     setIsLiked(newLiked);
-
-    // update localStorage sf_user
     updateLocalSfUserArrays({
       add: newLiked,
       listName: "likedStories",
       storyId: story.id,
     });
-
-    // TODO: persist to server (example)
-    // try {
-    //   await fetch('/api/stories/like', {
-    //     method: 'POST',
-    //     headers: {'Content-Type': 'application/json'},
-    //     body: JSON.stringify({ storyId: story.id, userId: user.id, like: newLiked })
-    //   });
-    // } catch (e) { console.error('Failed to persist like', e); }
+    // TODO: persist to server
   };
 
-  // Handler for Save button
-  const handleSaveClick = async () => {
+  // Handler for Save button (remains largely the same, now relying on the stable update helper)
+  const handleSaveClick = () => {
     if (!ensureAuthOrPrompt()) return;
-
     const newSaved = !isSaved;
     setIsSaved(newSaved);
-
     updateLocalSfUserArrays({
       add: newSaved,
       listName: "savedStories",
       storyId: story.id,
     });
-
-    // TODO: persist to server (example)
-    // try {
-    //   await fetch('/api/stories/save', {
-    //     method: 'POST',
-    //     headers: {'Content-Type': 'application/json'},
-    //     body: JSON.stringify({ storyId: story.id, userId: user.id, save: newSaved })
-    //   });
-    // } catch (e) { console.error('Failed to persist save', e); }
+    // TODO: persist to server
   };
+
+  // Removed the original `updateLocalSfUserArrays` definition as it's now a `useCallback` helper.
 
   if (loading) {
     return (
@@ -240,16 +264,20 @@ export default function StoryPage() {
     );
   }
 
-  if (!story) {
+  if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-        <p className="text-red-500 text-lg">Story not found</p>
+        <p className="text-red-500 text-lg">Error: {error}</p>
       </div>
     );
   }
 
+  // The rest of the return statement (JSX) remains the same
+  // ... (rest of the component's JSX remains the same as it relies on the state variables)
+
   const finalContent = cleanContent(story.content);
-  const primaryGenre = story.genres[0];
+  const primaryGenre =
+    story.genres && story.genres.length > 0 ? story.genres[0] : "General";
 
   return (
     <>
@@ -271,19 +299,37 @@ export default function StoryPage() {
                 )}
                 <div className="flex items-center gap-6 pt-4">
                   <Link
-                    href={`/authors/${story.author}`}
+                    // Link to the author page using the author's ID from the state
+                    href={`/authors/${authorData.username || ""}`}
                     className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                   >
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
-                      {authorName.charAt(0).toUpperCase()}
+                    {/* ⬇️ MODIFIED: Author Avatar Logic ⬇️ */}
+                    <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center">
+                      {authorData.profileImage ? (
+                        <img
+                          src={authorData.profileImage}
+                          alt={`${authorName}'s profile`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                          {authorName.charAt(1).toUpperCase()}
+                        </div>
+                      )}
                     </div>
+                    {/* ⬆️ MODIFIED: Author Avatar Logic ⬆️ */}
+
                     <div>
                       <p className="text-sm font-medium text-[var(--foreground)] hover:underline">
                         {authorName}
                       </p>
-                      <p className="text-xs text-[var(--foreground)]/50">
-                        Story Author
-                      </p>
+                      {/* ⬇️ MODIFIED: Display Username ⬇️ */}
+                      {authorData.username && (
+                        <p className="text-xs text-[var(--foreground)]/50">
+                          {authorData.username}
+                        </p>
+                      )}
+                      {/* ⬆️ MODIFIED: Display Username ⬆️ */}
                     </div>
                   </Link>
                   <div className="h-10 w-px bg-[var(--foreground)]/20"></div>
@@ -350,6 +396,7 @@ export default function StoryPage() {
         {/* Story Content */}
         <div className="py-20 px-6">
           <div className="max-w-3xl mx-auto">
+            {/* The global style JSX block remains unchanged */}
             <style jsx global>{`
               .story-content p {
                 margin-top: 4px;
@@ -436,6 +483,7 @@ export default function StoryPage() {
 
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
                 {recommendations.map((recStory) => (
+                  // The StoryCard component will likely need to handle the new ID format from the API
                   <StoryCard key={recStory.id} story={recStory} />
                 ))}
               </div>
@@ -455,7 +503,7 @@ export default function StoryPage() {
         <Footer />
       </div>
 
-      {/* Login Prompt Modal (for Like/Save) */}
+      {/* Login Prompt Modal (remains unchanged) */}
       {showLoginPrompt && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"

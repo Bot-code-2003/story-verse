@@ -1,60 +1,175 @@
-import { connectDB } from "@/lib/mongodb";
+// src/app/api/stories/[storyId]/route.js
+import { NextResponse } from "next/server";
+import { connectToDB } from "@/lib/mongodb";
 import Story from "@/models/Story";
-import { ObjectId } from "mongodb";
+import User from "@/models/User";
+import mongoose from "mongoose";
 
-export async function GET(request, { params }) {
+export async function GET(req, { params }) {
+  try {
+    // params is a Promise in the Next app router - must await
+    const { storyId } = await params;
+    if (!storyId) {
+      return NextResponse.json({ error: "Missing storyId" }, { status: 400 });
+    }
+
+    await connectToDB();
+
+    const query = mongoose.Types.ObjectId.isValid(storyId)
+      ? { _id: new mongoose.Types.ObjectId(storyId) }
+      : { _id: storyId };
+
+    // Try populate explicitly selecting public user fields
+    let story = await Story.findOne(query)
+      .populate({
+        path: "author",
+        model: "User",
+        select: "username name bio profileImage",
+      })
+      .lean();
+
+    if (!story)
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    // Build authorData robustly
+    let authorData = null;
+
+    if (
+      story.author &&
+      typeof story.author === "object" &&
+      (story.author._id || story.author.username)
+    ) {
+      authorData = {
+        id: story.author._id ? String(story.author._id) : null,
+        username: story.author.username || null,
+        name: story.author.name || null,
+        bio: story.author.bio || null,
+        profileImage: story.author.profileImage || null,
+      };
+    } else if (story.author && typeof story.author === "object") {
+      // Could be an ObjectId wrapper — try manual lookup
+      const maybeId = story.author.toString ? story.author.toString() : null;
+      if (maybeId && mongoose.Types.ObjectId.isValid(maybeId)) {
+        const userDoc = await User.findById(maybeId)
+          .select("username name bio profileImage")
+          .lean();
+        if (userDoc) {
+          authorData = {
+            id: String(userDoc._id),
+            username: userDoc.username || null,
+            name: userDoc.name || null,
+            bio: userDoc.bio || null,
+            profileImage: userDoc.profileImage || null,
+          };
+        } else {
+          authorData = { id: maybeId };
+        }
+      } else {
+        authorData = story.author;
+      }
+    } else if (story.author && typeof story.author === "string") {
+      // Legacy string — try id then username
+      if (mongoose.Types.ObjectId.isValid(story.author)) {
+        const userDoc = await User.findById(story.author)
+          .select("username name bio profileImage")
+          .lean();
+        if (userDoc) {
+          authorData = {
+            id: String(userDoc._id),
+            username: userDoc.username || null,
+            name: userDoc.name || null,
+            bio: userDoc.bio || null,
+            profileImage: userDoc.profileImage || null,
+          };
+        } else {
+          authorData = { id: story.author };
+        }
+      } else {
+        const userDoc = await User.findOne({ username: story.author })
+          .select("username name bio profileImage")
+          .lean();
+        authorData = userDoc
+          ? {
+              id: String(userDoc._id),
+              username: userDoc.username || null,
+              name: userDoc.name || null,
+              bio: userDoc.bio || null,
+              profileImage: userDoc.profileImage || null,
+            }
+          : { username: story.author };
+      }
+    } else {
+      authorData = null;
+    }
+
+    // Normalize story payload for the client
+    const normalizedStory = { ...story };
+    normalizedStory.id = normalizedStory._id?.toString?.();
+    normalizedStory.author =
+      typeof normalizedStory.author === "object"
+        ? normalizedStory.author._id
+          ? String(normalizedStory.author._id)
+          : normalizedStory.author.toString
+          ? String(normalizedStory.author.toString())
+          : null
+        : normalizedStory.author;
+
+    return NextResponse.json({ ok: true, story: normalizedStory, authorData });
+  } catch (err) {
+    console.error("GET /api/stories/[storyId] error:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
+export async function PUT(req, { params }) {
   try {
     const { storyId } = await params;
+    if (!storyId)
+      return NextResponse.json({ error: "Missing storyId" }, { status: 400 });
 
-    // Validate if it's a valid MongoDB ObjectId
-    let query = {};
-    try {
-      if (ObjectId.isValid(storyId)) {
-        query = { _id: new ObjectId(storyId) };
-      } else {
-        // Fallback to string ID for backward compatibility
-        query = { _id: storyId };
-      }
-    } catch {
-      query = { _id: storyId };
-    }
+    const body = await req.json();
 
-    await connectDB();
-    const story = await Story.findOne(query);
+    const allowed = [
+      "title",
+      "description",
+      "content",
+      "coverImage",
+      "readTime",
+      "genre",
+      "genres",
+      "tags",
+      "published",
+      // if you allow changing author, include it here but cast below
+      // "author",
+    ];
+    const update = {};
+    for (const k of allowed) if (body[k] !== undefined) update[k] = body[k];
 
-    if (!story) {
-      return new Response(JSON.stringify({ error: "Story not found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    if (update.tags && !Array.isArray(update.tags)) update.tags = [update.tags];
+    if (update.genres && !Array.isArray(update.genres))
+      update.genres = [update.genres];
 
-    // Return story with proper formatting
-    const storyData = {
-      id: story._id.toString(),
-      title: story.title,
-      description: story.description || "",
-      content: story.content || "",
-      author: story.author,
-      coverImage: story.coverImage || "",
-      readTime: story.readTime || 0,
-      genre: story.genre || "",
-      tags: story.tags || [],
-      likes: story.likes || 0,
-      comments: story.comments || [],
-      published: story.published !== false,
-      createdAt: story.createdAt,
-    };
+    // OPTIONAL: if you want to accept author in PUT and cast to ObjectId:
+    // if (body.author && mongoose.Types.ObjectId.isValid(body.author)) {
+    //   update.author = new mongoose.Types.ObjectId(body.author);
+    // }
 
-    return new Response(JSON.stringify(storyData), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    console.error("/api/stories/[storyId] error:", error);
-    return new Response(JSON.stringify({ error: "Failed to fetch story" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    await connectToDB();
+
+    const query = mongoose.Types.ObjectId.isValid(storyId)
+      ? { _id: new mongoose.Types.ObjectId(storyId) }
+      : { _id: storyId };
+
+    const updated = await Story.findOneAndUpdate(query, update, {
+      new: true,
+    }).lean();
+    if (!updated)
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    updated.id = updated._id?.toString?.();
+    return NextResponse.json({ ok: true, story: updated });
+  } catch (err) {
+    console.error("PUT /api/stories/[storyId] error:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

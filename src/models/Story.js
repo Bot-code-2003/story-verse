@@ -8,13 +8,10 @@ const storySchema = new mongoose.Schema(
     },
     description: String,
     content: String,
-    author: {
-      type: String, // Can reference User ID
-      required: true,
-    },
+    author: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     coverImage: String,
     readTime: Number,
-    genre: String,
+    genres: [String],
     tags: [String],
     likes: {
       type: Number,
