@@ -2,31 +2,37 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { BookOpen, Calendar, Edit2 } from "lucide-react";
+import { BookOpen, Calendar, Edit2, Heart, Bookmark } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import EditProfileModal from "@/components/EditProfileModal";
 import { useAuth } from "@/context/AuthContext";
-import StoryCard from "@/components/StoryCard"; // <-- use the existing StoryCard
+import StoryCard from "@/components/StoryCard";
+import Footer from "./Footer";
 
 export default function AuthorPage() {
   const params = useParams();
-  const rawParam = params?.authorUsername || ""; // whatever the dynamic segment is named
+  const rawParam = params?.authorUsername || "";
   const router = useRouter();
   const { user: loggedInUser } = useAuth();
 
-  // Normalize param: decode percent encoding, remove leading @, trim, lowercase for comparisons
   const decoded = decodeURIComponent(rawParam || "");
   const authorUsername = decoded.trim();
-  const authorUsernameForFetch = authorUsername; // use this in API calls
+  const authorUsernameForFetch = authorUsername;
 
   const [author, setAuthor] = useState(null);
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
 
-  // compute logged-in username normalized (no @)
+  // Tab state
+  const [activeTab, setActiveTab] = useState("stories"); // "stories" | "liked" | "saved"
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   const loggedUsername =
     (loggedInUser?.username || "").toString().trim().toLowerCase() || null;
 
@@ -37,7 +43,6 @@ export default function AuthorPage() {
   );
 
   useEffect(() => {
-    console.log("authorUser: ", authorUsernameForFetch);
     if (!authorUsernameForFetch) {
       setError("Invalid author");
       setLoading(false);
@@ -49,10 +54,16 @@ export default function AuthorPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authorUsernameForFetch]);
 
+  // Fetch stories when tab changes
+  useEffect(() => {
+    if (author) {
+      fetchStories(1, true); // Reset to page 1 when tab changes
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, author]);
+
   async function fetchAuthorData() {
     try {
-      // fetch author by normalized username (no leading @)
-      console.log("Fetching data for author:", authorUsernameForFetch);
       const authorRes = await fetch(
         `/api/authors/${encodeURIComponent(authorUsernameForFetch)}`
       );
@@ -61,66 +72,77 @@ export default function AuthorPage() {
       }
       const authorData = await authorRes.json();
       setAuthor(authorData);
-
-      // fetch stories by author (route expected to accept username)
-      const storiesRes = await fetch(
-        `/api/authors/${encodeURIComponent(authorUsernameForFetch)}/stories`
-      );
-      if (storiesRes.ok) {
-        const storiesData = await storiesRes.json();
-        const arr = Array.isArray(storiesData) ? storiesData : [];
-
-        // If we have authorData from /api/authors/... use it to normalize story.author
-        const normalized = arr.map((s) => {
-          // if author is already an object with username, keep it
-          if (s.author && typeof s.author === "object" && s.author.username) {
-            return {
-              ...s,
-              author: {
-                ...s.author,
-                username: String(s.author.username).replace(/^@/, ""),
-              },
-            };
-          }
-
-          // Otherwise replace with the author we already fetched
-          const clientAuthorObj = {
-            id: authorData?.id || authorData?._id || null,
-            username:
-              (authorData?.username || authorData?.username === ""
-                ? String(authorData.username || "").replace(/^@/, "")
-                : authorUsername) || authorUsername,
-            name: authorData?.name || null,
-            profileImage: authorData?.profileImage || null,
-          };
-
-          return { ...s, author: clientAuthorObj };
-        });
-
-        setStories(normalized);
-      } else {
-        setStories([]);
-      }
+      setLoading(false);
     } catch (err) {
       console.error("Error fetching author data:", err);
       setError(err.message || "Error fetching author");
       setAuthor(null);
       setStories([]);
-    } finally {
       setLoading(false);
     }
   }
 
+  async function fetchStories(pageNum = 1, reset = false) {
+    if (reset) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
+    try {
+      let endpoint = "";
+      
+      if (activeTab === "stories") {
+        endpoint = `/api/authors/${encodeURIComponent(authorUsernameForFetch)}/stories?page=${pageNum}&limit=18`;
+      } else if (activeTab === "liked") {
+        endpoint = `/api/authors/${encodeURIComponent(authorUsernameForFetch)}/liked?page=${pageNum}&limit=18`;
+      } else if (activeTab === "saved") {
+        endpoint = `/api/authors/${encodeURIComponent(authorUsernameForFetch)}/saved?page=${pageNum}&limit=18`;
+      }
+
+      const storiesRes = await fetch(endpoint);
+      if (storiesRes.ok) {
+        const data = await storiesRes.json();
+        const fetchedStories = data.stories || [];
+
+        if (reset) {
+          setStories(fetchedStories);
+          setPage(1);
+        } else {
+          setStories((prev) => [...prev, ...fetchedStories]);
+          setPage(pageNum);
+        }
+
+        setHasMore(data.pagination?.hasMore || false);
+      } else {
+        setStories([]);
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error("Error fetching stories:", err);
+      if (reset) {
+        setStories([]);
+      }
+      setHasMore(false);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }
+
+  const loadMore = () => {
+    if (!loadingMore && hasMore) {
+      fetchStories(page + 1, false);
+    }
+  };
+
   const handleProfileSave = async (updatedUser) => {
-    // update local author state
     setAuthor(updatedUser);
 
-    // if the logged-in user edited their own profile, update localStorage sf_user so UI stays in sync
     try {
       const raw = localStorage.getItem("sf_user");
       if (raw) {
         const sf = JSON.parse(raw);
-        // Only update local sf_user if this is the same logged-in user (by username)
         const sfUsername = (sf.username || "")
           .toString()
           .replace(/^@/, "")
@@ -136,7 +158,7 @@ export default function AuthorPage() {
     setShowEditModal(false);
   };
 
-  if (loading) {
+  if (loading && !author) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
         <div className="text-center space-y-4">
@@ -168,8 +190,8 @@ export default function AuthorPage() {
     );
   }
 
-  // Display name: prefer name, else username (but show @ in UI)
-  const displayName = author.name || author.username;
+  const displayName = author.name;
+  const displayUsername = author.username;
   const displayedWithAt =
     "@" +
     (author.username ? author.username.replace(/^@/, "") : authorUsername);
@@ -204,6 +226,9 @@ export default function AuthorPage() {
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-[var(--foreground)] mb-2">
                   {displayName}
                 </h1>
+                <p className="mt-4 text-sm text-[var(--foreground)]/60">
+                  {displayUsername}
+                </p>
               </div>
 
               {/* Edit Profile (only visible to owner) */}
@@ -217,27 +242,6 @@ export default function AuthorPage() {
                 </button>
               )}
 
-              {/* Stats */}
-              <div className="flex items-center justify-center gap-8 pt-4">
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-[var(--foreground)]">
-                    {stories.length}
-                  </p>
-                  <p className="text-sm text-[var(--foreground)]/60">
-                    {stories.length === 1 ? "Story" : "Stories"}
-                  </p>
-                </div>
-                <div className="h-12 w-px bg-[var(--foreground)]/20"></div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-[var(--foreground)]">
-                    {stories.reduce((total, s) => total + (s.readTime || 0), 0)}
-                  </p>
-                  <p className="text-sm text-[var(--foreground)]/60">
-                    Min Read
-                  </p>
-                </div>
-              </div>
-
               {/* Bio */}
               {author.bio && (
                 <p className="max-w-2xl mx-auto text-lg text-[var(--foreground)]/70 leading-relaxed pt-4">
@@ -248,44 +252,123 @@ export default function AuthorPage() {
           </div>
         </div>
 
+        {/* Tabs (only for own profile) */}
+        {isOwnProfile && (
+          <div className="border-b border-[var(--foreground)]/10">
+            <div className="max-w-5xl mx-auto px-6">
+              <div className="flex gap-8">
+                <button
+                  onClick={() => setActiveTab("stories")}
+                  className={`pb-4 px-2 font-medium transition-colors relative ${
+                    activeTab === "stories"
+                      ? "text-blue-600"
+                      : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]"
+                  }`}
+                >
+                  <BookOpen className="inline w-5 h-5 mr-2" />
+                  My Stories
+                  {activeTab === "stories" && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>
+                  )}
+                </button>
+                <button
+                  onClick={() => setActiveTab("liked")}
+                  className={`pb-4 px-2 font-medium transition-colors relative ${
+                    activeTab === "liked"
+                      ? "text-blue-600"
+                      : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]"
+                  }`}
+                >
+                  <Heart className="inline w-5 h-5 mr-2" />
+                  Liked
+                  {activeTab === "liked" && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>
+                  )}
+                </button>
+                <button
+                  onClick={() => setActiveTab("saved")}
+                  className={`pb-4 px-2 font-medium transition-colors relative ${
+                    activeTab === "saved"
+                      ? "text-blue-600"
+                      : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]"
+                  }`}
+                >
+                  <Bookmark className="inline w-5 h-5 mr-2" />
+                  Saved
+                  {activeTab === "saved" && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Stories */}
         <div className="py-16 px-6">
           <div className="max-w-5xl mx-auto">
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-[var(--foreground)] mb-2">
-                Published Stories
+                {isOwnProfile
+                  ? activeTab === "stories"
+                    ? "My Stories"
+                    : activeTab === "liked"
+                    ? "Liked Stories"
+                    : "Saved Stories"
+                  : "Published Stories"}
               </h2>
               <p className="text-[var(--foreground)]/60">
-                All stories written by {displayedWithAt}
+                {isOwnProfile
+                  ? activeTab === "stories"
+                    ? `All stories written by you`
+                    : activeTab === "liked"
+                    ? `Stories you've liked`
+                    : `Stories you've saved`
+                  : `All stories written by ${displayedWithAt}`}
               </p>
             </div>
 
-            {stories.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-16">
+                <div className="w-12 h-12 border-2 border-[var(--foreground)]/20 border-t-[var(--foreground)] rounded-full animate-spin mx-auto"></div>
+              </div>
+            ) : stories.length === 0 ? (
               <div className="text-center py-16">
                 <BookOpen className="w-16 h-16 text-[var(--foreground)]/30 mx-auto mb-4" />
                 <p className="text-xl text-[var(--foreground)]/60">
-                  No stories published yet
+                  {activeTab === "stories"
+                    ? "No stories published yet"
+                    : activeTab === "liked"
+                    ? "No liked stories yet"
+                    : "No saved stories yet"}
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {stories.map((story) => (
-                  // StoryCard already handles its own Link; don't wrap it
-                  <StoryCard key={story.id} story={story} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {stories.map((story) => (
+                    <StoryCard key={story.id} story={story} />
+                  ))}
+                </div>
+
+                {hasMore && (
+                  <div className="flex justify-center mt-8">
+                    <button
+                      onClick={loadMore}
+                      disabled={loadingMore}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loadingMore ? "Loading..." : "Load More"}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="border-t border-[var(--foreground)]/10 py-8 bg-[var(--background)]">
-          <div className="max-w-7xl mx-auto px-6 text-center">
-            <p className="text-[var(--foreground)]/50 text-sm">
-              &copy; {new Date().getFullYear()} My Story App
-            </p>
-          </div>
-        </div>
+        <Footer />
       </div>
 
       {/* Edit Profile Modal */}
@@ -294,7 +377,6 @@ export default function AuthorPage() {
         onClose={() => setShowEditModal(false)}
         user={author}
         onSave={handleProfileSave}
-        loading={isUpdating}
       />
     </>
   );

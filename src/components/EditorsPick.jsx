@@ -70,7 +70,7 @@ export default function EditorsPick({ stories }) {
                 <div className="flex items-center justify-center gap-2 text-xs text-[var(--foreground)]/50 pt-2">
                   <span>{story.readTime} min</span>
                   <span>•</span>
-                  <span>{story.authorName || `Author ${story.author}`}</span>
+                  <span>{story.author.username || `Author ${story.author.username}`}</span>
                 </div>
               </div>
             </article>

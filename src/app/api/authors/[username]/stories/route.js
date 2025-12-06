@@ -21,6 +21,12 @@ export async function GET(req, { params }) {
 
     await connectToDB();
 
+    // Get pagination params
+    const url = new URL(req.url);
+    const page = parseInt(url.searchParams.get("page") || "1");
+    const limit = parseInt(url.searchParams.get("limit") || "18");
+    const skip = (page - 1) * limit;
+
     // try find user doc by username (try both without @ and with @)
     let userDoc = await User.findOne({
       $or: [{ username: usernameNoAt }, { username: usernameWithAt }],
@@ -32,14 +38,23 @@ export async function GET(req, { params }) {
     }
 
     let stories = [];
+    let totalCount = 0;
 
     if (userDoc && userDoc._id) {
-      // Author stored as ObjectId ref -> fetch stories by author id
+      // Get total count
+      totalCount = await Story.countDocuments({
+        author: userDoc._id,
+        published: true,
+      });
+
+      // Author stored as ObjectId ref -> fetch stories by author id with pagination
       stories = await Story.find({
         author: userDoc._id,
         published: true,
       })
         .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
         .lean();
     } else {
       // Fallback: maybe author stored as a string (username or @username)
@@ -69,8 +84,16 @@ export async function GET(req, { params }) {
       return ns;
     });
 
-    // Return an array (client expects an array)
-    return NextResponse.json(normalized, { status: 200 });
+    // Return an array with pagination info
+    return NextResponse.json({
+      stories: normalized,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        hasMore: skip + normalized.length < totalCount,
+      },
+    }, { status: 200 });
   } catch (err) {
     console.error("GET /api/authors/[username]/stories error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

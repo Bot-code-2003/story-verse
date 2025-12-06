@@ -186,7 +186,7 @@ const EditProfileModal = ({ isOpen, onClose, user, onSave, loading }) => {
 
               <div className="grid md:grid-cols-2 gap-4">
                 {/* Name */}
-                {/* <div className="space-y-2">
+                <div className="space-y-2">
                   <label className="block text-sm font-medium text-[var(--foreground)]">
                     Name
                   </label>
@@ -198,7 +198,7 @@ const EditProfileModal = ({ isOpen, onClose, user, onSave, loading }) => {
                     placeholder="Your full name"
                     className="w-full px-4 py-3 rounded-xl bg-[var(--foreground)]/5 border border-[var(--foreground)]/10 text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 focus:border-blue-500 focus:outline-none transition"
                   />
-                </div> */}
+                </div>
 
                 {/* Username */}
                 <div className="space-y-2">

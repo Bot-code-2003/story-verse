@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { connectToDB } from "@/lib/mongodb";
 import Story from "@/models/Story";
 import User from "@/models/User";
+import StoryLike from "@/models/StoryLike";
+import StorySave from "@/models/StorySave";
 import mongoose from "mongoose";
 
 export async function GET(req, { params }) {
@@ -114,7 +116,29 @@ export async function GET(req, { params }) {
           : null
         : normalizedStory.author;
 
-    return NextResponse.json({ ok: true, story: normalizedStory, authorData });
+    // Check if user has liked or saved this story (if userId provided in query)
+    const url = new URL(req.url);
+    const userId = url.searchParams.get("userId");
+    
+    let liked = false;
+    let saved = false;
+    
+    if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+      const [likeDoc, saveDoc] = await Promise.all([
+        StoryLike.findOne({ user: userId, story: storyId }).lean(),
+        StorySave.findOne({ user: userId, story: storyId }).lean(),
+      ]);
+      liked = !!likeDoc;
+      saved = !!saveDoc;
+    }
+
+    return NextResponse.json({ 
+      ok: true, 
+      story: normalizedStory, 
+      authorData,
+      liked,
+      saved,
+    });
   } catch (err) {
     console.error("GET /api/stories/[storyId] error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

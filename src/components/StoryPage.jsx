@@ -22,15 +22,19 @@ const MAX_RECOMMENDATIONS = 6;
 /**
  * Fetches the story and author data from the new API endpoint.
  * @param {string} id - The story ID.
- * @returns {{story: object, authorData: object | null}}
+ * @param {string} userId - Optional user ID to check liked/saved state
+ * @returns {{story: object, authorData: object | null, liked: boolean, saved: boolean}}
  */
-const fetchStoryAndAuthor = async (id) => {
-  const url = `/api/stories/${encodeURIComponent(id)}`;
+const fetchStoryAndAuthor = async (id, userId = null) => {
+  let url = `/api/stories/${encodeURIComponent(id)}`;
+  if (userId) {
+    url += `?userId=${encodeURIComponent(userId)}`;
+  }
   const response = await fetch(url);
 
   if (!response.ok) {
     // Check for 404 specifically
-    if (response.status === 404) return { story: null, authorData: null };
+    if (response.status === 404) return { story: null, authorData: null, liked: false, saved: false };
     throw new Error(`Failed to fetch story ${id}: ${response.statusText}`);
   }
 
@@ -39,6 +43,8 @@ const fetchStoryAndAuthor = async (id) => {
   return {
     story: data.story,
     authorData: data.authorData,
+    liked: data.liked || false,
+    saved: data.saved || false,
   };
 };
 
@@ -115,6 +121,14 @@ export default function StoryPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
+  // Comments state
+  const [comments, setComments] = useState([]);
+  const [commentsPage, setCommentsPage] = useState(1);
+  const [hasMoreComments, setHasMoreComments] = useState(false);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [newCommentText, setNewCommentText] = useState("");
+  const [submittingComment, setSubmittingComment] = useState(false);
+
   // Login prompt modal state (for like/save when not logged in)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
@@ -158,9 +172,11 @@ export default function StoryPage() {
       setError(null);
 
       try {
-        // Renamed inner variable to avoid shadowing, then used the new state.
-        const { story: fetchedStory, authorData: fetchedAuthorData } =
-          await fetchStoryAndAuthor(storyId);
+        const userId = user?._id || user?.id || null;
+        
+        // Fetch story with liked/saved state from API
+        const { story: fetchedStory, authorData: fetchedAuthorData, liked, saved } =
+          await fetchStoryAndAuthor(storyId, userId);
 
         if (!fetchedStory) {
           setStory(null);
@@ -170,7 +186,9 @@ export default function StoryPage() {
         }
 
         setStory(fetchedStory);
-        setAuthorData(fetchedAuthorData || {}); // ⬅️ SET authorData state
+        setAuthorData(fetchedAuthorData || {});
+        setIsLiked(liked);
+        setIsSaved(saved);
 
         // Set Author Name
         setAuthorName(
@@ -179,31 +197,13 @@ export default function StoryPage() {
             `User ${fetchedStory.author || "N/A"}`
         );
 
-        // Fetch Recommendations using the new API method
+        // Fetch Recommendations
         const fetchedRecommendations = await fetchRecommendations(fetchedStory);
         setRecommendations(fetchedRecommendations);
 
-        // Initialize like/save based on localStorage
-        try {
-          const raw = localStorage.getItem("sf_user");
-          if (raw) {
-            const sf = JSON.parse(raw);
-            setIsLiked(
-              Array.isArray(sf.likedStories) &&
-                sf.likedStories.includes(fetchedStory.id)
-            );
-            setIsSaved(
-              Array.isArray(sf.savedStories) &&
-                sf.savedStories.includes(fetchedStory.id)
-            );
-          } else {
-            setIsLiked(false);
-            setIsSaved(false);
-          }
-        } catch (e) {
-          console.error("Failed to read sf_user:", e);
-          setIsLiked(false);
-          setIsSaved(false);
+        // Fetch initial comments
+        if (userId) {
+          fetchComments(1, true);
         }
       } catch (err) {
         console.error("Error loading story data:", err);
@@ -220,35 +220,197 @@ export default function StoryPage() {
 
   // helper: ensure user is logged in or show modal
   const ensureAuthOrPrompt = () => {
-    if (user) return true;
+  if (user) return true;
     setShowLoginPrompt(true);
     return false;
   };
 
-  // Handler for Like button (remains largely the same, now relying on the stable update helper)
-  const handleLikeClick = () => {
-    if (!ensureAuthOrPrompt()) return;
-    const newLiked = !isLiked;
-    setIsLiked(newLiked);
-    updateLocalSfUserArrays({
-      add: newLiked,
-      listName: "likedStories",
-      storyId: story.id,
-    });
-    // TODO: persist to server
+  // Fetch comments with pagination
+  const fetchComments = async (page = 1, reset = false) => {
+    if (reset) {
+      setLoadingComments(true);
+    }
+
+    try {
+      const userId = user?._id || user?.id || null;
+      let url = `/api/stories/${encodeURIComponent(storyId)}/comments?page=${page}&limit=20`;
+      if (userId) {
+        url += `&userId=${encodeURIComponent(userId)}`;
+      }
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to fetch comments");
+
+      const data = await res.json();
+      
+      if (reset) {
+        setComments(data.comments || []);
+        setCommentsPage(1);
+      } else {
+        setComments((prev) => [...prev, ...(data.comments || [])]);
+        setCommentsPage(page);
+      }
+
+      setHasMoreComments(data.pagination?.hasMore || false);
+    } catch (err) {
+      console.error("Error fetching comments:", err);
+    } finally {
+      setLoadingComments(false);
+    }
   };
 
-  // Handler for Save button (remains largely the same, now relying on the stable update helper)
-  const handleSaveClick = () => {
+  const loadMoreComments = () => {
+    if (!loadingComments && hasMoreComments) {
+      fetchComments(commentsPage + 1, false);
+    }
+  };
+
+  const handleSubmitComment = async () => {
     if (!ensureAuthOrPrompt()) return;
+    if (!newCommentText.trim()) return;
+
+    setSubmittingComment(true);
+    try {
+      const userId = user?._id || user?.id;
+      const res = await fetch(`/api/stories/${encodeURIComponent(storyId)}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, text: newCommentText.trim() }),
+      });
+
+      if (!res.ok) throw new Error("Failed to post comment");
+
+      const data = await res.json();
+      // Add new comment to the beginning of the list
+      setComments((prev) => [data.comment, ...prev]);
+      setNewCommentText("");
+    } catch (err) {
+      console.error("Error posting comment:", err);
+      alert("Failed to post comment. Please try again.");
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  const handleCommentLike = async (commentId, currentlyLiked) => {
+    if (!ensureAuthOrPrompt()) return;
+
+    // Optimistic update
+    setComments((prev) =>
+      prev.map((c) =>
+        c.id === commentId
+          ? {
+              ...c,
+              liked: !currentlyLiked,
+              likesCount: currentlyLiked ? c.likesCount - 1 : c.likesCount + 1,
+            }
+          : c
+      )
+    );
+
+    try {
+      const userId = user?._id || user?.id;
+      const res = await fetch(`/api/comments/${encodeURIComponent(commentId)}/like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          action: currentlyLiked ? "unlike" : "like",
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to like comment");
+
+      const data = await res.json();
+      // Update with server response
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === commentId
+            ? { ...c, liked: data.liked, likesCount: data.likesCount }
+            : c
+        )
+      );
+    } catch (err) {
+      console.error("Error liking comment:", err);
+      // Revert optimistic update
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === commentId
+            ? {
+                ...c,
+                liked: currentlyLiked,
+                likesCount: currentlyLiked ? c.likesCount + 1 : c.likesCount - 1,
+              }
+            : c
+        )
+      );
+    }
+  };
+
+  // Handler for Like button - now uses API
+  const handleLikeClick = async () => {
+    if (!ensureAuthOrPrompt()) return;
+    if (!story) return;
+
+    const newLiked = !isLiked;
+    setIsLiked(newLiked);
+
+    try {
+      const userId = user?._id || user?.id;
+      const res = await fetch(
+        `/api/stories/${encodeURIComponent(story.id)}/like`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId,
+            action: newLiked ? "like" : "unlike",
+          }),
+        }
+      );
+
+      if (!res.ok) throw new Error(`Like API failed: ${res.status}`);
+
+      const data = await res.json();
+      // Update the likes count from server response
+      if (typeof data.likes === "number") {
+        setStory((prev) => (prev ? { ...prev, likes: data.likes, likesCount: data.likes } : prev));
+      }
+    } catch (err) {
+      console.error("Failed to update like on server:", err);
+      // Revert optimistic update
+      setIsLiked(!newLiked);
+    }
+  };
+
+  // Handler for Save button - now uses API
+  const handleSaveClick = async () => {
+    if (!ensureAuthOrPrompt()) return;
+    if (!story) return;
+
     const newSaved = !isSaved;
     setIsSaved(newSaved);
-    updateLocalSfUserArrays({
-      add: newSaved,
-      listName: "savedStories",
-      storyId: story.id,
-    });
-    // TODO: persist to server
+
+    try {
+      const userId = user?._id || user?.id;
+      const res = await fetch(
+        `/api/stories/${encodeURIComponent(story.id)}/save`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId,
+            action: newSaved ? "save" : "unsave",
+          }),
+        }
+      );
+
+      if (!res.ok) throw new Error(`Save API failed: ${res.status}`);
+    } catch (err) {
+      console.error("Failed to update save on server:", err);
+      // Revert optimistic update
+      setIsSaved(!newSaved);
+    }
   };
 
   // Removed the original `updateLocalSfUserArrays` definition as it's now a `useCallback` helper.
@@ -470,6 +632,110 @@ export default function StoryPage() {
               className="story-content"
               dangerouslySetInnerHTML={{ __html: finalContent }}
             />
+          </div>
+        </div>
+
+        {/* Comments Section */}
+        <div className="py-16 px-6 border-t border-[var(--foreground)]/10">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-2xl font-bold mb-6 text-[var(--foreground)]">
+              Comments
+            </h2>
+
+            {/* Add Comment Form (if logged in) */}
+            {user && (
+              <div className="mb-8">
+                <textarea
+                  value={newCommentText}
+                  onChange={(e) => setNewCommentText(e.target.value)}
+                  placeholder="Add a comment..."
+                  className="w-full p-4 border border-[var(--foreground)]/20 rounded-lg bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                />
+                <button
+                  onClick={handleSubmitComment}
+                  disabled={submittingComment || !newCommentText.trim()}
+                  className="mt-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submittingComment ? "Posting..." : "Post Comment"}
+                </button>
+              </div>
+            )}
+
+            {/* Comments List */}
+            {comments.length > 0 ? (
+              <div className="space-y-6">
+                {comments.map((comment) => (
+                  <div
+                    key={comment.id}
+                    className="border-b border-[var(--foreground)]/10 pb-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                        {comment.user?.profileImage ? (
+                          <img
+                            src={comment.user.profileImage}
+                            alt={comment.user.name || "User"}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span>
+                            {(comment.user?.name || "U").charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium text-[var(--foreground)]">
+                            {comment.user?.name || "Anonymous"}
+                          </span>
+                          <span className="text-sm text-[var(--foreground)]/50">
+                            {new Date(comment.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-[var(--foreground)]/80 mb-2">
+                          {comment.text}
+                        </p>
+                        <button
+                          onClick={() =>
+                            handleCommentLike(comment.id, comment.liked)
+                          }
+                          className={`text-sm flex items-center gap-1 transition ${
+                            comment.liked
+                              ? "text-red-500"
+                              : "text-[var(--foreground)]/60 hover:text-red-500"
+                          }`}
+                        >
+                          <Heart
+                            className={`w-4 h-4 ${
+                              comment.liked ? "fill-current" : ""
+                            }`}
+                          />
+                          <span>{comment.likesCount || 0}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[var(--foreground)]/50 text-center py-8">
+                No comments yet. Be the first to comment!
+              </p>
+            )}
+
+            {/* Load More Comments */}
+            {hasMoreComments && (
+              <div className="flex justify-center mt-8">
+                <button
+                  onClick={loadMoreComments}
+                  disabled={loadingComments}
+                  className="px-6 py-2 border border-[var(--foreground)]/20 text-[var(--foreground)]/80 rounded-lg hover:bg-[var(--foreground)]/5 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingComments ? "Loading..." : "Load More Comments"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

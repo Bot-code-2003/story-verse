@@ -9,8 +9,6 @@ const UserSchema = new mongoose.Schema({
   profileImage: { type: String, default: "" },
   followers: { type: [String], default: [] },
   following: { type: [String], default: [] },
-  savedStories: { type: [String], default: [] },
-  likedStories: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
 });
 

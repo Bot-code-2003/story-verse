@@ -7,6 +7,10 @@ const storySchema = new mongoose.Schema(
       required: true,
     },
     description: String,
+    isEditorPicked: {
+      type: Boolean,
+      default: false,
+    },
     content: String,
     author: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     coverImage: String,
@@ -17,13 +21,10 @@ const storySchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    comments: [
-      {
-        userId: String,
-        text: String,
-        timestamp: Date,
-      },
-    ],
+    likesCount: {
+      type: Number,
+      default: 0,
+    },
     published: {
       type: Boolean,
       default: true,

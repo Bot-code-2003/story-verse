@@ -82,7 +82,7 @@ export default function BrowseMenu({ isMobile = false }) {
         <div className="grid grid-cols-2 gap-2">
           {GENRE_TILES.map((tile) => (
             <Link
-              href={`/genres/${tile.name.toLowerCase().replace(/ /g, "-")}`}
+              href={`/genre/${encodeURIComponent(tile.name)}`}
               key={tile.name}
               className="group block"
             >
@@ -146,7 +146,7 @@ export default function BrowseMenu({ isMobile = false }) {
           <div className="grid grid-cols-4 gap-3">
             {GENRE_TILES.map((tile) => (
               <Link
-                href={`/genres/${tile.name.toLowerCase().replace(/ /g, "-")}`}
+                href={`/genre/${encodeURIComponent(tile.name).toLowerCase()}`}
                 key={tile.name}
                 className="group block"
               >

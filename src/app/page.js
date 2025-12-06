@@ -1,12 +1,7 @@
 // src/app/page.js
-
 "use client";
 
 import { useState, useEffect } from "react";
-
-// The local data imports are removed as we will fetch dynamically
-// import storiesData from "@/data/stories.json";
-// import usersData from "@/data/users.json";
 
 import Carousel from "@/components/Carousel";
 import StoryCard from "@/components/StoryCard";
@@ -18,24 +13,7 @@ import FeaturedAuthor from "@/components/FeaturedAuthor";
 import EditorsPick from "@/components/EditorsPick";
 import Footer from "@/components/Footer";
 
-// Utility function to fetch stories by genre
-const fetchStories = async (genre) => {
-  // Use the API route you created: /api/stories?genre=<genre>
-  const url = `/api/stories?genre=${encodeURIComponent(genre)}`;
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    console.error(`Failed to fetch ${genre} stories:`, response.statusText);
-    return [];
-  }
-
-  const data = await response.json();
-  // Ensure we are returning the array of stories
-  return data.stories || [];
-};
-
-// This component can stay the same, but we will call it from the main Home component
-/* ---------------------- SECTION COMPONENT (Reusable Story List Row) ---------------------- */
+// ---------------------- SECTION COMPONENT (Reusable Story List Row) ----------------------
 function Section({ title, items }) {
   if (!items || items.length === 0) return null;
 
@@ -57,11 +35,13 @@ function Section({ title, items }) {
 // End of Section component
 
 export default function Home() {
-  const [stories, setStories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // global / main lists
+  const [stories, setStories] = useState([]); // using trending as the main 'stories' fallback
+  const [latest, setLatest] = useState([]);
+  const [quickReads, setQuickReads] = useState([]);
+  const [editorPicks, setEditorPicks] = useState([]); // ⭐ editor picks
 
-  // State for specific genre sections to be fetched independently (or filtered from 'stories')
+  // genre-specific lists
   const [adventure, setAdventure] = useState([]);
   const [fantasy, setFantasy] = useState([]);
   const [thrillers, setThrillers] = useState([]);
@@ -70,77 +50,108 @@ export default function Home() {
   const [horror, setHorror] = useState([]);
   const [sliceOfLife, setSliceOfLife] = useState([]);
   const [drama, setDrama] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // helper to fetch a route and return stories array (or empty)
+  const fetchRouteStories = async (url) => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) {
+        console.warn(`fetch ${url} failed:`, res.status);
+        return [];
+      }
+      const json = await res.json();
+      return json?.stories || [];
+    } catch (err) {
+      console.warn(`fetch ${url} error:`, err);
+      return [];
+    }
+  };
+
   useEffect(() => {
-    // Function to fetch the initial 'Trending Now' and 'New Releases' data
-    const fetchInitialData = async () => {
+    const fetchAll = async () => {
+      setLoading(true);
+      setError(null);
+
       try {
-        // Fetch all stories (or a default set) for the main sections.
-        // Since your API requires a filter, we'll fetch a common one or adjust the API.
-        // ASSUMPTION: We'll fetch 'Fantasy' as a starting point for now,
-        // or you'd need a separate endpoint to get the "Trending/New" list.
-        // For this refactor, we'll fetch a list of top stories regardless of genre.
-        // *** To properly get Trending/New, you'd need a backend endpoint like /api/stories/trending ***
+        // parallel fetch: trending/latest/quickreads + editor picks + genres
+        const [
+          trendingList,
+          latestList,
+          quickReadsList,
+          editorPicksList,
+          adventureList,
+          fantasyList,
+          thrillersList,
+          romanceList,
+          sciFiList,
+          horrorList,
+          sliceOfLifeList,
+          dramaList,
+        ] = await Promise.all([
+          fetchRouteStories("/api/stories/trending"),
+          fetchRouteStories("/api/stories/latest"),
+          fetchRouteStories("/api/stories/quickreads"),
+          fetchRouteStories("/api/stories/editorpicks"), // ⭐ new endpoint
+          fetchRouteStories("/api/stories?genre=Adventure"),
+          fetchRouteStories("/api/stories?genre=Fantasy"),
+          fetchRouteStories("/api/stories?genre=Thriller"),
+          fetchRouteStories("/api/stories?genre=Romance"),
+          fetchRouteStories("/api/stories?genre=Sci-Fi"),
+          fetchRouteStories("/api/stories?genre=Horror"),
+          fetchRouteStories("/api/stories?genre=Slice%20of%20Life"),
+          fetchRouteStories("/api/stories?genre=Drama"),
+        ]);
 
-        // For demonstration, let's fetch a common list for 'Trending'
-        const trendingList = await fetchStories("AnyPopularGenre"); // Assuming 'AnyPopularGenre' exists or endpoint is adjusted
+        // Use the fetched lists, with sensible fallbacks
+        const finalTrending = trendingList.length
+          ? trendingList.slice(0, 10)
+          : [];
+        const finalLatest = latestList.length ? latestList.slice(0, 10) : [];
+        const finalQuickReads = quickReadsList.length
+          ? quickReadsList.slice(0, 10)
+          : [];
+        const finalEditorPicks = editorPicksList.length
+          ? editorPicksList.slice(0, 10)
+          : [];
 
-        setStories(trendingList);
+        setStories(finalTrending); // trending used as main 'stories' fallback
+        setLatest(finalLatest);
+        setQuickReads(finalQuickReads);
+        setEditorPicks(finalEditorPicks); // ⭐ set editor picks
+        console.log("finalEditorPicks", finalEditorPicks);
+        // update genres to show up to 10 each as well
+        setAdventure((adventureList && adventureList.slice(0, 10)) || []);
+        setFantasy((fantasyList && fantasyList.slice(0, 10)) || []);
+        setThrillers((thrillersList && thrillersList.slice(0, 10)) || []);
+        setRomance((romanceList && romanceList.slice(0, 10)) || []);
+        setSciFi((sciFiList && sciFiList.slice(0, 10)) || []);
+        setHorror((horrorList && horrorList.slice(0, 10)) || []);
+        setSliceOfLife((sliceOfLifeList && sliceOfLifeList.slice(0, 10)) || []);
+        setDrama((dramaList && dramaList.slice(0, 10)) || []);
       } catch (err) {
-        console.error("Failed to fetch initial stories:", err);
-        setError("Failed to load initial stories.");
+        console.error("Failed to fetch initial data:", err);
+        setError("Failed to load stories.");
       } finally {
         setLoading(false);
       }
     };
 
-    // Function to fetch specific genre sections, using the API's genre filter
-    const fetchGenreSections = async () => {
-      // Since your API handles the genre filtering, we just call the fetcher
-      const [
-        adventureList,
-        fantasyList,
-        thrillersList,
-        romanceList,
-        sciFiList,
-        horrorList,
-        sliceOfLifeList,
-        dramaList,
-      ] = await Promise.all([
-        fetchStories("Adventure"),
-        fetchStories("Fantasy"),
-        fetchStories("Thriller"),
-        fetchStories("Romance"),
-        fetchStories("Sci-Fi"),
-        fetchStories("Horror"),
-        fetchStories("Slice of Life"),
-        fetchStories("Drama"),
-      ]);
+    fetchAll();
+  }, []);
 
-      setAdventure(adventureList.slice(0, 6));
-      setFantasy(fantasyList.slice(0, 6));
-      setThrillers(thrillersList.slice(0, 6));
-      setRomance(romanceList.slice(0, 6));
-      setSciFi(sciFiList.slice(0, 6));
-      setHorror(horrorList.slice(0, 6));
-      setSliceOfLife(sliceOfLifeList.slice(0, 6));
-      setDrama(dramaList.slice(0, 6));
-    };
+  // Derived UI lists
+  const trending = stories.slice(0, 10); // trending comes from /api/stories/trending
 
-    // Run all fetches
-    fetchInitialData();
-    fetchGenreSections();
-  }, []); // Empty dependency array means this runs once on mount
-
-  // --- Data Filtering and Sorting for Sections based on fetched 'stories' ---
-  // Since the API now does the genre filtering, we just need to handle sorting/slicing on the main list
-
-  // NOTE: If the API doesn't provide sorting, we sort the main 'stories' array.
-  // We'll use the 'stories' state for the 'Trending Now' and calculate 'New Releases'.
-  const trending = stories.slice(0, 6); // Assuming the fetched 'stories' are already trending/popular
-
-  const newReleases = [...stories]
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 6);
+  // New Releases: prefer backend 'latest'; fallback to sorting 'stories' by createdAt
+  const newReleases =
+    latest && latest.length
+      ? latest.slice(0, 10)
+      : [...stories]
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 10);
 
   // --- Loading and Error States ---
   if (loading) {
@@ -165,10 +176,6 @@ export default function Home() {
     );
   }
 
-  // NOTE: Genres like `magicrealism`, `mystery`, `sliceOfLife`, `drama`, and `poetry`
-  // were in the original file but not fetched/filtered here.
-  // You would need to add `fetchStories` calls for them like the others if needed.
-
   return (
     <main className="min-h-screen w-full bg-[var(--background)]">
       <SiteHeader />
@@ -178,8 +185,12 @@ export default function Home() {
 
         {/* ---------------------- SECTIONS ---------------------- */}
         <Section title="Trending Now" items={trending} />
-        <EditorsPick stories={stories} />
-        <ShortReads stories={stories} />
+
+        {/* ⭐ use editorPicks instead of stories */}
+        <EditorsPick stories={editorPicks} />
+
+        {/* Pass quickReads directly to ShortReads to avoid client-side filtering */}
+        <ShortReads stories={quickReads} />
         <FeaturedAuthor />
         <Section title="New Releases" items={newReleases} />
         <DiscoverGenres />
@@ -203,7 +214,6 @@ export default function Home() {
         {romance.length > 0 && (
           <Section title="Romance Stories" items={romance} />
         )}
-        {/* Sci-Fi and Horror fetched separately above */}
         {sciFi.length > 0 && <Section title="Sci-Fi" items={sciFi} />}
         {horror.length > 0 && <Section title="Horror Stories" items={horror} />}
       </div>

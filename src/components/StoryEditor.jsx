@@ -77,12 +77,6 @@ const SuccessModal = ({ isOpen, onClose, storyId }) => {
         </p>
         <div className="flex flex-col gap-3">
           <button
-            onClick={() => router.push(`/stories/${storyId}`)}
-            className="w-full px-4 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
-          >
-            View Story
-          </button>
-          <button
             onClick={() => router.push("/")}
             className="w-full px-4 py-2 rounded-md border border-[var(--foreground)]/20 text-[var(--foreground)] font-medium hover:bg-[var(--foreground)]/5 transition-colors"
           >

@@ -31,11 +31,11 @@ export default function BecomeAuthorBanner() {
               <div className="flex flex-col sm:flex-row gap-4 pt-2">
                 <Link
                   href="/login"
-                  className="px-8 py-4 rounded-full font-semibold text-white bg-black hover:bg-black/90 transition-colors"
+                  className="px-8 py-4 rounded-full font-semibold text-white bg-blue-500 hover:bg-blue-600 transition-colors"
                 >
                   Sign Up to Write
                 </Link>
-                <button className="px-8 py-4 rounded-full font-semibold text-[var(--foreground)] border-2 border-[var(--foreground)]/20 hover:border-[var(--foreground)]/40 transition-colors">
+                <button className="px-8 py-4 rounded-full font-semibold text-[var(--foreground)] bg-[var(--foreground)]/10 hover:bg-[var(--foreground)]/20 transition-colors">
                   Learn More
                 </button>
               </div>
