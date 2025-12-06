@@ -1,124 +1,42 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // Added useEffect
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
 
-const LoginForm = ({
-  email,
-  password,
-  setEmail,
-  setPassword,
-  onSubmit,
-  loading,
-  error,
-  onSwitchToSignup,
-}) => (
+// ... [Keep LoginForm and SignupForm components exactly as they are] ...
+const LoginForm = ({ email, password, setEmail, setPassword, onSubmit, loading, error, onSwitchToSignup }) => (
   <form onSubmit={onSubmit} className="space-y-5">
+    {/* ... inputs ... */}
     <div>
-      <input
-        type="email"
-        placeholder="Email address"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 focus:border-gray-400 focus:outline-none transition text-gray-900 placeholder:text-gray-400"
-        required
-      />
+      <input type="email" placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 focus:border-gray-400 focus:outline-none transition text-gray-900 placeholder:text-gray-400" required />
     </div>
     <div>
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 focus:border-gray-400 focus:outline-none transition text-gray-900 placeholder:text-gray-400"
-        required
-      />
+      <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 focus:border-gray-400 focus:outline-none transition text-gray-900 placeholder:text-gray-400" required />
     </div>
-    {error && (
-      <div className="text-sm text-red-600 bg-red-50 px-4 py-3 rounded-xl">
-        {error}
-      </div>
-    )}
-    <button
-      disabled={loading}
-      type="submit"
-      className="w-full py-3.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      {loading ? "Signing in..." : "Sign In"}
-    </button>
+    {error && <div className="text-sm text-red-600 bg-red-50 px-4 py-3 rounded-xl">{error}</div>}
+    <button disabled={loading} type="submit" className="w-full py-3.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed">{loading ? "Signing in..." : "Sign In"}</button>
     <div className="text-center pt-2">
-      <button
-        type="button"
-        onClick={onSwitchToSignup}
-        className="text-sm text-gray-600 hover:text-gray-900 transition"
-      >
-        Don't have an account?{" "}
-        <span className="font-semibold text-blue-600 hover:text-blue-700">
-          Sign up
-        </span>
-      </button>
+      <button type="button" onClick={onSwitchToSignup} className="text-sm text-gray-600 hover:text-gray-900 transition">Don't have an account? <span className="font-semibold text-blue-600 hover:text-blue-700">Sign up</span></button>
     </div>
   </form>
 );
 
-const SignupForm = ({
-  email,
-  password,
-  setEmail,
-  setPassword,
-  onSubmit,
-  loading,
-  error,
-  onSwitchToLogin,
-}) => (
+const SignupForm = ({ email, password, setEmail, setPassword, onSubmit, loading, error, onSwitchToLogin }) => (
   <form onSubmit={onSubmit} className="space-y-5">
+    {/* ... inputs ... */}
     <div>
-      <input
-        type="email"
-        placeholder="Email address"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 focus:border-gray-400 focus:outline-none transition text-gray-900 placeholder:text-gray-400"
-        required
-      />
+      <input type="email" placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 focus:border-gray-400 focus:outline-none transition text-gray-900 placeholder:text-gray-400" required />
     </div>
     <div>
-      <input
-        type="password"
-        placeholder="Password (min. 6 characters)"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 focus:border-gray-400 focus:outline-none transition text-gray-900 placeholder:text-gray-400"
-        required
-        minLength={6}
-      />
+      <input type="password" placeholder="Password (min. 6 characters)" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 focus:border-gray-400 focus:outline-none transition text-gray-900 placeholder:text-gray-400" required minLength={6} />
     </div>
-    {error && (
-      <div className="text-sm text-red-600 bg-red-50 px-4 py-3 rounded-xl">
-        {error}
-      </div>
-    )}
-    <button
-      disabled={loading}
-      type="submit"
-      className="w-full py-3.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      {loading ? "Creating account..." : "Create Account"}
-    </button>
+    {error && <div className="text-sm text-red-600 bg-red-50 px-4 py-3 rounded-xl">{error}</div>}
+    <button disabled={loading} type="submit" className="w-full py-3.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed">{loading ? "Creating account..." : "Create Account"}</button>
     <div className="text-center pt-2">
-      <button
-        type="button"
-        onClick={onSwitchToLogin}
-        className="text-sm text-gray-600 hover:text-gray-900 transition"
-      >
-        Already have an account?{" "}
-        <span className="font-semibold text-blue-600 hover:text-blue-700">
-          Sign in
-        </span>
-      </button>
+      <button type="button" onClick={onSwitchToLogin} className="text-sm text-gray-600 hover:text-gray-900 transition">Already have an account? <span className="font-semibold text-blue-600 hover:text-blue-700">Sign in</span></button>
     </div>
   </form>
 );
@@ -126,6 +44,10 @@ const SignupForm = ({
 export default function LoginPage() {
   const { user, login, signup } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // 1. Calculate redirect path
+  const redirectTo = searchParams.get("redirect") || "/";
 
   const [view, setView] = useState("login");
   const [email, setEmail] = useState("");
@@ -133,10 +55,16 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  if (user) {
-    router.push("/");
-    return null;
-  }
+  // 2. FIXED: Use useEffect to handle the redirect to avoid render-cycle errors
+  // AND use the 'redirectTo' variable instead of hardcoding "/"
+  useEffect(() => {
+    if (user) {
+      router.push(redirectTo);
+    }
+  }, [user, router, redirectTo]);
+
+  // 3. Return null while redirecting to prevent flash of content
+  if (user) return null;
 
   const onSwitchToSignup = () => {
     setView("signup");
@@ -154,11 +82,12 @@ export default function LoginPage() {
     setError("");
     try {
       await login({ email, password });
-      router.push("/");
+      // The useEffect above will handle the redirect once 'user' state updates
+      // But we can keep this here for immediate redundancy
+      router.push(redirectTo);
     } catch (err) {
       setError(err.message || "Login failed. Check credentials.");
-    } finally {
-      setLoading(false);
+      setLoading(false); // Only stop loading on error, otherwise keep loading till redirect
     }
   };
 
@@ -168,10 +97,9 @@ export default function LoginPage() {
     setError("");
     try {
       await signup({ email, password });
-      router.push("/");
+      router.push(redirectTo);
     } catch (err) {
       setError(err.message || "Signup failed. Try a different email.");
-    } finally {
       setLoading(false);
     }
   };

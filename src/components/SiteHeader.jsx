@@ -220,7 +220,7 @@ export default function SiteHeader() {
               <button
                 onClick={() => {
                   setShowLoginPrompt(false);
-                  router.push("/login");
+                  router.push("/login?redirect=/write");
                 }}
                 className="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
               >

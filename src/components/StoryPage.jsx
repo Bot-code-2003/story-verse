@@ -201,10 +201,8 @@ export default function StoryPage() {
         const fetchedRecommendations = await fetchRecommendations(fetchedStory);
         setRecommendations(fetchedRecommendations);
 
-        // Fetch initial comments
-        if (userId) {
-          fetchComments(1, true);
-        }
+        // Fetch initial comments (always fetch, even if not logged in)
+        fetchComments(1, true);
       } catch (err) {
         console.error("Error loading story data:", err);
         setError("An error occurred while loading the story.");
@@ -214,9 +212,8 @@ export default function StoryPage() {
     };
 
     loadData();
-    // Include updateLocalSfUserArrays in dependency array as it's used within a scope
-    // Though it's memoized to be stable, linting requires it if used outside of its definition scope.
-  }, [storyId, updateLocalSfUserArrays]);
+  }, [storyId, user]); // Added user to dependencies to refetch when user logs in/out
+
 
   // helper: ensure user is logged in or show modal
   const ensureAuthOrPrompt = () => {
@@ -515,6 +512,9 @@ export default function StoryPage() {
                     />
                     <span className="text-sm">
                       {isLiked ? "Liked" : "Like"}
+                      {typeof story.likesCount === "number" && story.likesCount > 0 && (
+                        <span className="ml-1 opacity-80">· {story.likesCount}</span>
+                      )}
                     </span>
                   </button>
 
@@ -639,7 +639,7 @@ export default function StoryPage() {
         <div className="py-16 px-6 border-t border-[var(--foreground)]/10">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-2xl font-bold mb-6 text-[var(--foreground)]">
-              Comments
+              Comments {comments.length > 0 && <span className="text-lg font-normal text-[var(--foreground)]/60">({comments.length})</span>}
             </h2>
 
             {/* Add Comment Form (if logged in) */}
@@ -697,9 +697,13 @@ export default function StoryPage() {
                           {comment.text}
                         </p>
                         <button
-                          onClick={() =>
-                            handleCommentLike(comment.id, comment.liked)
-                          }
+                          onClick={() => {
+                            if (!user) {
+                              setShowLoginPrompt(true);
+                              return;
+                            }
+                            handleCommentLike(comment.id, comment.liked);
+                          }}
                           className={`text-sm flex items-center gap-1 transition ${
                             comment.liked
                               ? "text-red-500"
@@ -756,7 +760,7 @@ export default function StoryPage() {
 
               <div className="text-center pt-10">
                 <button
-                  onClick={() => router.push(`/?genre=${primaryGenre}`)}
+                  onClick={() => router.push(`/genre/${primaryGenre}`)}
                   className="px-6 py-2 border border-[var(--foreground)]/20 text-[var(--foreground)]/80 rounded-full text-sm hover:bg-[var(--foreground)]/10 transition-colors"
                 >
                   View More {primaryGenre} Stories
@@ -797,22 +801,22 @@ export default function StoryPage() {
               <button
                 onClick={() => {
                   setShowLoginPrompt(false);
-                  router.push("/login");
+                  router.push(`/login?redirect=${encodeURIComponent(`/stories/${storyId}`)}`);
                 }}
                 className="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
               >
                 Log in
               </button>
 
-              <button
+              {/* <button
                 onClick={() => {
                   setShowLoginPrompt(false);
-                  router.push("/signup");
+                  router.push(`/login?redirect=${encodeURIComponent(`/stories/${storyId}`)}`);
                 }}
                 className="flex-1 px-4 py-2 rounded-xl border border-[var(--foreground)]/20 text-[var(--foreground)] font-semibold hover:bg-[var(--foreground)]/5 transition"
               >
                 Create account
-              </button>
+              </button> */}
 
               <button
                 onClick={() => setShowLoginPrompt(false)}
