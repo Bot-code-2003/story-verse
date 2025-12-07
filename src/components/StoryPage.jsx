@@ -15,6 +15,72 @@ import StoryCard from "@/components/StoryCard";
 import Footer from "@/components/Footer"; // Corrected import path (assuming Footer is in components)
 import { useAuth } from "@/context/AuthContext";
 
+
+const GENRE_TILES = [
+  {
+    name: "Fantasy",
+    image:
+      "https://cdn.pixabay.com/photo/2024/05/16/10/56/forest-8765686_1280.jpg",
+    count: "124 stories",
+  },
+  {
+    name: "Romance",
+    image:
+      "https://cdn.pixabay.com/photo/2021/10/29/13/30/love-6751932_1280.jpg",
+    count: "89 stories",
+  },
+  {
+    name: "Thriller",
+    image:
+      "https://cdn.pixabay.com/photo/2024/08/03/21/42/ai-generated-8943227_1280.png",
+    count: "156 stories",
+  },
+  {
+    name: "Sci-Fi",
+    image:
+      "https://cdn.pixabay.com/photo/2018/04/05/15/19/abstract-3293076_1280.jpg",
+    count: "98 stories",
+  },
+  {
+    name: "Horror",
+    image:
+      "https://images.unsplash.com/photo-1696012976137-f901d345e694?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzV8fGdob3N0c3xlbnwwfDF8MHx8fDI%3D",
+    count: "67 stories",
+  },
+  {
+    name: "Slice of Life",
+    image:
+      "https://cdn.pixabay.com/photo/2020/07/14/13/42/boat-5404195_1280.jpg",
+    count: "143 stories",
+  },
+  {
+    name: "Adventure",
+    image:
+      "https://cdn.pixabay.com/photo/2019/07/25/17/09/camp-4363073_1280.png",
+    count: "112 stories",
+  },
+  {
+    name: "Drama",
+    image:
+      "https://cdn.pixabay.com/photo/2025/05/23/01/24/ai-generated-9616743_1280.jpg",
+    count: "78 stories",
+  },
+];
+
+
+const getGenreFallback = (genres = []) => {
+  if (!Array.isArray(genres) || genres.length === 0) return null;
+
+  const primaryGenre = genres[0];
+
+  const matchedGenre = GENRE_TILES.find(
+    (g) => g.name.toLowerCase() === primaryGenre.toLowerCase()
+  );
+
+  return matchedGenre?.image || null;
+};
+
+
 const MAX_RECOMMENDATIONS = 6;
 
 // --- API FETCH UTILITIES ---
@@ -95,7 +161,60 @@ const fetchRecommendations = async (currentStory) => {
 
 const cleanContent = (content) => {
   if (!content) return "";
-  return content;
+
+  // If it looks like HTML, sanitize it
+  if (/<[a-z][\s\S]*>/i.test(content)) {
+    // Create a temporary div to parse HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = content;
+    
+    // Fix nested heading tags (e.g., <h2><h1>...</h1>...</h2>)
+    const headings = tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    headings.forEach(heading => {
+      // If a heading contains another heading, unwrap the inner one
+      const innerHeadings = heading.querySelectorAll('h1, h2, h3, h4, h5, h6');
+      innerHeadings.forEach(inner => {
+        // Move inner heading's content to parent and remove inner heading
+        while (inner.firstChild) {
+          heading.insertBefore(inner.firstChild, inner);
+        }
+        inner.remove();
+      });
+      
+      // If heading has mixed content (text + other elements), clean it up
+      if (heading.children.length > 0) {
+        const textContent = heading.textContent;
+        heading.innerHTML = textContent;
+      }
+    });
+    
+    // Remove any data attributes that might be causing issues
+    const allElements = tempDiv.querySelectorAll('*');
+    allElements.forEach(el => {
+      Array.from(el.attributes).forEach(attr => {
+        if (attr.name.startsWith('data-')) {
+          el.removeAttribute(attr.name);
+        }
+      });
+    });
+    
+    return tempDiv.innerHTML;
+  }
+
+  // If it's plain text, convert to paragraphs
+  const text = content.replace(/\r\n/g, "\n").trim();
+  const paragraphs = text.split(/\n\s*\n+/);
+
+  const htmlParagraphs = paragraphs.map((para) => {
+    const escaped = para
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    const withBreaks = escaped.replace(/\n/g, "<br />");
+    return `<p>${withBreaks}</p>`;
+  });
+
+  return htmlParagraphs.join("\n");
 };
 
 // --- MAIN COMPONENT ---
@@ -435,15 +554,69 @@ export default function StoryPage() {
   // ... (rest of the component's JSX remains the same as it relies on the state variables)
 
   const finalContent = cleanContent(story.content);
-  const primaryGenre =
-    story.genres && story.genres.length > 0 ? story.genres[0] : "General";
+const primaryGenre =
+  story.genres && story.genres.length > 0 ? story.genres[0] : "General";
+
+// ✅ New: compute cover fallback from primary genre
+const coverGenreFallback = getGenreFallback(story.genres || []);
+const finalCoverImage = story.coverImage || coverGenreFallback;
+
 
   return (
     <>
       <SiteHeader />
       <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+        {/* Structured Data for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Article",
+              "headline": story.title,
+              "description": story.description || story.content?.substring(0, 160),
+              "image": finalCoverImage,
+              "datePublished": story.createdAt,
+              "dateModified": story.updatedAt || story.createdAt,
+              "author": {
+                "@type": "Person",
+                "name": authorName,
+                "url": `https://storyverse.com/authors/${authorData.username || ''}`
+              },
+              "publisher": {
+                "@type": "Organization",
+                "name": "StoryVerse",
+                "logo": {
+                  "@type": "ImageObject",
+                  "url": "https://storyverse.com/logo.png"
+                }
+              },
+              "mainEntityOfPage": {
+                "@type": "WebPage",
+                "@id": `https://storyverse.com/stories/${story.id}`
+              },
+              "genre": story.genres || [],
+              "wordCount": story.content?.split(/\s+/).length || 0,
+              "timeRequired": `PT${story.readTime || 5}M`,
+              "interactionStatistic": [
+                {
+                  "@type": "InteractionCounter",
+                  "interactionType": "https://schema.org/LikeAction",
+                  "userInteractionCount": story.likesCount || 0
+                },
+                {
+                  "@type": "InteractionCounter",
+                  "interactionType": "https://schema.org/CommentAction",
+                  "userInteractionCount": comments.length || 0
+                }
+              ]
+            })
+          }}
+        />
+        
         {/* Hero/Header Section */}
         <div className="pt-24 pb-16 px-6">
+
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16 items-center">
               {/* Left: Title, Description, Author, Buttons */}
@@ -540,7 +713,7 @@ export default function StoryPage() {
               <div className="relative flex justify-center lg:justify-center lg:col-span-1">
                 <div className="relative w-64 md:w-72 rounded-2xl overflow-hidden border border-[var(--foreground)]/10 shadow-xl">
                   <img
-                    src={story.coverImage}
+                    src={finalCoverImage}
                     alt={story.title}
                     className="w-full h-full object-cover"
                   />
@@ -560,64 +733,80 @@ export default function StoryPage() {
           <div className="max-w-3xl mx-auto">
             {/* The global style JSX block remains unchanged */}
             <style jsx global>{`
+              .story-content {
+                line-height: 1.9;
+                font-size: 1.125rem;
+                color: var(--foreground);
+              }
+              
               .story-content p {
-                margin-top: 4px;
                 margin-bottom: 1.5rem;
                 line-height: 1.9;
                 font-size: 1.125rem;
                 color: var(--foreground);
-                opacity: 0.8;
+                opacity: 0.85;
                 font-weight: 300;
               }
+              
               .story-content p:first-child {
                 margin-top: 0;
               }
-              .story-content p:first-child::first-letter {
-                font-size: 4rem;
-                line-height: 1;
-                float: left;
-                margin-right: 0.75rem;
-                margin-top: 0.25rem;
-                font-weight: 700;
-                color: #2563eb;
-              }
-              .story-content h1,
-              .story-content h2,
-              .story-content h3 {
+              
+              .story-content h1 {
+                font-size: 2.25rem;
+                font-weight: 600;
                 margin-top: 3rem;
                 margin-bottom: 1.5rem;
-                font-weight: 600;
                 color: var(--foreground);
                 letter-spacing: -0.025em;
               }
-              .story-content h1 {
-                font-size: 2.25rem;
-              }
+              
               .story-content h2 {
                 font-size: 1.875rem;
+                font-weight: 600;
+                margin-top: 3rem;
+                margin-bottom: 1.5rem;
+                color: var(--foreground);
+                letter-spacing: -0.025em;
               }
+              
               .story-content h3 {
                 font-size: 1.5rem;
+                font-weight: 600;
+                margin-top: 2.5rem;
+                margin-bottom: 1.25rem;
+                color: var(--foreground);
               }
+              
+              .story-content h1:first-child,
+              .story-content h2:first-child,
+              .story-content h3:first-child {
+                margin-top: 0;
+              }
+              
               .story-content strong {
                 color: var(--foreground);
                 font-weight: 600;
               }
+              
               .story-content em {
                 font-style: italic;
                 color: var(--foreground);
-                opacity: 0.7;
+                opacity: 0.8;
               }
+              
               .story-content a {
                 color: #2563eb;
                 text-decoration: none;
                 border-bottom: 1px solid #2563eb;
                 transition: all 0.2s;
               }
+              
               .story-content a:hover {
                 color: #1d4ed8;
                 border-bottom-color: #1d4ed8;
               }
+              
               .story-content blockquote {
                 border-left: 3px solid #2563eb;
                 padding-left: 2rem;

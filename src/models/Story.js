@@ -7,23 +7,18 @@ const storySchema = new mongoose.Schema(
       required: true,
     },
     description: String,
-    isEditorPicked: {
-      type: Boolean,
-      default: false,
-    },
     content: String,
     author: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     coverImage: String,
     readTime: Number,
     genres: [String],
-    tags: [String],
-    likes: {
-      type: Number,
-      default: 0,
-    },
     likesCount: {
       type: Number,
       default: 0,
+    },
+    editorPick: {
+      type: Boolean,
+      default: false,
     },
     published: {
       type: Boolean,

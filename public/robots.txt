@@ -1,0 +1,10 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /write
+Disallow: /login
+Disallow: /profile
+
+# Sitemap
+Sitemap: https://storyverse.com/sitemap.xml

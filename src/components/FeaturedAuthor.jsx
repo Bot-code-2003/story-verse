@@ -123,7 +123,7 @@ export default function FeaturedAuthors() {
                 </h3>
               </Link>
               <p className="text-sm text-[var(--foreground)]/50 mt-1">
-                @{currentAuthor.username}
+                {currentAuthor.username}
               </p>
             </div>
 
@@ -152,7 +152,7 @@ export default function FeaturedAuthors() {
                 className="group relative rounded-xl overflow-hidden border border-[var(--foreground)]/10 hover:border-blue-500/50 bg-[var(--background)] transition-all hover:shadow-xl"
               >
                 {/* Story Cover Image */}
-                <div className="relative h-48 overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600">
+                <div className="relative h-60 overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600">
                   {story.coverImage ? (
                     <img
                       src={story.coverImage}

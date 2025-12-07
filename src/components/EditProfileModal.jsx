@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X, Eye, EyeOff, User, Lock } from "lucide-react";
+import { compressProfileImage } from "@/lib/imageCompression";
 
 const EditProfileModal = ({ isOpen, onClose, user, onSave, loading }) => {
   const [formData, setFormData] = useState({
@@ -23,6 +24,7 @@ const EditProfileModal = ({ isOpen, onClose, user, onSave, loading }) => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     if (user && isOpen) {
@@ -254,11 +256,50 @@ const EditProfileModal = ({ isOpen, onClose, user, onSave, loading }) => {
                 </p>
               </div>
 
-              {/* Profile Image URL */}
-              <div className="space-y-2">
+              {/* Profile Image */}
+              <div className="space-y-3">
                 <label className="block text-sm font-medium text-[var(--foreground)]">
-                  Profile Image URL
+                  Profile Image (160x160, WebP, less than 10KB)
                 </label>
+                
+                {/* Upload Button */}
+                <label className="block">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      
+                      if (file.size > 2 * 1024 * 1024) {
+                        setError("Image too large. Maximum 2MB");
+                        return;
+                      }
+                      
+                      setUploadingImage(true);
+                      setError("");
+                      try {
+                        const compressed = await compressProfileImage(file);
+                        setFormData(prev => ({ ...prev, profileImage: compressed }));
+                        setSuccess("Image uploaded and compressed");
+                        setTimeout(() => setSuccess(""), 2000);
+                      } catch (error) {
+                        setError(error.message || "Failed to compress image");
+                      } finally {
+                        setUploadingImage(false);
+                        e.target.value = "";
+                      }
+                    }}
+                    className="hidden"
+                    id="profile-upload"
+                  />
+                  <div className="w-full px-4 py-3 bg-blue-600 text-white text-center rounded-xl cursor-pointer hover:bg-blue-700 transition font-medium">
+                    {uploadingImage ? "Compressing..." : "Upload Image"}
+                  </div>
+                </label>
+                
+                {/* URL Input */}
+                <div className="text-center text-xs text-[var(--foreground)]/50">or</div>
                 <input
                   type="url"
                   name="profileImage"

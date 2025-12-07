@@ -11,20 +11,22 @@ const slides = [
     title: "A Home for Short Fiction",
     subtitle:
       "Big ideas. Compact stories. 7,000 words max.",
-    image:
-      "https://i.pinimg.com/1200x/cd/d7/93/cdd7932243d43e78cfedc2768f1dafb4.jpg",
-    cta: "",
-    ctaHref: "", // or your main discover route
-  },
-  {
-    id: 2,
-    title: "Built for Readers and Writers",
-    subtitle:
-      "Dozens of stories. More voices joining every week.",
-    image:
-      "https://i.pinimg.com/1200x/db/a1/0e/dba10e448c3df983b21296863e133ff6.jpg",
+      image:
+        "https://cdn.pixabay.com/photo/2024/12/30/13/23/little-red-riding-hood-9300338_1280.jpg",
+        cta: "Browse Stories",
+        ctaHref: "/stories", // or your main discover route
+        pos: "center",
+      },
+      {
+        id: 2,
+        title: "Built for Readers and Writers",
+        subtitle:
+        "Dozens of stories. More voices joining every week.",
+        image:
+          "https://cdn.pixabay.com/photo/2023/03/17/14/26/bear-7858736_1280.jpg",
     cta: "",
     ctaHref: "/login?redirect=/write", // redirect to /login?redirect=/write if not logged in
+    pos: "center",
   },
   {
     id: 3,
@@ -32,9 +34,10 @@ const slides = [
     subtitle:
       "Write, publish, and share your stories with readers worldwide.",
     image:
-      "https://i.pinimg.com/1200x/db/a1/0e/dba10e448c3df983b21296863e133ff6.jpg",
+      "https://cdn.pixabay.com/photo/2023/10/09/16/54/childrens-book-8304585_1280.jpg",
     cta: "Start Writing",
     ctaHref: "/login?redirect=/write", // redirect to /login?redirect=/write if not logged in
+    pos: "bottom",
   },
   {
     id: 4,
@@ -42,11 +45,31 @@ const slides = [
     subtitle:
       "Like and save stories to read anytime, anywhere.",
     image:
-      "https://i.pinimg.com/1200x/29/bf/48/29bf48e91e1388a57bfc30f026ce2784.jpg",
+      "https://cdn.pixabay.com/photo/2025/05/24/09/47/fairy-tale-9619388_1280.jpg",
     cta: "Sign In to Save",
     ctaHref: "/login",
+    pos: "bottom",
   },
 ];
+
+
+const getObjectPositionClass = (pos) => {
+  switch (pos) {
+    case "top":
+      return "object-top";
+    case "bottom":
+      return "object-bottom";
+    case "left":
+      return "object-left";
+    case "right":
+      return "object-right";
+    case "center":
+      return "object-center";
+    default:
+      // This is the default when pos is "" or anything else
+      return "object-cover"; 
+  }
+};
 
 
 export default function HeroCarousel() {
@@ -71,16 +94,18 @@ export default function HeroCarousel() {
   const currentSlide = slides[index];
 
   return (
-    <section className="relative w-full h-[300px] md:h-[450px] rounded-2xl mb-12 overflow-hidden">
+    <section className="relative w-full h-[300px] md:h-[500px] rounded-2xl mb-12 overflow-hidden">
       {/* BACKGROUND IMAGES */}
       {slides.map((slide, i) => (
         <img
           key={slide.id}
           src={slide.image}
           alt={slide.title}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
-            i === index ? "opacity-100" : "opacity-0 duration-300"
-          }`}
+          className={`
+            absolute inset-0 w-full h-full object-cover transition-opacity duration-700 
+            ${getObjectPositionClass(slide.pos)} // <-- Use the mapping function here
+            ${i === index ? "opacity-100" : "opacity-0 duration-300"}
+          `}      
         />
       ))}
 

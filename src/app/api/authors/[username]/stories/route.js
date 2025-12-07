@@ -52,6 +52,7 @@ export async function GET(req, { params }) {
         author: userDoc._id,
         published: true,
       })
+        .populate("author", "username name profileImage") // Populate author field
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -70,10 +71,17 @@ export async function GET(req, { params }) {
     const normalized = (stories || []).map((s) => {
       const ns = { ...s };
       ns.id = ns._id ? String(ns._id) : ns.id || null;
-      // normalize author field: if it's an object (populated), prefer its _id
+      // Keep author object if populated, otherwise convert to string
       if (ns.author && typeof ns.author === "object" && ns.author._id) {
-        ns.author = String(ns.author._id);
+        // Author is populated - keep the whole object with username, name, etc.
+        ns.author = {
+          _id: String(ns.author._id),
+          username: ns.author.username,
+          name: ns.author.name,
+          profileImage: ns.author.profileImage,
+        };
       } else if (ns.author && ObjectId.isValid(String(ns.author))) {
+        // Author is just an ID - keep as string
         ns.author = String(ns.author);
       }
       // safe defaults to avoid UI crashes

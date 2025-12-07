@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { BookOpen, Calendar, Edit2, Heart, Bookmark } from "lucide-react";
+import { BookOpen, Calendar, Edit2, Heart, Bookmark, Trash2 } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import EditProfileModal from "@/components/EditProfileModal";
 import { useAuth } from "@/context/AuthContext";
@@ -32,6 +32,7 @@ export default function AuthorPage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [deletingStoryId, setDeletingStoryId] = useState(null);
 
   const loggedUsername =
     (loggedInUser?.username || "").toString().trim().toLowerCase() || null;
@@ -136,6 +137,35 @@ export default function AuthorPage() {
     }
   };
 
+  const handleDeleteStory = async (storyId) => {
+    if (!confirm("Are you sure you want to delete this story? This action cannot be undone.")) {
+      return;
+    }
+
+    setDeletingStoryId(storyId);
+    try {
+      const userId = loggedInUser?._id || loggedInUser?.id;
+      const res = await fetch(
+        `/api/stories/${storyId}/delete?userId=${userId}`,
+        { method: "DELETE" }
+      );
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to delete story");
+      }
+
+      setStories((prev) => prev.filter((s) => s.id !== storyId));
+      alert("Story deleted successfully");
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert(error.message || "Failed to delete story");
+    } finally {
+      setDeletingStoryId(null);
+    }
+  };
+
+
   const handleProfileSave = async (updatedUser) => {
     setAuthor(updatedUser);
 
@@ -200,8 +230,57 @@ export default function AuthorPage() {
     <>
       <SiteHeader />
       <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+        {/* Structured Data for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "ProfilePage",
+              "mainEntity": {
+                "@type": "Person",
+                "name": author.name || author.username,
+                "alternateName": author.username,
+                "description": author.bio || `Author on StoryVerse`,
+                "image": author.profileImage || "/default-avatar.jpg",
+                "url": `https://storyverse.com/authors/${author.username}`,
+                "sameAs": author.socialLinks || [],
+                "jobTitle": "Author",
+                "worksFor": {
+                  "@type": "Organization",
+                  "name": "StoryVerse"
+                }
+              },
+              "breadcrumb": {
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                  {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://storyverse.com"
+                  },
+                  {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Authors",
+                    "item": "https://storyverse.com/authors"
+                  },
+                  {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": author.name || author.username,
+                    "item": `https://storyverse.com/authors/${author.username}`
+                  }
+                ]
+              }
+            })
+          }}
+        />
+        
         {/* Hero */}
-        <div className="relative pt-24 pb-16 px-6 bg-gradient-to-b from-[var(--foreground)]/5 to-transparent">
+        <div className="relative py-14 px-6 bg-gradient-to-b from-[var(--foreground)]/5 to-transparent">
+
           <div className="max-w-5xl mx-auto">
             <div className="text-center space-y-6">
               {/* Avatar */}
@@ -347,7 +426,24 @@ export default function AuthorPage() {
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {stories.map((story) => (
-                    <StoryCard key={story.id} story={story} />
+                    <div key={story.id} className="relative">
+                      <StoryCard story={story} />
+                      {/* Delete button for own stories */}
+                      {isOwnProfile && activeTab === "stories" && (
+                        <button
+                          onClick={() => handleDeleteStory(story.id)}
+                          disabled={deletingStoryId === story.id}
+                          className="absolute top-3 right-3 p-2 rounded-full bg-red-600 text-white hover:bg-red-700 transition shadow-lg disabled:opacity-50 z-10"
+                          title="Delete story"
+                        >
+                          {deletingStoryId === story.id ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Trash2 size={16} />
+                          )}
+                        </button>
+                      )}
+                    </div>
                   ))}
                 </div>
 

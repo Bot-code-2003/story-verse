@@ -60,7 +60,7 @@ export default function SiteHeader() {
 
   return (
     <>
-      <header className="flex items-center justify-between px-4 md:px-10 py-6 relative z-50">
+      <header className="flex items-center justify-between px-4 md:px-10 py-3 relative z-50">
         {/* Left: Logo */}
         <Link href="/">
           <h1 className="text-xl font-extrabold text-[var(--foreground)] cursor-pointer">

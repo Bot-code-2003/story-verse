@@ -34,7 +34,7 @@ export async function GET(request) {
     const query = filters.length ? { $or: filters } : {};
 
     let stories = await Story.find(query)
-      .limit(12)
+      .limit(18)
       .populate({
         path: "author",
         select: "username name profileImage",

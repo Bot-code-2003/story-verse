@@ -7,7 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "tw-init": "tailwindcss init"
+    "tw-init": "tailwindcss init",
+    "db:indexes:create": "node scripts/createIndexes.js",
+    "db:indexes:verify": "node scripts/verifyIndexes.js",
+    "db:indexes:drop": "node scripts/dropIndexes.js",
+    "db:analyze": "node scripts/analyzeQueries.js"
   },
   "dependencies": {
     "lucide-react": "^0.555.0",

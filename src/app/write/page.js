@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import StoryEditor from "@/components/StoryEditor";
 
+
 export default function WritePage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -26,6 +27,7 @@ export default function WritePage() {
       </div>
     );
   }
+
 
   return <StoryEditor />;
 }

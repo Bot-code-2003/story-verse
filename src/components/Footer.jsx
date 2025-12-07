@@ -73,7 +73,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/"
+                  href="/stories"
                   className="text-sm text-[var(--foreground)]/60 hover:text-[var(--foreground)] transition-colors"
                 >
                   All Stories
@@ -98,7 +98,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li>
                 <a
-                  href="#"
+                  href="/about"
                   className="text-sm text-[var(--foreground)]/60 hover:text-[var(--foreground)] transition-colors"
                 >
                   About Us
@@ -114,18 +114,10 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/tandp"
                   className="text-sm text-[var(--foreground)]/60 hover:text-[var(--foreground)] transition-colors"
                 >
-                  Privacy Policy
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-sm text-[var(--foreground)]/60 hover:text-[var(--foreground)] transition-colors"
-                >
-                  Terms of Service
+                  Terms and Privacy
                 </a>
               </li>
             </ul>

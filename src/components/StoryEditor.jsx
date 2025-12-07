@@ -4,6 +4,9 @@ import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import SiteHeader from "@/components/SiteHeader";
+import { compressStoryCover } from "@/lib/imageCompression";
+import { clearAllHomepageCache } from "@/lib/cache";
+
 
 // Simplified constant list of genres
 const GENRES = [
@@ -15,6 +18,7 @@ const GENRES = [
   "Slice of Life",
   "Adventure",
   "Drama",
+  "Mythic Fiction"
 ];
 
 // --- New Toast Notification Component ---
@@ -90,7 +94,7 @@ const SuccessModal = ({ isOpen, onClose, storyId }) => {
 
 // 2. Editor Toolbar Component (Minimalist)
 const EditorToolbar = ({ format }) => (
-  <div className="flex items-center gap-2 text-[var(--foreground)]/80">
+  <div className="flex items-center gap-2 text-[var(--foreground)]">
     <button
       onClick={() => format("bold")}
       className="p-2 hover:bg-[var(--foreground)]/10 rounded font-bold"
@@ -154,13 +158,10 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
   const [selectedGenres, setSelectedGenres] = useState(
     initialData?.genres || []
   );
-  const [tagsText, setTagsText] = useState(
-    (initialData?.tags || []).join(", ") || ""
-  );
   const [coverImageUrl, setCoverImageUrl] = useState(
     initialData?.coverImage || ""
   );
-  const [readTime, setReadTime] = useState(initialData?.readTime || "");
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -192,9 +193,7 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
         setDescription(data.description || "");
         // **INITIAL LOAD FIX/CHECK:** Ensure 'data.genres' from the API is an array here.
         setSelectedGenres(data.genres || []);
-        setTagsText((data.tags || []).join(", ") || "");
         setCoverImageUrl(data.coverImage || "");
-        setReadTime(data.readTime || "");
         if (editorRef.current) editorRef.current.innerHTML = data.content || "";
       } catch (err) {
         showToast(err.message, "error");
@@ -223,11 +222,52 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
   const getContent = () =>
     editorRef.current ? editorRef.current.innerHTML : "";
 
-  const wordCount = useMemo(() => {
-    return editorRef.current
-      ? editorRef.current.innerText.split(/\s+/).filter(Boolean).length
-      : 0;
-  }, [title, description, loading, step]);
+  // Real-time word count with debouncing
+  const [wordCount, setWordCount] = useState(0);
+  const [readTime, setReadTime] = useState(1);
+
+  // Automatically calculate read time based on word count
+  // Average reading speed: 250 words per minute
+  const calculateReadTime = (words) => {
+    if (words === 0) return 1; // Minimum 1 minute
+    const minutes = Math.ceil(words / 250);
+    return minutes;
+  };
+
+  // Debounced word count update
+  useEffect(() => {
+    const updateWordCount = () => {
+      if (editorRef.current) {
+        const text = editorRef.current.innerText || "";
+        const words = text.split(/\s+/).filter(Boolean).length;
+        setWordCount(words);
+        setReadTime(calculateReadTime(words));
+      }
+    };
+
+    // Initial count
+    updateWordCount();
+
+    // Set up debounced listener for content changes
+    let debounceTimeout;
+    const handleInput = () => {
+      clearTimeout(debounceTimeout);
+      debounceTimeout = setTimeout(updateWordCount, 300); // 300ms debounce
+    };
+
+    // Listen for input events on the editor
+    const editor = editorRef.current;
+    if (editor) {
+      editor.addEventListener("input", handleInput);
+    }
+
+    return () => {
+      clearTimeout(debounceTimeout);
+      if (editor) {
+        editor.removeEventListener("input", handleInput);
+      }
+    };
+  }, [step]); // Re-run when step changes
 
   const validateStep1 = () => {
     setToastMessage(null); // Clear previous messages
@@ -265,19 +305,16 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
 
   // **PAYLOAD CHECK:** This correctly includes the array.
   const makePayload = (published = false) => {
-    const tags = tagsText
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
+    // Calculate read time automatically based on word count
+    const autoReadTime = calculateReadTime(wordCount);
+    
     return {
       title: title.trim(),
       description: description.trim(),
       content: getContent(),
       coverImage: coverImageUrl.trim(),
-      readTime:
-        readTime && !isNaN(Number(readTime)) ? Number(readTime) : undefined,
+      readTime: autoReadTime,
       genres: selectedGenres,
-      tags,
       published: !!published,
     };
   };
@@ -312,6 +349,10 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
       const data = await res.json();
 
       if (published) {
+        // Clear homepage cache so new story appears in Latest section
+        clearAllHomepageCache();
+        console.log("✅ Homepage cache cleared - new story will appear fresh");
+        
         setPublishedStoryId(data?.id);
         setShowSuccessModal(true);
       } else {
@@ -360,13 +401,75 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
         <div className="p-4 bg-[var(--foreground)]/5 border-b border-[var(--foreground)]/10">
           <EditorToolbar format={format} />
         </div>
+        <style jsx global>{`
+          .story-editor-content {
+            min-height: 600px;
+            padding: 2rem;
+            background: transparent;
+            outline: none;
+            color: var(--foreground);
+            line-height: 1.9;
+            font-size: 1.125rem;
+          }
+          
+          .story-editor-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.9;
+            font-size: 1.125rem;
+            color: var(--foreground);
+            opacity: 0.85;
+            font-weight: 300;
+          }
+          
+          .story-editor-content h1 {
+            font-size: 2.25rem;
+            font-weight: 600;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--foreground);
+            letter-spacing: -0.025em;
+          }
+          
+          .story-editor-content h2 {
+            font-size: 1.875rem;
+            font-weight: 600;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--foreground);
+            letter-spacing: -0.025em;
+          }
+          
+          .story-editor-content h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 2.5rem;
+            margin-bottom: 1.25rem;
+            color: var(--foreground);
+          }
+          
+          .story-editor-content strong {
+            color: var(--foreground);
+            font-weight: 600;
+          }
+          
+          .story-editor-content em {
+            font-style: italic;
+            color: var(--foreground);
+            opacity: 0.8;
+          }
+          
+          .story-editor-content:empty:before {
+            content: "Start writing your masterpiece here...";
+            color: var(--foreground);
+            opacity: 0.3;
+            pointer-events: none;
+          }
+        `}</style>
         <div
           ref={editorRef}
           contentEditable
           suppressContentEditableWarning
-          className="min-h-[600px] p-8 bg-transparent focus:outline-none prose prose-lg max-w-none text-[var(--foreground)]"
-          style={{ whiteSpace: "pre-wrap" }}
-          placeholder="Start writing your masterpiece here..."
+          className="story-editor-content"
         />
       </div>
     </div>
@@ -388,16 +491,57 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
       {/* Cover Image */}
       <div className="space-y-3">
         <label className="block text-sm font-medium text-[var(--foreground)]/80">
-          Cover Image URL (2:3 Portrait Recommended)
+          Cover Image (500x700 WebP, max 100KB)
         </label>
+        
+        {/* Upload Button */}
+        <div className="flex gap-3">
+          <label className="flex-1">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                
+                // Check file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                  showToast("Image too large. Maximum 5MB", "error");
+                  return;
+                }
+                
+                setUploadingImage(true);
+                try {
+                  const compressed = await compressStoryCover(file);
+                  setCoverImageUrl(compressed);
+                  showToast("Image uploaded and compressed", "success");
+                } catch (error) {
+                  showToast(error.message || "Failed to compress image", "error");
+                } finally {
+                  setUploadingImage(false);
+                  e.target.value = ""; // Reset input
+                }
+              }}
+              className="hidden"
+              id="cover-upload"
+            />
+            <div className="w-full px-4 py-3 bg-blue-600 text-white text-center rounded-lg cursor-pointer hover:bg-blue-700 transition font-medium">
+              {uploadingImage ? "Compressing..." : "Upload Image"}
+            </div>
+          </label>
+        </div>
+        
+        {/* URL Input */}
+        <div className="text-center text-xs text-[var(--foreground)]/50">or</div>
         <input
           value={coverImageUrl}
           onChange={(e) => setCoverImageUrl(e.target.value)}
           placeholder="https://example.com/cover.jpg"
           className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--foreground)]/10 rounded-lg focus:border-blue-500 focus:outline-none transition"
         />
+        
         {coverImageUrl && (
-          <div className="relative aspect-[2/3] w-32 rounded-lg overflow-hidden shadow-lg mt-3 mx-auto">
+          <div className="relative aspect-[5/7] w-32 rounded-lg overflow-hidden shadow-lg mt-3 mx-auto">
             <img
               src={coverImageUrl}
               alt="Cover Preview"
@@ -449,32 +593,27 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
         </p>
       </div>
 
-      {/* Tags & Read Time (Side-by-side) */}
-      <div className="grid md:grid-cols-2 gap-6 pt-2">
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-[var(--foreground)]/80">
-            Tags (Comma separated keywords)
-          </label>
-          <input
-            value={tagsText}
-            onChange={(e) => setTagsText(e.target.value)}
-            placeholder="magic, adventure, epic"
-            className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--foreground)]/10 rounded-lg focus:border-blue-500 focus:outline-none transition"
-          />
+      {/* Auto-calculated Read Time Display */}
+      <div className="space-y-3 pt-2">
+        <div className="flex items-center justify-between p-4 bg-[var(--foreground)]/5 rounded-lg border border-[var(--foreground)]/10">
+          <div>
+            <label className="block text-sm font-medium text-[var(--foreground)]/80 mb-1">
+              Estimated Reading Time
+            </label>
+            <p className="text-xs text-[var(--foreground)]/50">
+              Automatically calculated based on word count
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-blue-600">
+              {calculateReadTime(wordCount)}
+            </div>
+            <div className="text-xs text-[var(--foreground)]/50">minutes</div>
+          </div>
         </div>
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-[var(--foreground)]/80">
-            Reading Time (minutes)
-          </label>
-          <input
-            type="number"
-            value={readTime}
-            onChange={(e) => setReadTime(e.target.value)}
-            placeholder="5"
-            min="1"
-            className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--foreground)]/10 rounded-lg focus:border-blue-500 focus:outline-none transition"
-          />
-        </div>
+        <p className="text-xs text-[var(--foreground)]/50 text-center">
+          Based on {wordCount} words at 250 words/minute
+        </p>
       </div>
     </div>
   );
@@ -512,9 +651,15 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
           <div className="max-w-5xl mx-auto flex items-center justify-between h-16 px-6">
             {/* Left Side: Stats & Back Button */}
             <div className="flex items-center gap-4">
-              <span className="text-sm font-mono text-[var(--foreground)]/50">
-                {wordCount} words
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-mono text-[var(--foreground)]/70">
+                  {wordCount} words
+                </span>
+                <span className="text-[var(--foreground)]/30">•</span>
+                <span className="text-sm font-mono text-[var(--foreground)]/70">
+                  ~{readTime} min read
+                </span>
+              </div>
               {step === 2 && (
                 <button
                   onClick={prevStep}
@@ -528,15 +673,6 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
 
             {/* Right Side: Action Buttons */}
             <div className="flex items-center gap-4">
-              {/* Always visible: Save Draft */}
-              <button
-                onClick={() => handleSubmit(false)}
-                disabled={loading}
-                className="px-4 py-2 rounded-md border border-[var(--foreground)]/20 text-[var(--foreground)]/80 font-medium text-sm hover:bg-[var(--foreground)]/10 transition-colors disabled:opacity-50"
-              >
-                Draft
-              </button>
-
               {/* Step-specific button */}
               {step === 1 ? (
                 <button

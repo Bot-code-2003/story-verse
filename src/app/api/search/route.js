@@ -26,6 +26,7 @@ export async function GET(req) {
       $or: [
         { title: searchRegex },
         { description: searchRegex },
+        { tags: searchRegex },
       ],
       published: true,
     })
