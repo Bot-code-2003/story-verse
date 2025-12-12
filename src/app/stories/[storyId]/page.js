@@ -32,44 +32,63 @@ export async function generateMetadata({ params }) {
     const description = story.description || story.content?.substring(0, 160) || 'Read this captivating short fiction story on OneSitRead - finish it in one sitting!';
     const authorName = author?.name || author?.username || 'Unknown Author';
     const genres = story.genres?.join(', ') || 'Fiction';
+    const coverImage = story.coverImage || '/og-story-default.jpg';
+    const storyUrl = `${baseUrl}/stories/${storyId}`;
     
     return {
-      title: title,
+      title: `${title} by ${authorName}`,
       description: description,
       keywords: [
         ...story.genres || [],
         'short story',
         'fiction',
         'creative writing',
+        'one sitting read',
+        'quick read',
         authorName,
         'online reading'
       ],
       authors: [{ name: authorName }],
       openGraph: {
-        title: title,
+        title: `${title} by ${authorName}`,
         description: description,
+        url: storyUrl,
+        siteName: 'OneSitRead',
         type: 'article',
         publishedTime: story.createdAt,
-        modifiedTime: story.updatedAt,
+        modifiedTime: story.updatedAt || story.createdAt,
         authors: [authorName],
         tags: story.genres || [],
+        locale: 'en_US',
         images: [
           {
-            url: story.coverImage || '/default-story-cover.jpg',
+            url: coverImage,
             width: 1200,
             height: 630,
-            alt: title,
+            alt: `${title} - Cover Image`,
+            type: 'image/jpeg',
           }
         ],
       },
       twitter: {
         card: 'summary_large_image',
-        title: title,
+        site: '@onesitread',
+        creator: '@onesitread',
+        title: `${title} by ${authorName}`,
         description: description,
-        images: [story.coverImage || '/default-story-cover.jpg'],
+        images: {
+          url: coverImage,
+          alt: `${title} - Cover Image`,
+        },
       },
       alternates: {
-        canonical: `/stories/${storyId}`,
+        canonical: storyUrl,
+      },
+      robots: {
+        index: true,
+        follow: true,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
       },
     };
   } catch (error) {
