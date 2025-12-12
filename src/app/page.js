@@ -294,23 +294,23 @@ export default function Home() {
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              "name": "StoryVerse",
-              "description": "Discover and share short fiction stories across multiple genres",
-              "url": "https://storyverse.com",
+              "name": "OneSitRead",
+              "description": "Discover and share short fiction stories you can finish in one sitting. Quick reads across all genres.",
+              "url": "https://onesitread.com",
               "potentialAction": {
                 "@type": "SearchAction",
                 "target": {
                   "@type": "EntryPoint",
-                  "urlTemplate": "https://storyverse.com/search?q={search_term_string}"
+                  "urlTemplate": "https://onesitread.com/search?q={search_term_string}"
                 },
                 "query-input": "required name=search_term_string"
               },
               "publisher": {
                 "@type": "Organization",
-                "name": "StoryVerse",
+                "name": "OneSitRead",
                 "logo": {
                   "@type": "ImageObject",
-                  "url": "https://storyverse.com/logo.png"
+                  "url": "https://onesitread.com/logo.png"
                 }
               }
             })

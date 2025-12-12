@@ -29,7 +29,7 @@ export async function generateMetadata({ params }) {
     const author = data.authorData;
     
     const title = story.title || 'Untitled Story';
-    const description = story.description || story.content?.substring(0, 160) || 'Read this captivating short fiction story on StoryVerse.';
+    const description = story.description || story.content?.substring(0, 160) || 'Read this captivating short fiction story on OneSitRead - finish it in one sitting!';
     const authorName = author?.name || author?.username || 'Unknown Author';
     const genres = story.genres?.join(', ') || 'Fiction';
     
@@ -75,8 +75,8 @@ export async function generateMetadata({ params }) {
   } catch (error) {
     console.error('Error generating metadata:', error);
     return {
-      title: 'StoryVerse - Short Fiction Stories',
-      description: 'Read captivating short fiction stories on StoryVerse.',
+      title: 'OneSitRead - Short Fiction Stories',
+      description: 'Read captivating short fiction stories on OneSitRead - stories you can finish in one sitting.',
     };
   }
 }

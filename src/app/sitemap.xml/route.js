@@ -4,7 +4,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://storyverse.com';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://onesitread.com';
   
   try {
     // Fetch all stories, authors, and genres from your database

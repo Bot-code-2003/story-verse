@@ -241,9 +241,9 @@ export default function AuthorPage() {
                 "@type": "Person",
                 "name": author.name || author.username,
                 "alternateName": author.username,
-                "description": author.bio || `Author on StoryVerse`,
-                "image": author.profileImage || "/default-avatar.jpg",
-                "url": `https://storyverse.com/authors/${author.username}`,
+                "description": author.bio || `Author on OneSitRead`,
+                "image": author.profileImage || "",
+                "url": `https://onesitread.com/authors/${author.username}`,
                 "sameAs": author.socialLinks || [],
                 "jobTitle": "Author",
                 "worksFor": {

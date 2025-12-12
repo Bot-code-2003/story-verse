@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useState, useCallback } from "react"; // Added useCallback
+import { useEffect, useState, useCallback, useRef } from "react"; // Added useCallback
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 // Removed static data imports:
@@ -12,73 +12,21 @@ import Link from "next/link";
 import { Clock, BookOpen, Heart, Bookmark } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import StoryCard from "@/components/StoryCard";
-import Footer from "@/components/Footer"; // Corrected import path (assuming Footer is in components)
+import Footer from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
+import ScrollToTop from "@/components/ScrollToTop";
+import ShareBox from "@/components/ShareBox";
+import PulseCheck from "@/components/PulseCheck";
+import ReadingProgress from "@/components/ReadingProgress";
+import { getGenreFallback } from "@/constants/genres";
+
+// Modular story components
+import StoryHero from "@/components/story/StoryHero";
+import StoryContent from "@/components/story/StoryContent";
+import CommentsSection from "@/components/story/CommentsSection";
+import RecommendationsSection from "@/components/story/RecommendationsSection";
 
 
-const GENRE_TILES = [
-  {
-    name: "Fantasy",
-    image:
-      "https://cdn.pixabay.com/photo/2024/05/16/10/56/forest-8765686_1280.jpg",
-    count: "124 stories",
-  },
-  {
-    name: "Romance",
-    image:
-      "https://cdn.pixabay.com/photo/2021/10/29/13/30/love-6751932_1280.jpg",
-    count: "89 stories",
-  },
-  {
-    name: "Thriller",
-    image:
-      "https://cdn.pixabay.com/photo/2024/08/03/21/42/ai-generated-8943227_1280.png",
-    count: "156 stories",
-  },
-  {
-    name: "Sci-Fi",
-    image:
-      "https://cdn.pixabay.com/photo/2018/04/05/15/19/abstract-3293076_1280.jpg",
-    count: "98 stories",
-  },
-  {
-    name: "Horror",
-    image:
-      "https://images.unsplash.com/photo-1696012976137-f901d345e694?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzV8fGdob3N0c3xlbnwwfDF8MHx8fDI%3D",
-    count: "67 stories",
-  },
-  {
-    name: "Slice of Life",
-    image:
-      "https://cdn.pixabay.com/photo/2020/07/14/13/42/boat-5404195_1280.jpg",
-    count: "143 stories",
-  },
-  {
-    name: "Adventure",
-    image:
-      "https://cdn.pixabay.com/photo/2019/07/25/17/09/camp-4363073_1280.png",
-    count: "112 stories",
-  },
-  {
-    name: "Drama",
-    image:
-      "https://cdn.pixabay.com/photo/2025/05/23/01/24/ai-generated-9616743_1280.jpg",
-    count: "78 stories",
-  },
-];
-
-
-const getGenreFallback = (genres = []) => {
-  if (!Array.isArray(genres) || genres.length === 0) return null;
-
-  const primaryGenre = genres[0];
-
-  const matchedGenre = GENRE_TILES.find(
-    (g) => g.name.toLowerCase() === primaryGenre.toLowerCase()
-  );
-
-  return matchedGenre?.image || null;
-};
 
 
 const MAX_RECOMMENDATIONS = 6;
@@ -111,6 +59,7 @@ const fetchStoryAndAuthor = async (id, userId = null) => {
     authorData: data.authorData,
     liked: data.liked || false,
     saved: data.saved || false,
+    userPulse: data.userPulse || null,
   };
 };
 
@@ -120,102 +69,105 @@ const fetchStoryAndAuthor = async (id, userId = null) => {
 
 /**
  * Fetches recommended stories by genre using the index API.
+ * Smart logic: Get from primary genre, then secondary, then random other genres
  * @param {object} currentStory - The story object.
  */
 const fetchRecommendations = async (currentStory) => {
   if (!currentStory || !currentStory.genres || currentStory.genres.length === 0)
     return [];
 
-  const primaryGenre = currentStory.genres[0];
+  // Helper to shuffle array
+  const shuffleArray = (array) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
 
-  try {
-    const url = `/api/stories?genre=${encodeURIComponent(primaryGenre)}`;
-    const response = await fetch(url);
+  // Helper to fetch stories by genre
+  const fetchByGenre = async (genre) => {
+    try {
+      const url = `/api/stories?genre=${encodeURIComponent(genre)}`;
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        console.error(`Failed to fetch ${genre} stories:`, response.statusText);
+        return [];
+      }
 
-    if (!response.ok) {
-      console.error("Failed to fetch recommendations:", response.statusText);
+      const data = await response.json();
+      let stories = data.stories || [];
+      
+      // Filter out the current story
+      stories = stories.filter((s) => s.id !== currentStory.id);
+      
+      return shuffleArray(stories);
+    } catch (error) {
+      console.error(`Error fetching ${genre} stories:`, error);
       return [];
     }
+  };
 
-    const data = await response.json();
-    let recs = data.stories || [];
+  try {
+    let recommendations = [];
+    const storyGenres = currentStory.genres;
+    
+    // Step 1: Get recommendations from primary genre
+    if (storyGenres.length > 0) {
+      const primaryRecs = await fetchByGenre(storyGenres[0]);
+      recommendations = primaryRecs.slice(0, MAX_RECOMMENDATIONS);
+    }
 
-    // Filter out the current story itself
-    recs = recs.filter((s) => s.id !== currentStory.id);
+    // Step 2: If we don't have 6 yet and there's a secondary genre, fetch from it
+    if (recommendations.length < MAX_RECOMMENDATIONS && storyGenres.length > 1) {
+      const secondaryRecs = await fetchByGenre(storyGenres[1]);
+      const needed = MAX_RECOMMENDATIONS - recommendations.length;
+      
+      // Add secondary genre stories that aren't already in recommendations
+      const newRecs = secondaryRecs.filter(
+        story => !recommendations.some(r => r.id === story.id)
+      );
+      recommendations = [...recommendations, ...newRecs.slice(0, needed)];
+    }
 
-    // Simple shuffle (optional, but good practice)
-    const shuffleArray = (array) => {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+    // Step 3: If still not enough and story only has 2 genres, get from random other genres
+    if (recommendations.length < MAX_RECOMMENDATIONS && storyGenres.length <= 2) {
+      // Import all available genres
+      const { GENRE_TILES } = await import('@/constants/genres');
+      const allGenres = GENRE_TILES.map(g => g.name);
+      
+      // Get genres not used by this story
+      const otherGenres = allGenres.filter(
+        genre => !storyGenres.some(sg => sg.toLowerCase() === genre.toLowerCase())
+      );
+      
+      // Shuffle and try random genres until we have enough
+      const shuffledOtherGenres = shuffleArray(otherGenres);
+      
+      for (const genre of shuffledOtherGenres) {
+        if (recommendations.length >= MAX_RECOMMENDATIONS) break;
+        
+        const genreRecs = await fetchByGenre(genre);
+        const needed = MAX_RECOMMENDATIONS - recommendations.length;
+        
+        // Add stories that aren't already in recommendations
+        const newRecs = genreRecs.filter(
+          story => !recommendations.some(r => r.id === story.id)
+        );
+        recommendations = [...recommendations, ...newRecs.slice(0, needed)];
       }
-      return array;
-    };
+    }
 
-    return shuffleArray(recs).slice(0, MAX_RECOMMENDATIONS);
+    return recommendations.slice(0, MAX_RECOMMENDATIONS);
   } catch (error) {
     console.error("Error fetching recommendations:", error);
     return [];
   }
 };
 
-const cleanContent = (content) => {
-  if (!content) return "";
-
-  // If it looks like HTML, sanitize it
-  if (/<[a-z][\s\S]*>/i.test(content)) {
-    // Create a temporary div to parse HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = content;
-    
-    // Fix nested heading tags (e.g., <h2><h1>...</h1>...</h2>)
-    const headings = tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    headings.forEach(heading => {
-      // If a heading contains another heading, unwrap the inner one
-      const innerHeadings = heading.querySelectorAll('h1, h2, h3, h4, h5, h6');
-      innerHeadings.forEach(inner => {
-        // Move inner heading's content to parent and remove inner heading
-        while (inner.firstChild) {
-          heading.insertBefore(inner.firstChild, inner);
-        }
-        inner.remove();
-      });
-      
-      // If heading has mixed content (text + other elements), clean it up
-      if (heading.children.length > 0) {
-        const textContent = heading.textContent;
-        heading.innerHTML = textContent;
-      }
-    });
-    
-    // Remove any data attributes that might be causing issues
-    const allElements = tempDiv.querySelectorAll('*');
-    allElements.forEach(el => {
-      Array.from(el.attributes).forEach(attr => {
-        if (attr.name.startsWith('data-')) {
-          el.removeAttribute(attr.name);
-        }
-      });
-    });
-    
-    return tempDiv.innerHTML;
-  }
-
-  // If it's plain text, convert to paragraphs
-  const text = content.replace(/\r\n/g, "\n").trim();
-  const paragraphs = text.split(/\n\s*\n+/);
-
-  const htmlParagraphs = paragraphs.map((para) => {
-    const escaped = para
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-    const withBreaks = escaped.replace(/\n/g, "<br />");
-    return `<p>${withBreaks}</p>`;
-  });
-
-  return htmlParagraphs.join("\n");
-};
+import { sanitizeStoryContent } from "@/utils/contentSanitizer";
 
 // --- MAIN COMPONENT ---
 
@@ -239,6 +191,9 @@ export default function StoryPage() {
   // Like/Save states
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  
+  // User's pulse selection
+  const [userPulse, setUserPulse] = useState(null);
 
   // Comments state
   const [comments, setComments] = useState([]);
@@ -250,6 +205,9 @@ export default function StoryPage() {
 
   // Login prompt modal state (for like/save when not logged in)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  // Ref for story content container
+  const contentRef = useRef(null);
 
   // Memoized helper function for local storage updates
   const updateLocalSfUserArrays = useCallback(
@@ -293,8 +251,8 @@ export default function StoryPage() {
       try {
         const userId = user?._id || user?.id || null;
         
-        // Fetch story with liked/saved state from API
-        const { story: fetchedStory, authorData: fetchedAuthorData, liked, saved } =
+        // Fetch story with liked/saved/pulse state from API
+        const { story: fetchedStory, authorData: fetchedAuthorData, liked, saved, userPulse: fetchedUserPulse } =
           await fetchStoryAndAuthor(storyId, userId);
 
         if (!fetchedStory) {
@@ -308,6 +266,7 @@ export default function StoryPage() {
         setAuthorData(fetchedAuthorData || {});
         setIsLiked(liked);
         setIsSaved(saved);
+        setUserPulse(fetchedUserPulse);
 
         // Set Author Name
         setAuthorName(
@@ -529,6 +488,36 @@ export default function StoryPage() {
     }
   };
 
+  // Handler for Pulse submission
+  const handlePulseSubmit = async (pulseValue) => {
+    if (!story) return;
+
+    try {
+      const userId = user?._id || user?.id;
+      const res = await fetch(
+        `/api/stories/${encodeURIComponent(story.id)}/pulse`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pulse: pulseValue, userId }),
+        }
+      );
+
+      if (!res.ok) throw new Error(`Pulse API failed: ${res.status}`);
+
+      const data = await res.json();
+      // Update the story with new pulse data and user's selection
+      if (data.pulse) {
+        setStory((prev) => (prev ? { ...prev, pulse: data.pulse } : prev));
+      }
+      if (data.userPulse) {
+        setUserPulse(data.userPulse);
+      }
+    } catch (err) {
+      console.error("Failed to submit pulse:", err);
+    }
+  };
+
   // Removed the original `updateLocalSfUserArrays` definition as it's now a `useCallback` helper.
 
   if (loading) {
@@ -553,7 +542,69 @@ export default function StoryPage() {
   // The rest of the return statement (JSX) remains the same
   // ... (rest of the component's JSX remains the same as it relies on the state variables)
 
-  const finalContent = cleanContent(story.content);
+  const finalContent = sanitizeStoryContent(story.content);
+
+  // Helper function to split content at 40% for ShareBox injection
+  const splitContentAt40Percent = (htmlContent) => {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    
+    // Get all content elements (paragraphs and headings) recursively
+    const paragraphs = Array.from(tempDiv.querySelectorAll('p, h1, h2, h3, h4, h5, h6'));
+    
+    if (paragraphs.length === 0) {
+      return { beforeShare: htmlContent, afterShare: '' };
+    }
+    
+    // For very short stories (1-2 paragraphs), split at 50%
+    // For longer stories, split at 40%
+    let splitIndex;
+    if (paragraphs.length <= 2) {
+      splitIndex = 1; // Split after first paragraph
+    } else {
+      splitIndex = Math.floor(paragraphs.length * 0.4);
+      if (splitIndex === 0) splitIndex = 1; // Ensure at least 1 paragraph before
+    }
+    
+    if (splitIndex >= paragraphs.length) {
+      return { beforeShare: htmlContent, afterShare: '' };
+    }
+    
+    // Insert a unique marker after the split element
+    const splitElement = paragraphs[splitIndex];
+    const marker = '<!--SHAREBOX_SPLIT_MARKER-->';
+    
+    // Insert marker after the split element
+    if (splitElement.nextSibling) {
+      splitElement.parentNode.insertBefore(
+        document.createComment('SHAREBOX_SPLIT_MARKER'),
+        splitElement.nextSibling
+      );
+    } else {
+      splitElement.parentNode.appendChild(
+        document.createComment('SHAREBOX_SPLIT_MARKER')
+      );
+    }
+    
+    // Get the HTML with the marker
+    const markedHtml = tempDiv.innerHTML;
+    
+    // Split at the marker
+    const parts = markedHtml.split(marker);
+    
+    if (parts.length === 2) {
+      return {
+        beforeShare: parts[0],
+        afterShare: parts[1]
+      };
+    }
+    
+    // Fallback if marker not found
+    return { beforeShare: htmlContent, afterShare: '' };
+  };
+
+  const { beforeShare, afterShare } = splitContentAt40Percent(finalContent);
+
 const primaryGenre =
   story.genres && story.genres.length > 0 ? story.genres[0] : "General";
 
@@ -564,6 +615,7 @@ const finalCoverImage = story.coverImage || coverGenreFallback;
 
   return (
     <>
+      <ReadingProgress />
       <SiteHeader />
       <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
         {/* Structured Data for SEO */}
@@ -581,19 +633,19 @@ const finalCoverImage = story.coverImage || coverGenreFallback;
               "author": {
                 "@type": "Person",
                 "name": authorName,
-                "url": `https://storyverse.com/authors/${authorData.username || ''}`
+                "url": `https://onesitread.com/authors/${authorData.username || ''}`
               },
               "publisher": {
                 "@type": "Organization",
-                "name": "StoryVerse",
+                "name": "OneSitRead",
                 "logo": {
                   "@type": "ImageObject",
-                  "url": "https://storyverse.com/logo.png"
+                  "url": "https://onesitread.com/logo.png"
                 }
               },
               "mainEntityOfPage": {
                 "@type": "WebPage",
-                "@id": `https://storyverse.com/stories/${story.id}`
+                "@id": `https://onesitread.com/stories/${story.id}`
               },
               "genre": story.genres || [],
               "wordCount": story.content?.split(/\s+/).length || 0,
@@ -615,113 +667,17 @@ const finalCoverImage = story.coverImage || coverGenreFallback;
         />
         
         {/* Hero/Header Section */}
-        <div className="pt-24 pb-16 px-6">
-
-          <div className="max-w-4xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16 items-center">
-              {/* Left: Title, Description, Author, Buttons */}
-              <div className="space-y-4 lg:col-span-2">
-                <h1 className="text-3xl md:text-3xl lg:text-5xl font-bold tracking-tight leading-[1.1] text-[var(--foreground)]">
-                  {story.title}
-                </h1>
-                {story.description && (
-                  <p className="text-lg md:text-xl text-[var(--foreground)]/70 leading-relaxed">
-                    {story.description}
-                  </p>
-                )}
-                <div className="flex items-center gap-6 pt-4">
-                  <Link
-                    // Link to the author page using the author's ID from the state
-                    href={`/authors/${authorData.username || ""}`}
-                    className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-                  >
-                    {/* ⬇️ MODIFIED: Author Avatar Logic ⬇️ */}
-                    <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center">
-                      {authorData.profileImage ? (
-                        <img
-                          src={authorData.profileImage}
-                          alt={`${authorName}'s profile`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
-                          {authorName.charAt(1).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    {/* ⬆️ MODIFIED: Author Avatar Logic ⬆️ */}
-
-                    <div>
-                      <p className="text-sm font-medium text-[var(--foreground)] hover:underline">
-                        {authorName}
-                      </p>
-                      {/* ⬇️ MODIFIED: Display Username ⬇️ */}
-                      {authorData.username && (
-                        <p className="text-xs text-[var(--foreground)]/50">
-                          {authorData.username}
-                        </p>
-                      )}
-                      {/* ⬆️ MODIFIED: Display Username ⬆️ */}
-                    </div>
-                  </Link>
-                  <div className="h-10 w-px bg-[var(--foreground)]/20"></div>
-                  <div className="flex items-center gap-2 text-[var(--foreground)]/60">
-                    <Clock className="w-4 h-4" />
-                    <span className="text-sm">{story.readTime} min</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 pt-2">
-                  <button
-                    onClick={handleLikeClick}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all ${
-                      isLiked
-                        ? "bg-red-50 text-red-600 border border-red-200"
-                        : "bg-[var(--foreground)]/5 text-[var(--foreground)]/70 border border-[var(--foreground)]/10 hover:bg-[var(--foreground)]/10"
-                    }`}
-                  >
-                    <Heart
-                      className={`w-4 h-4 ${isLiked ? "fill-current" : ""}`}
-                    />
-                    <span className="text-sm">
-                      {isLiked ? "Liked" : "Like"}
-                      {typeof story.likesCount === "number" && story.likesCount > 0 && (
-                        <span className="ml-1 opacity-80">· {story.likesCount}</span>
-                      )}
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={handleSaveClick}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all ${
-                      isSaved
-                        ? "bg-blue-50 text-blue-600 border border-blue-200"
-                        : "bg-[var(--foreground)]/5 text-[var(--foreground)]/70 border border-[var(--foreground)]/10 hover:bg-[var(--foreground)]/10"
-                    }`}
-                  >
-                    <Bookmark
-                      className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`}
-                    />
-                    <span className="text-sm">
-                      {isSaved ? "Saved" : "Save"}
-                    </span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Right: Image */}
-              <div className="relative flex justify-center lg:justify-center lg:col-span-1">
-                <div className="relative w-64 md:w-72 rounded-2xl overflow-hidden border border-[var(--foreground)]/10 shadow-xl">
-                  <img
-                    src={finalCoverImage}
-                    alt={story.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <StoryHero
+          story={story}
+          authorData={authorData}
+          authorName={authorName}
+          finalCoverImage={finalCoverImage}
+          isLiked={isLiked}
+          isSaved={isSaved}
+          handleLikeClick={handleLikeClick}
+          handleSaveClick={handleSaveClick}
+          commentsCount={comments.length}
+        />
 
         {/* Divider */}
         <div className="max-w-4xl mx-auto px-6">
@@ -729,235 +685,48 @@ const finalCoverImage = story.coverImage || coverGenreFallback;
         </div>
 
         {/* Story Content */}
-        <div className="py-20 px-6">
+        <StoryContent
+          beforeShare={beforeShare}
+          afterShare={afterShare}
+          storyTitle={story.title}
+          finalCoverImage={finalCoverImage}
+          isLiked={isLiked}
+          onLikeClick={handleLikeClick}
+        />
+
+        {/* Pulse Check - At the end of story */}
+        <div className="py-12 px-6">
           <div className="max-w-3xl mx-auto">
-            {/* The global style JSX block remains unchanged */}
-            <style jsx global>{`
-              .story-content {
-                line-height: 1.9;
-                font-size: 1.125rem;
-                color: var(--foreground);
-              }
-              
-              .story-content p {
-                margin-bottom: 1.5rem;
-                line-height: 1.9;
-                font-size: 1.125rem;
-                color: var(--foreground);
-                opacity: 0.85;
-                font-weight: 300;
-              }
-              
-              .story-content p:first-child {
-                margin-top: 0;
-              }
-              
-              .story-content h1 {
-                font-size: 2.25rem;
-                font-weight: 600;
-                margin-top: 3rem;
-                margin-bottom: 1.5rem;
-                color: var(--foreground);
-                letter-spacing: -0.025em;
-              }
-              
-              .story-content h2 {
-                font-size: 1.875rem;
-                font-weight: 600;
-                margin-top: 3rem;
-                margin-bottom: 1.5rem;
-                color: var(--foreground);
-                letter-spacing: -0.025em;
-              }
-              
-              .story-content h3 {
-                font-size: 1.5rem;
-                font-weight: 600;
-                margin-top: 2.5rem;
-                margin-bottom: 1.25rem;
-                color: var(--foreground);
-              }
-              
-              .story-content h1:first-child,
-              .story-content h2:first-child,
-              .story-content h3:first-child {
-                margin-top: 0;
-              }
-              
-              .story-content strong {
-                color: var(--foreground);
-                font-weight: 600;
-              }
-              
-              .story-content em {
-                font-style: italic;
-                color: var(--foreground);
-                opacity: 0.8;
-              }
-              
-              .story-content a {
-                color: #2563eb;
-                text-decoration: none;
-                border-bottom: 1px solid #2563eb;
-                transition: all 0.2s;
-              }
-              
-              .story-content a:hover {
-                color: #1d4ed8;
-                border-bottom-color: #1d4ed8;
-              }
-              
-              .story-content blockquote {
-                border-left: 3px solid #2563eb;
-                padding-left: 2rem;
-                margin: 2rem 0;
-                font-style: italic;
-                color: var(--foreground);
-                opacity: 0.7;
-                font-size: 1.25rem;
-              }
-            `}</style>
-            <div
-              className="story-content"
-              dangerouslySetInnerHTML={{ __html: finalContent }}
+            <PulseCheck
+              storyId={story.id}
+              onPulseSubmit={handlePulseSubmit}
+              user={user}
+              pulseCounts={story.pulse || { soft: 0, intense: 0, heavy: 0, warm: 0, dark: 0 }}
+              userPulse={userPulse}
             />
           </div>
         </div>
 
         {/* Comments Section */}
-        <div className="py-16 px-6 border-t border-[var(--foreground)]/10">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-2xl font-bold mb-6 text-[var(--foreground)]">
-              Comments {comments.length > 0 && <span className="text-lg font-normal text-[var(--foreground)]/60">({comments.length})</span>}
-            </h2>
-
-            {/* Add Comment Form (if logged in) */}
-            {user && (
-              <div className="mb-8">
-                <textarea
-                  value={newCommentText}
-                  onChange={(e) => setNewCommentText(e.target.value)}
-                  placeholder="Add a comment..."
-                  className="w-full p-4 border border-[var(--foreground)]/20 rounded-lg bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                />
-                <button
-                  onClick={handleSubmitComment}
-                  disabled={submittingComment || !newCommentText.trim()}
-                  className="mt-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {submittingComment ? "Posting..." : "Post Comment"}
-                </button>
-              </div>
-            )}
-
-            {/* Comments List */}
-            {comments.length > 0 ? (
-              <div className="space-y-6">
-                {comments.map((comment) => (
-                  <div
-                    key={comment.id}
-                    className="border-b border-[var(--foreground)]/10 pb-4"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold flex-shrink-0">
-                        {comment.user?.profileImage ? (
-                          <img
-                            src={comment.user.profileImage}
-                            alt={comment.user.name || "User"}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span>
-                            {(comment.user?.name || "U").charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-[var(--foreground)]">
-                            {comment.user?.name || "Anonymous"}
-                          </span>
-                          <span className="text-sm text-[var(--foreground)]/50">
-                            {new Date(comment.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <p className="text-[var(--foreground)]/80 mb-2">
-                          {comment.text}
-                        </p>
-                        <button
-                          onClick={() => {
-                            if (!user) {
-                              setShowLoginPrompt(true);
-                              return;
-                            }
-                            handleCommentLike(comment.id, comment.liked);
-                          }}
-                          className={`text-sm flex items-center gap-1 transition ${
-                            comment.liked
-                              ? "text-red-500"
-                              : "text-[var(--foreground)]/60 hover:text-red-500"
-                          }`}
-                        >
-                          <Heart
-                            className={`w-4 h-4 ${
-                              comment.liked ? "fill-current" : ""
-                            }`}
-                          />
-                          <span>{comment.likesCount || 0}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-[var(--foreground)]/50 text-center py-8">
-                No comments yet. Be the first to comment!
-              </p>
-            )}
-
-            {/* Load More Comments */}
-            {hasMoreComments && (
-              <div className="flex justify-center mt-8">
-                <button
-                  onClick={loadMoreComments}
-                  disabled={loadingComments}
-                  className="px-6 py-2 border border-[var(--foreground)]/20 text-[var(--foreground)]/80 rounded-lg hover:bg-[var(--foreground)]/5 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loadingComments ? "Loading..." : "Load More Comments"}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+        <CommentsSection
+          comments={comments}
+          user={user}
+          newCommentText={newCommentText}
+          setNewCommentText={setNewCommentText}
+          handleSubmitComment={handleSubmitComment}
+          submittingComment={submittingComment}
+          handleCommentLike={handleCommentLike}
+          setShowLoginPrompt={setShowLoginPrompt}
+          loadingComments={loadingComments}
+          hasMoreComments={hasMoreComments}
+          loadMoreComments={loadMoreComments}
+        />
 
         {/* RECOMMENDED STORIES */}
-        {recommendations.length > 0 && (
-          <div className="py-16 px-6 bg-[var(--foreground)]/5 border-t border-[var(--foreground)]/10">
-            <div className="max-w-6xl mx-auto">
-              <h2 className="text-3xl font-bold mb-8 text-[var(--foreground)] text-center">
-                You May Also Like
-              </h2>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-                {recommendations.map((recStory) => (
-                  // The StoryCard component will likely need to handle the new ID format from the API
-                  <StoryCard key={recStory.id} story={recStory} />
-                ))}
-              </div>
-
-              <div className="text-center pt-10">
-                <button
-                  onClick={() => router.push(`/genre/${primaryGenre}`)}
-                  className="px-6 py-2 border border-[var(--foreground)]/20 text-[var(--foreground)]/80 rounded-full text-sm hover:bg-[var(--foreground)]/10 transition-colors"
-                >
-                  View More {primaryGenre} Stories
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <RecommendationsSection 
+          recommendations={recommendations}
+          primaryGenre={primaryGenre}
+        />
 
         <Footer />
       </div>
@@ -1018,6 +787,9 @@ const finalCoverImage = story.coverImage || coverGenreFallback;
           </div>
         </div>
       )}
+
+      {/* Scroll to Top Button */}
+      <ScrollToTop />
     </>
   );
 }

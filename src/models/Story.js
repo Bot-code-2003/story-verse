@@ -24,6 +24,13 @@ const storySchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    pulse: {
+      soft: { type: Number, default: 0 },
+      intense: { type: Number, default: 0 },
+      heavy: { type: Number, default: 0 },
+      warm: { type: Number, default: 0 },
+      dark: { type: Number, default: 0 },
+    },
   },
   { timestamps: true }
 );

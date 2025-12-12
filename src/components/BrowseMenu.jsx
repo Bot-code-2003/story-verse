@@ -3,57 +3,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
-
-const GENRE_TILES = [
-  {
-    name: "Fantasy",
-    image:
-      "https://cdn.pixabay.com/photo/2024/05/16/10/56/forest-8765686_1280.jpg",
-    link: "/genre/fantasy",
-  },
-  {
-    name: "Romance",
-    image:
-      "https://cdn.pixabay.com/photo/2021/10/29/13/30/love-6751932_1280.jpg",
-    link: "/genre/romance",
-  },
-  {
-    name: "Thriller",
-    image:
-      "https://cdn.pixabay.com/photo/2024/08/03/21/42/ai-generated-8943227_1280.png",
-    link: "/genre/thriller",
-  },
-  {
-    name: "Sci-Fi",
-    image:
-      "https://cdn.pixabay.com/photo/2018/04/05/15/19/abstract-3293076_1280.jpg",
-    link: "/genre/sci-fi",
-  },
-  {
-    name: "Horror",
-    image:
-      "https://images.unsplash.com/photo-1696012976137-f901d345e694?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzV8fGdob3N0c3xlbnwwfDF8MHx8fDI%3D",
-    link: "/genre/horror",
-  },
-  {
-    name: "Slice of Life",
-    image:
-      "https://cdn.pixabay.com/photo/2020/07/14/13/42/boat-5404195_1280.jpg",
-    link: "/genre/slice-of-life",
-  },
-  {
-    name: "Adventure",
-    image:
-      "https://cdn.pixabay.com/photo/2019/07/25/17/09/camp-4363073_1280.png",
-      link: "/genre/adventure",
-  },
-  {
-    name: "Drama",
-    image:
-      "https://cdn.pixabay.com/photo/2025/05/23/01/24/ai-generated-9616743_1280.jpg",
-    link: "/genre/drama",
-  },
-];
+import { GENRE_TILES } from "@/constants/genres";
 
 export default function BrowseMenu({ isMobile = false }) {
   const [open, setOpen] = useState(false);

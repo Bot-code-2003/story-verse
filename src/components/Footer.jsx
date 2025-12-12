@@ -15,12 +15,11 @@ export default function Footer() {
             <Link href="/" className="flex items-center gap-2">
               <BookOpen className="w-6 h-6 text-[var(--foreground)]" />
               <span className="text-xl font-bold text-[var(--foreground)]">
-                StoryVerse
+                OneSitRead
               </span>
             </Link>
             <p className="text-sm text-[var(--foreground)]/60 leading-relaxed">
-              A platform for writers and readers to connect through captivating
-              stories.
+              Short fiction stories you can finish in one sitting. Read, write, and share.
             </p>
           </div>
 
@@ -128,7 +127,7 @@ export default function Footer() {
         <div className="pt-8 border-t border-[var(--foreground)]/10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-[var(--foreground)]/50">
-              © {currentYear} StoryVerse. All rights reserved.
+              © {currentYear} OneSitRead. All rights reserved.
             </p>
             <div className="flex gap-6">
               <a

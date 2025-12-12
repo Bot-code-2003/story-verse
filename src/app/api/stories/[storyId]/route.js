@@ -5,6 +5,7 @@ import Story from "@/models/Story";
 import User from "@/models/User";
 import StoryLike from "@/models/StoryLike";
 import StorySave from "@/models/StorySave";
+import PulseFeedback from "@/models/PulseFeedback";
 import mongoose from "mongoose";
 
 export async function GET(req, { params }) {
@@ -122,14 +123,17 @@ export async function GET(req, { params }) {
     
     let liked = false;
     let saved = false;
+    let userPulse = null;
     
     if (userId && mongoose.Types.ObjectId.isValid(userId)) {
-      const [likeDoc, saveDoc] = await Promise.all([
+      const [likeDoc, saveDoc, pulseDoc] = await Promise.all([
         StoryLike.findOne({ user: userId, story: storyId }).lean(),
         StorySave.findOne({ user: userId, story: storyId }).lean(),
+        PulseFeedback.findOne({ user: userId, story: storyId }).lean(),
       ]);
       liked = !!likeDoc;
       saved = !!saveDoc;
+      userPulse = pulseDoc?.pulse || null;
     }
 
     return NextResponse.json({ 
@@ -138,6 +142,7 @@ export async function GET(req, { params }) {
       authorData,
       liked,
       saved,
+      userPulse,
     });
   } catch (err) {
     console.error("GET /api/stories/[storyId] error:", err);

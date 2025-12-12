@@ -4,16 +4,16 @@ import "./globals.css";
 
 // Global SEO Metadata
 export const metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://storyverse.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://onesitread.com'),
   title: {
-    default: 'StoryVerse - Discover & Share Short Fiction Stories',
-    template: '%s | StoryVerse'
+    default: 'OneSitRead - Short Fiction Stories You Can Finish in One Sitting',
+    template: '%s | OneSitRead'
   },
-  description: 'Explore thousands of captivating short fiction stories across Fantasy, Sci-Fi, Romance, Thriller, and more. Read, write, and share your stories with a vibrant community of readers and authors.',
-  keywords: ['short stories', 'fiction', 'creative writing', 'fantasy stories', 'sci-fi stories', 'romance stories', 'thriller stories', 'online reading', 'story sharing', 'writers community'],
-  authors: [{ name: 'StoryVerse Team' }],
-  creator: 'StoryVerse',
-  publisher: 'StoryVerse',
+  description: 'Discover captivating short fiction stories you can finish in one sitting. Read, write, and share bite-sized stories across all genres with a vibrant community.',
+  keywords: ['short stories', 'one sitting reads', 'quick reads', 'fiction', 'creative writing', 'storytelling', 'literature', 'bite-sized stories', 'fast reads'],
+  authors: [{ name: 'OneSitRead Team' }],
+  creator: 'OneSitRead',
+  publisher: 'OneSitRead',
   formatDetection: {
     email: false,
     address: false,
@@ -23,24 +23,24 @@ export const metadata = {
     type: 'website',
     locale: 'en_US',
     url: '/',
-    siteName: 'StoryVerse',
-    title: 'StoryVerse - Discover & Share Short Fiction Stories',
-    description: 'Explore thousands of captivating short fiction stories across Fantasy, Sci-Fi, Romance, Thriller, and more. Read, write, and share your stories with a vibrant community.',
+    siteName: 'OneSitRead',
+    title: 'OneSitRead - Short Fiction Stories You Can Finish in One Sitting',
+    description: 'Discover captivating short fiction stories you can finish in one sitting. Read, write, and share bite-sized stories across all genres.',
     images: [
       {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'StoryVerse - Short Fiction Stories',
+        alt: 'OneSitRead - Short Fiction Stories',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'StoryVerse - Discover & Share Short Fiction Stories',
-    description: 'Explore thousands of captivating short fiction stories. Read, write, and share with our community.',
+    title: 'OneSitRead - Short Fiction Stories You Can Finish in One Sitting',
+    description: 'Discover captivating short fiction stories you can finish in one sitting. Perfect for quick reads.',
     images: ['/og-image.jpg'],
-    creator: '@storyverse',
+    creator: '@onesitread',
   },
   robots: {
     index: true,

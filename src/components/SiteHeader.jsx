@@ -64,7 +64,7 @@ export default function SiteHeader() {
         {/* Left: Logo */}
         <Link href="/">
           <h1 className="text-xl font-extrabold text-[var(--foreground)] cursor-pointer">
-            StoryVerse
+            OneSitRead
           </h1>
         </Link>
 
