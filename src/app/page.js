@@ -13,6 +13,8 @@ import BecomeAuthorBanner from "@/components/BecomeAuthorBanner";
 import FeaturedAuthor from "@/components/FeaturedAuthor";
 import EditorsPick from "@/components/EditorsPick";
 import Footer from "@/components/Footer";
+import SkeletonSection from "@/components/skeletons/SkeletonSection";
+import SkeletonHomepage from "@/components/skeletons/SkeletonHomepage";
 
 // Utility component for the arrow icons (assuming a simple inline SVG)
 // Using Tailwind's default colors for this example, you can adjust the className
@@ -101,16 +103,13 @@ function Section({ title, items }) {
         {/* Story Card Scroll Container - Assign the ref here */}
         <div
           ref={scrollRef} // 5. Assign the ref
-          className="overflow-x-auto scrollbar-hide relative"
+          className="overflow-x-auto scrollbar-hide"
         >
           <div className="flex gap-4 pb-4">
             {items.map((story) => (
               <StoryCard key={story.id} story={story} />
             ))}
           </div>
-          
-          {/* Gradient fade on right edge for mobile - indicates more content */}
-          <div className="md:hidden absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-[var(--background)] to-transparent pointer-events-none"></div>
         </div>
 
         {/* Right Arrow Button */}
@@ -123,6 +122,9 @@ function Section({ title, items }) {
         >
           <ChevronRight />
         </button>
+        
+        {/* Gradient fade on right edge for mobile - indicates more content */}
+        <div className="md:hidden absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[var(--background)] via-[var(--background)]/80 to-transparent pointer-events-none z-[5]"></div>
       </div>
     </section>
   );
@@ -255,9 +257,7 @@ export default function Home() {
     return (
       <main className="min-h-screen w-full bg-[var(--background)]">
         <SiteHeader />
-        <div className="text-center py-20 text-[var(--foreground)]">
-          Loading stories...
-        </div>
+        <SkeletonHomepage />
         <Footer />
       </main>
     );

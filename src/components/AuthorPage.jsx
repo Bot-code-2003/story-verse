@@ -8,6 +8,7 @@ import EditProfileModal from "@/components/EditProfileModal";
 import { useAuth } from "@/context/AuthContext";
 import StoryCard from "@/components/StoryCard";
 import Footer from "./Footer";
+import SkeletonAuthorPage from "@/components/skeletons/SkeletonAuthorPage";
 
 export default function AuthorPage() {
   const params = useParams();
@@ -190,12 +191,11 @@ export default function AuthorPage() {
 
   if (loading && !author) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 border-2 border-[var(--foreground)]/20 border-t-[var(--foreground)] rounded-full animate-spin mx-auto"></div>
-          <p className="text-[var(--foreground)]/60 text-sm">Loading...</p>
-        </div>
-      </div>
+      <>
+        <SiteHeader />
+        <SkeletonAuthorPage />
+        <Footer />
+      </>
     );
   }
 

@@ -29,6 +29,9 @@ import RecommendationsSection from "@/components/story/RecommendationsSection";
 // Import caching utilities
 import { fetchWithCache } from "@/lib/cache";
 
+// Import skeleton loader
+import SkeletonStoryPage from "@/components/skeletons/SkeletonStoryPage";
+
 
 
 
@@ -608,12 +611,11 @@ export default function StoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 border-2 border-[var(--foreground)]/20 border-t-[var(--foreground)] rounded-full animate-spin mx-auto"></div>
-          <p className="text-[var(--foreground)]/60 text-sm">Loading...</p>
-        </div>
-      </div>
+      <>
+        <SiteHeader />
+        <SkeletonStoryPage />
+        <Footer />
+      </>
     );
   }
 
