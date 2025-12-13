@@ -74,9 +74,16 @@ function Section({ title, items }) {
 
   return (
     <section className="mb-10 relative"> {/* 4. Add 'relative' for absolute positioning of arrows */}
-      <h3 className="text-xl font-semibold mb-4 text-[var(--foreground)]">
-        {title}
-      </h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xl font-semibold text-[var(--foreground)]">
+          {title}
+        </h3>
+        {/* Mobile scroll hint - only visible on small screens */}
+        <span className="md:hidden text-xs text-[var(--foreground)]/50 flex items-center gap-1">
+          <span>Swipe</span>
+          <ChevronRight className="w-3 h-3" />
+        </span>
+      </div>
       
       {/* Scrollable Container Wrapper */}
       <div className="relative">
@@ -94,13 +101,16 @@ function Section({ title, items }) {
         {/* Story Card Scroll Container - Assign the ref here */}
         <div
           ref={scrollRef} // 5. Assign the ref
-          className="overflow-x-auto scrollbar-hide"
+          className="overflow-x-auto scrollbar-hide relative"
         >
           <div className="flex gap-4 pb-4">
             {items.map((story) => (
               <StoryCard key={story.id} story={story} />
             ))}
           </div>
+          
+          {/* Gradient fade on right edge for mobile - indicates more content */}
+          <div className="md:hidden absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-[var(--background)] to-transparent pointer-events-none"></div>
         </div>
 
         {/* Right Arrow Button */}
