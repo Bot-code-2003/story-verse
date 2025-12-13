@@ -10,15 +10,11 @@ const CACHE_CONFIG = {
   homepage_trending: { ttl: 600000 }, // ✅ 10 min
   homepage_quickreads: { ttl: 600000 }, // ✅ 10 min
   homepage_editorpicks: { ttl: 600000 }, // ✅ 10 min
+  homepage_fiction: { ttl: 600000 }, // ✅ 10 min
   homepage_fantasy: { ttl: 600000 }, // ✅ 10 min
-  homepage_scifi: { ttl: 600000 }, // ✅ 10 min
-  homepage_romance: { ttl: 600000 }, // ✅ 10 min
-  homepage_thriller: { ttl: 600000 }, // ✅ 10 min
-  homepage_horror: { ttl: 600000 }, // ✅ 10 min
-  homepage_adventure: { ttl: 600000 }, // ✅ 10 min
   homepage_drama: { ttl: 600000 }, // ✅ 10 min
+  homepage_romance: { ttl: 600000 }, // ✅ 10 min
   homepage_sliceoflife: { ttl: 600000 }, // ✅ 10 min
-  homepage_mythicfiction: { ttl: 600000 }, // ✅ 10 min
   homepage_author: { ttl: 600000 }, // ✅ 10 min
   story_: { ttl: 300000 }, // ✅ 5 min - Individual stories (prefix, actual key will be story_[id])
 };
@@ -245,14 +241,10 @@ export const CACHE_KEYS = {
   TRENDING: "homepage_trending",
   QUICK_READS: "homepage_quickreads",
   EDITOR_PICKS: "homepage_editorpicks",
+  FICTION: "homepage_fiction",
   FANTASY: "homepage_fantasy",
-  SCIFI: "homepage_scifi",
-  ROMANCE: "homepage_romance",
-  THRILLER: "homepage_thriller",
-  HORROR: "homepage_horror",
-  ADVENTURE: "homepage_adventure",
   DRAMA: "homepage_drama",
+  ROMANCE: "homepage_romance",
   SLICE_OF_LIFE: "homepage_sliceoflife",
   FEATURED_AUTHOR: "homepage_author",
-  MYTHIC_FICTION: "homepage_mythicfiction",
 };

@@ -126,16 +126,12 @@ export default function Home() {
   const [quickReads, setQuickReads] = useState([]);
   const [editorPicks, setEditorPicks] = useState([]); // ⭐ editor picks
 
-  // genre-specific lists
-  const [adventure, setAdventure] = useState([]);
+  // genre-specific lists - Only active genres
+  const [fiction, setFiction] = useState([]);
   const [fantasy, setFantasy] = useState([]);
-  const [thrillers, setThrillers] = useState([]);
-  const [romance, setRomance] = useState([]);
-  const [sciFi, setSciFi] = useState([]);
-  const [horror, setHorror] = useState([]);
-  const [sliceOfLife, setSliceOfLife] = useState([]);
   const [drama, setDrama] = useState([]);
-  const [mythicFiction, setMythicFiction] = useState([]);
+  const [romance, setRomance] = useState([]);
+  const [sliceOfLife, setSliceOfLife] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -186,29 +182,21 @@ export default function Home() {
           latestList,
           quickReadsList,
           editorPicksList,
-          adventureList,
+          fictionList,
           fantasyList,
-          thrillersList,
-          romanceList,
-          sciFiList,
-          horrorList,
-          sliceOfLifeList,
           dramaList,
-          mythicFictionList,
+          romanceList,
+          sliceOfLifeList,
         ] = await Promise.all([
           fetchRouteStories("/api/stories/trending", CACHE_KEYS.TRENDING),
           fetchRouteStories("/api/stories/latest"), // ❌ NO CACHE - always fresh
           fetchRouteStories("/api/stories/quickreads", CACHE_KEYS.QUICK_READS),
           fetchRouteStories("/api/stories/editorpicks", CACHE_KEYS.EDITOR_PICKS),
-          fetchRouteStories("/api/stories?genre=Adventure", CACHE_KEYS.ADVENTURE),
+          fetchRouteStories("/api/stories?genre=Fiction", CACHE_KEYS.FICTION),
           fetchRouteStories("/api/stories?genre=Fantasy", CACHE_KEYS.FANTASY),
-          fetchRouteStories("/api/stories?genre=Thriller", CACHE_KEYS.THRILLER),
-          fetchRouteStories("/api/stories?genre=Romance", CACHE_KEYS.ROMANCE),
-          fetchRouteStories("/api/stories?genre=Sci-Fi", CACHE_KEYS.SCIFI),
-          fetchRouteStories("/api/stories?genre=Horror", CACHE_KEYS.HORROR),
-          fetchRouteStories("/api/stories?genre=Slice%20of%20Life", CACHE_KEYS.SLICE_OF_LIFE),
           fetchRouteStories("/api/stories?genre=Drama", CACHE_KEYS.DRAMA),
-          fetchRouteStories("/api/stories?genre=Mythic Fiction", CACHE_KEYS.MYTHIC_FICTION),
+          fetchRouteStories("/api/stories?genre=Romance", CACHE_KEYS.ROMANCE),
+          fetchRouteStories("/api/stories?genre=Slice%20of%20Life", CACHE_KEYS.SLICE_OF_LIFE),
         ]);
 
         // Use the fetched lists, with sensible fallbacks
@@ -228,16 +216,12 @@ export default function Home() {
         setQuickReads(finalQuickReads);
         setEditorPicks(finalEditorPicks); // ⭐ set editor picks
         console.log("finalEditorPicks", finalEditorPicks);
-        // update genres to show up to 10 each as well
-        setAdventure((adventureList && adventureList.slice(0, 18)) || []);
+        // update genres to show up to 18 each
+        setFiction((fictionList && fictionList.slice(0, 18)) || []);
         setFantasy((fantasyList && fantasyList.slice(0, 18)) || []);
-        setThrillers((thrillersList && thrillersList.slice(0, 18)) || []);
-        setRomance((romanceList && romanceList.slice(0, 18)) || []);
-        setMythicFiction((mythicFictionList && mythicFictionList.slice(0, 18)) || []);
-        setSciFi((sciFiList && sciFiList.slice(0, 18)) || []);
-        setHorror((horrorList && horrorList.slice(0, 18)) || []);
-        setSliceOfLife((sliceOfLifeList && sliceOfLifeList.slice(0, 18)) || []);
         setDrama((dramaList && dramaList.slice(0, 18)) || []);
+        setRomance((romanceList && romanceList.slice(0, 18)) || []);
+        setSliceOfLife((sliceOfLifeList && sliceOfLifeList.slice(0, 18)) || []);
       } catch (err) {
         console.error("Failed to fetch initial data:", err);
         setError("Failed to load stories.");
@@ -334,30 +318,24 @@ export default function Home() {
           <Section title="New Releases" items={newReleases} />
           <DiscoverGenres />
 
+
           {/* Genre sections using the dynamically fetched state */}
+          {fiction.length > 0 && (
+            <Section title="Fiction Stories" items={fiction} />
+          )}
           {fantasy.length > 0 && (
             <Section title="Fantasy Picks" items={fantasy} />
+          )}
+          {drama.length > 0 && <Section title="Dramatic Reads" items={drama} />}
+          
+          <BecomeAuthorBanner />
+          
+          {romance.length > 0 && (
+            <Section title="Romance Stories" items={romance} />
           )}
           {sliceOfLife.length > 0 && (
             <Section title="Slice of Life" items={sliceOfLife} />
           )}
-          {mythicFiction.length > 0 && (
-            <Section title="Mythic Fiction" items={mythicFiction} />
-          )}
-          {drama.length > 0 && <Section title="Dramatic Reads" items={drama} />}
-          {adventure.length > 0 && (
-            <Section title="Adventure Tales" items={adventure} />
-          )}
-          <BecomeAuthorBanner />
-
-          {thrillers.length > 0 && (
-            <Section title="Thrillers" items={thrillers} />
-          )}
-          {romance.length > 0 && (
-            <Section title="Romance Stories" items={romance} />
-          )}
-          {sciFi.length > 0 && <Section title="Sci-Fi" items={sciFi} />}
-          {horror.length > 0 && <Section title="Horror Stories" items={horror} />}
         </div>
 
         <Footer />

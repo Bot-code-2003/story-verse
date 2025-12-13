@@ -45,7 +45,7 @@ export default function ShortReads({ stories }) {
   // The filtering here is redundant and should be removed if the list passed to `stories`
   // is already the filtered list (which it is in the `page.js` update).
   // However, I will keep the existing filtering logic for safety, but point out the potential for cleanup.
-  const quickReads = stories.filter((s) => s.readTime <= 6).slice(0, 10);
+  const quickReads = stories.filter((s) => s.readTime <= 10).slice(0, 10);
   
   // 1. Create a ref for the scrollable container
   const scrollRef = useRef(null);
