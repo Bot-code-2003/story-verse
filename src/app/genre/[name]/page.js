@@ -132,7 +132,7 @@ export default function GenrePage(props) {
           </header>
 
           {loading && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
               {[...Array(10)].map((_, i) => (
                 <SkeletonCard key={i} />
               ))}
@@ -143,7 +143,7 @@ export default function GenrePage(props) {
             <div className="text-gray-500 text-sm">No stories in this genre.</div>
           )}
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
             {stories.map((story) => (
               <StoryCard key={story.id} story={story} />
             ))}
