@@ -12,17 +12,30 @@ export async function generateMetadata({ params }) {
     const storyId = resolvedParams.storyId;
     
     // Fetch story data for metadata
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/stories/${storyId}`, {
-      cache: 'no-store' // Always get fresh data for metadata
+    // Use Vercel URL or localhost
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
+                    'https://onesitread.vercel.app';
+    
+    const apiUrl = `${baseUrl}/api/stories/${storyId}`;
+    
+    console.log('Fetching metadata from:', apiUrl);
+    
+    const response = await fetch(apiUrl, {
+      cache: 'no-store', // Always get fresh data for metadata
+      headers: {
+        'Content-Type': 'application/json',
+      }
     });
     
     if (!response.ok) {
+      console.error('Failed to fetch story for metadata:', response.status);
       return {
-        title: 'Story Not Found',
-        description: 'The requested story could not be found.',
+        title: 'Story Not Found | OneSitRead',
+        description: 'The requested story could not be found on OneSitRead.',
       };
     }
+    
     
     const data = await response.json();
     const story = data.story;
