@@ -72,7 +72,7 @@ function Section({ title, items }) {
     }
   };
 
-  if (!items || items.length === 0) return null;
+  if (!items || items.length === 0) return <SkeletonSection />;
 
   return (
     <section className="mb-10 relative"> {/* 4. Add 'relative' for absolute positioning of arrows */}
@@ -252,16 +252,9 @@ export default function Home() {
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
           .slice(0, 18);
 
-  // --- Loading and Error States ---
-  if (loading) {
-    return (
-      <main className="min-h-screen w-full bg-[var(--background)]">
-        <SiteHeader />
-        <SkeletonHomepage />
-        <Footer />
-      </main>
-    );
-  }
+
+  // --- Error State Only (removed global loading) ---
+  // Sections will show skeletons individually if not loaded
 
   if (error) {
     return (
