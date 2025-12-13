@@ -364,16 +364,23 @@ export default function StoryPage() {
             `User ${fetchedStory.author || "N/A"}`
         );
 
-        // Fetch Recommendations
-        const fetchedRecommendations = await fetchRecommendations(fetchedStory);
-        setRecommendations(fetchedRecommendations);
+        // ✅ Stop main loading - story is ready to display NOW
+        setLoading(false);
 
-        // Fetch initial comments (always fetch, even if not logged in)
+        // 🔄 Load recommendations in background (non-blocking)
+        fetchRecommendations(fetchedStory).then((recs) => {
+          setRecommendations(recs);
+        }).catch((err) => {
+          console.error("Error loading recommendations:", err);
+          setRecommendations([]);
+        });
+
+        // 🔄 Load comments in background (non-blocking)
         fetchComments(1, true);
+        
       } catch (err) {
         console.error("Error loading story data:", err);
         setError("An error occurred while loading the story.");
-      } finally {
         setLoading(false);
       }
     };
