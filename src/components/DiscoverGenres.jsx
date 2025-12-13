@@ -12,7 +12,7 @@ export default function DiscoverGenres() {
         </h3>
       </div>
 
-      <div className="grid grid-cols-4 md:grid-cols-5 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {GENRE_TILES.map((genre) => {
           const url = `/genre/${encodeURIComponent(genre.name)}`;
 

@@ -5,13 +5,6 @@
 
 export const GENRE_TILES = [
   {
-    name: "Fiction",
-    image:
-      "https://cdn.pixabay.com/photo/2016/11/29/05/45/astronomy-1867616_1280.jpg",
-    link: "/genre/fiction",
-    count: "200+ stories",
-  },
-  {
     name: "Fantasy",
     image:
       "https://cdn.pixabay.com/photo/2024/05/16/10/56/forest-8765686_1280.jpg",

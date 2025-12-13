@@ -127,7 +127,6 @@ export default function Home() {
   const [editorPicks, setEditorPicks] = useState([]); // ⭐ editor picks
 
   // genre-specific lists - Only active genres
-  const [fiction, setFiction] = useState([]);
   const [fantasy, setFantasy] = useState([]);
   const [drama, setDrama] = useState([]);
   const [romance, setRomance] = useState([]);
@@ -182,7 +181,6 @@ export default function Home() {
           latestList,
           quickReadsList,
           editorPicksList,
-          fictionList,
           fantasyList,
           dramaList,
           romanceList,
@@ -192,7 +190,6 @@ export default function Home() {
           fetchRouteStories("/api/stories/latest"), // ❌ NO CACHE - always fresh
           fetchRouteStories("/api/stories/quickreads", CACHE_KEYS.QUICK_READS),
           fetchRouteStories("/api/stories/editorpicks", CACHE_KEYS.EDITOR_PICKS),
-          fetchRouteStories("/api/stories?genre=Fiction", CACHE_KEYS.FICTION),
           fetchRouteStories("/api/stories?genre=Fantasy", CACHE_KEYS.FANTASY),
           fetchRouteStories("/api/stories?genre=Drama", CACHE_KEYS.DRAMA),
           fetchRouteStories("/api/stories?genre=Romance", CACHE_KEYS.ROMANCE),
@@ -217,7 +214,6 @@ export default function Home() {
         setEditorPicks(finalEditorPicks); // ⭐ set editor picks
         console.log("finalEditorPicks", finalEditorPicks);
         // update genres to show up to 18 each
-        setFiction((fictionList && fictionList.slice(0, 18)) || []);
         setFantasy((fantasyList && fantasyList.slice(0, 18)) || []);
         setDrama((dramaList && dramaList.slice(0, 18)) || []);
         setRomance((romanceList && romanceList.slice(0, 18)) || []);
@@ -320,9 +316,6 @@ export default function Home() {
 
 
           {/* Genre sections using the dynamically fetched state */}
-          {fiction.length > 0 && (
-            <Section title="Fiction Stories" items={fiction} />
-          )}
           {fantasy.length > 0 && (
             <Section title="Fantasy Picks" items={fantasy} />
           )}
