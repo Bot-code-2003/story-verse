@@ -20,6 +20,7 @@ const CACHE_CONFIG = {
   homepage_sliceoflife: { ttl: 600000 }, // ✅ 10 min
   homepage_mythicfiction: { ttl: 600000 }, // ✅ 10 min
   homepage_author: { ttl: 600000 }, // ✅ 10 min
+  story_: { ttl: 300000 }, // ✅ 5 min - Individual stories (prefix, actual key will be story_[id])
 };
 
 /**
@@ -44,7 +45,16 @@ function isLocalStorageAvailable() {
 export function getCache(key) {
   if (!isLocalStorageAvailable()) return null;
 
-  const config = CACHE_CONFIG[key];
+  // Try exact match first
+  let config = CACHE_CONFIG[key];
+  
+  // If no exact match, try prefix match (e.g., story_[id] matches story_)
+  if (!config) {
+    const prefixKey = Object.keys(CACHE_CONFIG).find(k => key.startsWith(k));
+    if (prefixKey) {
+      config = CACHE_CONFIG[prefixKey];
+    }
+  }
   
   // If TTL is 0, don't use cache
   if (!config || config.ttl === 0) return null;
@@ -79,7 +89,16 @@ export function getCache(key) {
 export function setCache(key, data) {
   if (!isLocalStorageAvailable()) return;
 
-  const config = CACHE_CONFIG[key];
+  // Try exact match first
+  let config = CACHE_CONFIG[key];
+  
+  // If no exact match, try prefix match (e.g., story_[id] matches story_)
+  if (!config) {
+    const prefixKey = Object.keys(CACHE_CONFIG).find(k => key.startsWith(k));
+    if (prefixKey) {
+      config = CACHE_CONFIG[prefixKey];
+    }
+  }
   
   // If TTL is 0, don't cache
   if (!config || config.ttl === 0) return;

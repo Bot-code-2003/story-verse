@@ -26,6 +26,9 @@ import StoryContent from "@/components/story/StoryContent";
 import CommentsSection from "@/components/story/CommentsSection";
 import RecommendationsSection from "@/components/story/RecommendationsSection";
 
+// Import caching utilities
+import { fetchWithCache } from "@/lib/cache";
+
 
 
 
@@ -40,27 +43,49 @@ const MAX_RECOMMENDATIONS = 6;
  * @returns {{story: object, authorData: object | null, liked: boolean, saved: boolean}}
  */
 const fetchStoryAndAuthor = async (id, userId = null) => {
-  let url = `/api/stories/${encodeURIComponent(id)}`;
+  // Create cache key
+  const cacheKey = `story_${id}`;
+  
+  // For logged-in users, skip cache to get fresh interaction data
   if (userId) {
+    let url = `/api/stories/${encodeURIComponent(id)}`;
     url += `?userId=${encodeURIComponent(userId)}`;
-  }
-  const response = await fetch(url);
+    const response = await fetch(url);
 
-  if (!response.ok) {
-    // Check for 404 specifically
-    if (response.status === 404) return { story: null, authorData: null, liked: false, saved: false };
-    throw new Error(`Failed to fetch story ${id}: ${response.statusText}`);
-  }
+    if (!response.ok) {
+      if (response.status === 404) return { story: null, authorData: null, liked: false, saved: false };
+      throw new Error(`Failed to fetch story ${id}: ${response.statusText}`);
+    }
 
-  const data = await response.json();
-  console.log("Fetched story data:", data);
-  return {
-    story: data.story,
-    authorData: data.authorData,
-    liked: data.liked || false,
-    saved: data.saved || false,
-    userPulse: data.userPulse || null,
-  };
+    const data = await response.json();
+    return {
+      story: data.story,
+      authorData: data.authorData,
+      liked: data.liked || false,
+      saved: data.saved || false,
+      userPulse: data.userPulse || null,
+    };
+  }
+  
+  // For anonymous users, use cache (5-minute TTL)
+  return await fetchWithCache(cacheKey, async () => {
+    const url = `/api/stories/${encodeURIComponent(id)}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      if (response.status === 404) return { story: null, authorData: null, liked: false, saved: false };
+      throw new Error(`Failed to fetch story ${id}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return {
+      story: data.story,
+      authorData: data.authorData,
+      liked: false,
+      saved: false,
+      userPulse: null,
+    };
+  });
 };
 
 // NOTE: Since the `storiesData` is gone, we cannot perform client-side

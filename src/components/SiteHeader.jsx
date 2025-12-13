@@ -60,22 +60,22 @@ export default function SiteHeader() {
 
   return (
     <>
-      <header className="flex items-center justify-between px-4 md:px-10 py-3 relative z-50">
+      <header className="flex items-center justify-between px-4 md:px-6 lg:px-10 py-3 relative z-50 gap-3">
         {/* Left: Logo */}
         <Link href="/">
-          <h1 className="text-xl font-extrabold text-[var(--foreground)] cursor-pointer">
+          <h1 className="text-lg md:text-xl font-extrabold text-[var(--foreground)] cursor-pointer whitespace-nowrap">
             OneSitRead
           </h1>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8">
-          <div className="flex items-center gap-8">
+        {/* Desktop Navigation - Only show on large screens */}
+        <nav className="hidden lg:flex items-center gap-6 xl:gap-8 flex-1 max-w-4xl">
+          <div className="flex items-center gap-6 xl:gap-8">
             <BrowseMenu isMobile={false} />
             {/* Write as a button (permission-checked) */}
             <button
               onClick={() => handleWriteClick({ closeMobile: false })}
-              className="text-sm font-medium text-[var(--foreground)]/80 hover:text-[var(--foreground)] transition"
+              className="text-sm font-medium text-[var(--foreground)]/80 hover:text-[var(--foreground)] transition whitespace-nowrap"
             >
               Write
             </button>
@@ -84,15 +84,16 @@ export default function SiteHeader() {
         </nav>
 
         {/* Right: Auth + Theme + Mobile Menu */}
-        <div className="flex items-center gap-5">
-          {/* Desktop Auth + Theme */}
-          <div className="hidden md:flex items-center gap-5">
+        <div className="flex items-center gap-2 md:gap-3">
+          {/* Desktop/Tablet Auth + Theme - Show on md and up */}
+          <div className="hidden md:flex items-center gap-2 lg:gap-3">
             <AuthButtons />
             <button
               onClick={toggleTheme}
               className="
                 p-2 rounded-full border border-[var(--foreground)]/10 
                 text-[var(--foreground)]/80 hover:bg-[var(--foreground)]/5 transition
+                flex-shrink-0
               "
               aria-label={`Switch to ${
                 theme === "light" ? "dark" : "light"
@@ -106,24 +107,24 @@ export default function SiteHeader() {
             </button>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile/Tablet Menu Button - Show on lg and below */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-full border border-[var(--foreground)]/10 text-[var(--foreground)]/80 hover:bg-[var(--foreground)]/5 transition"
+            className="lg:hidden p-2 rounded-full border border-[var(--foreground)]/10 text-[var(--foreground)]/80 hover:bg-[var(--foreground)]/5 transition flex-shrink-0"
             aria-label="Toggle mobile menu"
           >
             {mobileMenuOpen ? (
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 md:w-6 md:h-6" />
             ) : (
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5 md:w-6 md:h-6" />
             )}
           </button>
         </div>
       </header>
 
-      {/* Mobile Menu */}
+      {/* Mobile/Tablet Menu */}
       {mobileMenuOpen && (
-        <div className="fixed top-0 left-0 right-0 bottom-0 md:hidden bg-[var(--background)] z-40 overflow-y-auto pt-20">
+        <div className="fixed top-0 left-0 right-0 bottom-0 lg:hidden bg-[var(--background)] z-40 overflow-y-auto pt-20">
           <div className="px-4 py-6 space-y-4">
             {/* Search Bar */}
             <SearchBar />
@@ -153,8 +154,8 @@ export default function SiteHeader() {
               </button>
             </div>
 
-            {/* Profile Preview + Auth */}
-            <div className="border-t border-[var(--foreground)]/10 pt-4">
+            {/* Profile Preview + Auth - Only show on small screens, hide on md */}
+            <div className="border-t border-[var(--foreground)]/10 pt-4 md:hidden">
               {/* Mobile User Info */}
               {sfUser && (
                 <div className="flex items-center gap-3 mb-4">

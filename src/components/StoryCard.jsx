@@ -37,9 +37,9 @@ export default function StoryCard({ story, showAuthor = true }) {
   return (
     <Link
       href={storyPath}
-      className="min-w-[180px] md:min-w-[220px] max-w-[220px] group cursor-pointer transition duration-200 ease-in-out"
+      className="min-w-[160px] md:min-w-[200px] lg:min-w-[220px] max-w-[180px] md:max-w-[220px] group cursor-pointer transition duration-200 ease-in-out"
     >
-      <div className="relative h-[240px] md:h-[350px] rounded-lg overflow-hidden bg-background/20">
+      <div className="relative h-[200px] md:h-[280px] lg:h-[350px] rounded-lg overflow-hidden bg-background/20">
         {finalImage ? (
           <img
             src={finalImage}
@@ -48,7 +48,7 @@ export default function StoryCard({ story, showAuthor = true }) {
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500">
+          <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500 text-xs">
             No image
           </div>
         )}
@@ -63,18 +63,18 @@ export default function StoryCard({ story, showAuthor = true }) {
       </div>
 
       {/* ✅ Text Section */}
-      <div className="pt-3">
-        <h4 className="text-base font-semibold text-foreground line-clamp-2 transition-colors">
+      <div className="pt-2 md:pt-3">
+        <h4 className="text-sm md:text-base font-semibold text-foreground line-clamp-2 transition-colors">
           {title}
         </h4>
 
         {showAuthor && (
-          <p className="text-sm text-foreground/70 mt-0.5 line-clamp-1">
+          <p className="text-xs md:text-sm text-foreground/70 mt-0.5 line-clamp-1">
             {`By @${authorName}`}
           </p>
         )}
 
-        <p className="text-xs text-foreground/50 mt-1 line-clamp-1">
+        <p className="text-xs text-foreground/50 mt-0.5 md:mt-1 line-clamp-1">
           {genresArr.length ? genresArr.join(" / ") : "—"}
         </p>
       </div>
