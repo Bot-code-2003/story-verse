@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { BookOpen, ChevronLeft, ChevronRight, Heart, Clock } from "lucide-react";
+import { fetchWithCache, CACHE_KEYS } from "@/lib/cache";
 
 export default function FeaturedAuthors() {
   const [authors, setAuthors] = useState([]);
@@ -12,13 +13,18 @@ export default function FeaturedAuthors() {
   useEffect(() => {
     const fetchActiveAuthors = async () => {
       try {
-        const res = await fetch("/api/authors/active?limit=5");
-        if (res.ok) {
-          const data = await res.json();
-          setAuthors(data.authors || []);
-        }
+        // Use caching with 10-minute TTL
+        const data = await fetchWithCache(CACHE_KEYS.FEATURED_AUTHOR, async () => {
+          const res = await fetch("/api/authors/active?limit=5");
+          if (!res.ok) throw new Error("Failed to fetch authors");
+          const json = await res.json();
+          return json.authors || [];
+        });
+        
+        setAuthors(data);
       } catch (error) {
         console.error("Error fetching active authors:", error);
+        setAuthors([]);
       } finally {
         setLoading(false);
       }

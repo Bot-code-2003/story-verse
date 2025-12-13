@@ -18,6 +18,7 @@ const CACHE_CONFIG = {
   homepage_adventure: { ttl: 600000 }, // ✅ 10 min
   homepage_drama: { ttl: 600000 }, // ✅ 10 min
   homepage_sliceoflife: { ttl: 600000 }, // ✅ 10 min
+  homepage_mythicfiction: { ttl: 600000 }, // ✅ 10 min
   homepage_author: { ttl: 600000 }, // ✅ 10 min
 };
 
