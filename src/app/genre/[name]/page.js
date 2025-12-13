@@ -5,6 +5,7 @@ import { use } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import Footer from "@/components/Footer";
 import StoryCard from "@/components/StoryCard";
+import SkeletonCard from "@/components/skeletons/SkeletonCard";
 
 
 export default function GenrePage(props) {
@@ -131,14 +132,18 @@ export default function GenrePage(props) {
           </header>
 
           {loading && (
-            <div className="text-lg text-[var(--foreground)]">Loading...</div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+              {[...Array(12)].map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
           )}
 
           {!loading && stories.length === 0 && (
             <div className="text-gray-500 text-sm">No stories in this genre.</div>
           )}
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
             {stories.map((story) => (
               <StoryCard key={story.id} story={story} />
             ))}
