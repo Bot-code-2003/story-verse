@@ -7,16 +7,16 @@
  */
 const CACHE_CONFIG = {
   homepage_latest: { ttl: 0 }, // ❌ No cache - always fresh
-  homepage_trending: { ttl: 600000 }, // ✅ 10 min
-  homepage_quickreads: { ttl: 600000 }, // ✅ 10 min
-  homepage_editorpicks: { ttl: 600000 }, // ✅ 10 min
-  homepage_fantasy: { ttl: 600000 }, // ✅ 10 min
-  homepage_drama: { ttl: 600000 }, // ✅ 10 min
-  homepage_romance: { ttl: 600000 }, // ✅ 10 min
-  homepage_sliceoflife: { ttl: 600000 }, // ✅ 10 min
-  homepage_thriller: { ttl: 600000 }, // ✅ 10 min
-  homepage_horror: { ttl: 600000 }, // ✅ 10 min
-  homepage_author: { ttl: 600000 }, // ✅ 10 min
+  homepage_trending: { ttl: 7200000 }, // ✅ 2 hours
+  homepage_quickreads: { ttl: 7200000 }, // ✅ 2 hours
+  homepage_editorpicks: { ttl: 7200000 }, // ✅ 2 hours
+  homepage_fantasy: { ttl: 7200000 }, // ✅ 2 hours
+  homepage_drama: { ttl: 7200000 }, // ✅ 2 hours
+  homepage_romance: { ttl: 7200000 }, // ✅ 2 hours
+  homepage_sliceoflife: { ttl: 7200000 }, // ✅ 2 hours
+  homepage_thriller: { ttl: 7200000 }, // ✅ 2 hours
+  homepage_horror: { ttl: 7200000 }, // ✅ 2 hours
+  homepage_author: { ttl: 7200000 }, // ✅ 2 hours
   story_: { ttl: 300000 }, // ✅ 5 min - Individual stories (prefix, actual key will be story_[id])
 };
 

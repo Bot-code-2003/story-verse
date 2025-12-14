@@ -64,8 +64,11 @@ const SuccessModal = ({ isOpen, onClose, storyId }) => {
         <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-2">
           Story Published
         </h2>
-        <p className="text-[var(--foreground)]/60 mb-6 text-sm">
+        <p className="text-[var(--foreground)]/60 mb-4 text-sm">
           Your story is now live and ready to be read.
+        </p>
+        <p className="text-[var(--foreground)]/40 mb-6 text-xs italic">
+          Note: It may take up to 5 minutes for your story to appear on the homepage.
         </p>
         <div className="flex flex-col gap-3">
           <button

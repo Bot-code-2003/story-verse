@@ -10,7 +10,6 @@ export async function GET(request) {
     const title = searchParams.get('title') || 'Untitled Story';
     const author = searchParams.get('author') || 'Unknown Author';
     const genre = searchParams.get('genre') || 'Fiction';
-    const coverImage = searchParams.get('coverImage');
     
     return new ImageResponse(
       (
@@ -23,15 +22,12 @@ export async function GET(request) {
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: '#0a0a0a',
-            backgroundImage: coverImage 
-              ? `url(${coverImage})`
-              : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            backgroundImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             position: 'relative',
           }}
         >
-          {/* Overlay for better text readability */}
           <div
             style={{
               position: 'absolute',
@@ -39,81 +35,71 @@ export async function GET(request) {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
               display: 'flex',
             }}
           />
           
-          {/* Content */}
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '80px',
+              padding: '60px',
               zIndex: 1,
-              textAlign: 'center',
             }}
           >
-            {/* Logo/Brand */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                marginBottom: '40px',
+                marginBottom: '30px',
+                fontSize: 28,
+                fontWeight: 700,
+                color: '#ffffff',
+                letterSpacing: '-0.02em',
               }}
             >
-              <div
-                style={{
-                  fontSize: 32,
-                  fontWeight: 700,
-                  color: '#ffffff',
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                OneSitRead
-              </div>
+              OneSitRead
             </div>
             
-            {/* Story Title */}
             <div
               style={{
-                fontSize: 72,
-                fontWeight: 900,
+                display: 'flex',
+                fontSize: 56,
+                fontWeight: 800,
                 color: '#ffffff',
                 lineHeight: 1.2,
-                marginBottom: '24px',
+                marginBottom: '20px',
                 maxWidth: '900px',
                 textAlign: 'center',
-                textShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
               }}
             >
               {title}
             </div>
             
-            {/* Author */}
             <div
               style={{
-                fontSize: 36,
+                display: 'flex',
+                fontSize: 28,
                 fontWeight: 500,
                 color: '#e0e0e0',
-                marginBottom: '16px',
+                marginBottom: '20px',
               }}
             >
               by {author}
             </div>
             
-            {/* Genre Badge */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '12px 32px',
-                backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                padding: '10px 28px',
+                backgroundColor: 'rgba(102, 126, 234, 0.9)',
                 borderRadius: '50px',
-                fontSize: 24,
+                fontSize: 20,
                 fontWeight: 600,
                 color: '#ffffff',
               }}
