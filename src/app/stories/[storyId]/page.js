@@ -31,7 +31,7 @@ export async function generateMetadata({ params }) {
     if (!response.ok) {
       console.error('Failed to fetch story for metadata:', response.status);
       return {
-        title: 'Story Not Found | OneSitRead',
+        title: 'Story Not Found',
         description: 'The requested story could not be found on OneSitRead.',
       };
     }
@@ -44,11 +44,15 @@ export async function generateMetadata({ params }) {
     const title = story.title || 'Untitled Story';
     const description = story.description || story.content?.substring(0, 160) || 'Read this captivating short fiction story on OneSitRead - finish it in one sitting!';
     const authorName = author?.name || author?.username || 'Unknown Author';
+    const primaryGenre = story.genres?.[0] || 'Fiction';
     const genres = story.genres?.join(', ') || 'Fiction';
-    const coverImage = story.coverImage || '/og-story-default.jpg';
     const storyUrl = `${baseUrl}/stories/${storyId}`;
     
+    // Generate dynamic OG image URL with absolute HTTPS path
+    const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(title)}&author=${encodeURIComponent(authorName)}&genre=${encodeURIComponent(primaryGenre)}${story.coverImage ? `&coverImage=${encodeURIComponent(story.coverImage)}` : ''}`;
+    
     return {
+      // Don't include "OneSitRead" in title as the template will add it
       title: `${title} by ${authorName}`,
       description: description,
       keywords: [
@@ -75,11 +79,11 @@ export async function generateMetadata({ params }) {
         locale: 'en_US',
         images: [
           {
-            url: coverImage,
+            url: ogImageUrl, // Use dynamic OG image with absolute HTTPS URL
             width: 1200,
             height: 630,
-            alt: `${title} - Cover Image`,
-            type: 'image/jpeg',
+            alt: `${title} by ${authorName} - OneSitRead`,
+            type: 'image/png',
           }
         ],
       },
@@ -89,10 +93,7 @@ export async function generateMetadata({ params }) {
         creator: '@onesitread',
         title: `${title} by ${authorName}`,
         description: description,
-        images: {
-          url: coverImage,
-          alt: `${title} - Cover Image`,
-        },
+        images: [ogImageUrl], // Use dynamic OG image
       },
       alternates: {
         canonical: storyUrl,
@@ -107,7 +108,7 @@ export async function generateMetadata({ params }) {
   } catch (error) {
     console.error('Error generating metadata:', error);
     return {
-      title: 'OneSitRead - Short Fiction Stories',
+      title: 'Short Fiction Stories',
       description: 'Read captivating short fiction stories on OneSitRead - stories you can finish in one sitting.',
     };
   }
