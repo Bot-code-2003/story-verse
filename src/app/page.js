@@ -320,7 +320,7 @@ export default function Home() {
           <EditorsPick stories={editorPicks} />
 
           {/* Pass quickReads directly to ShortReads to avoid client-side filtering */}
-          <ShortReads stories={quickReads} />
+          {/* <ShortReads stories={quickReads} /> */}
           <FeaturedAuthor />
           <Section title="New Releases" items={newReleases} />
           <DiscoverGenres />

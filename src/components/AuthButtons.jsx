@@ -54,13 +54,6 @@ const ProfileDropdown = ({ user, logout }) => {
       },
     },
     {
-      name: "Settings",
-      action: () => {
-        setIsOpen(false);
-        router.push("/settings");
-      },
-    },
-    {
       name: "Log out",
       action: logout,
       isDanger: true,

@@ -81,7 +81,7 @@ export async function GET() {
   try {
     await connectToDB();
 
-    const stories = await Story.find({ isEditorPicked: true })
+    const stories = await Story.find({ editorPick: true })
       .sort({ createdAt: -1 })
       .limit(3)
       .populate({ path: "author", select: "username name profileImage" })
