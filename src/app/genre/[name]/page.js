@@ -1,168 +1,99 @@
-"use client";
+// app/genre/[name]/page.js - Server component wrapper for SEO
 
-import { useEffect, useState } from "react";
-import { use } from "react";
-import SiteHeader from "@/components/SiteHeader";
-import Footer from "@/components/Footer";
-import StoryCard from "@/components/StoryCard";
-import SkeletonCard from "@/components/skeletons/SkeletonCard";
+import GenrePageClient from "./GenrePageClient";
+import { connectToDB } from "@/lib/mongodb";
+import Story from "@/models/Story";
 
+// Genre descriptions for SEO
+const genreDescriptions = {
+  "Fantasy": "Explore magical worlds, mythical creatures, and epic adventures in our Fantasy story collection.",
+  "Sci-Fi": "Discover futuristic tales, space exploration, and technological wonders in our Science Fiction stories.",
+  "Romance": "Fall in love with heartwarming tales of passion, connection, and relationships.",
+  "Thriller": "Experience edge-of-your-seat suspense, mystery, and psychological tension.",
+  "Horror": "Dive into spine-chilling tales of terror, supernatural encounters, and dark mysteries.",
+  "Adventure": "Embark on thrilling journeys, daring quests, and exciting explorations.",
+  "Drama": "Experience powerful emotional stories that explore the human condition.",
+  "Slice of Life": "Enjoy relatable stories about everyday experiences and ordinary moments.",
+  "Mystery": "Unravel puzzles, solve crimes, and uncover secrets in our mystery collection.",
+  "Comedy": "Laugh out loud with humorous tales and witty narratives."
+};
 
-export default function GenrePage(props) {
-  // ⬇️ unwrap Next.js dynamic params Promise
-  const params = use(props.params);
-  const genreName = decodeURIComponent(params.name);
-
-  const [stories, setStories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch(`/api/genre/${genreName}?page=1&limit=18`);
-        const data = await res.json();
-        setStories(data.stories || []);
-        setHasMore(data.pagination?.hasMore || false);
-        setPage(1);
-      } catch (err) {
-        console.error("Error loading genre:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, [genreName]);
-
-  const loadMore = async () => {
-    if (loadingMore || !hasMore) return;
+// Generate dynamic metadata for each genre
+export async function generateMetadata({ params }) {
+  try {
+    const resolvedParams = await params;
+    const genreName = decodeURIComponent(resolvedParams.name);
     
-    setLoadingMore(true);
-    try {
-      const nextPage = page + 1;
-      const res = await fetch(`/api/genre/${genreName}?page=${nextPage}&limit=18`);
-      const data = await res.json();
-      
-      if (data.stories && data.stories.length > 0) {
-        setStories((prev) => [...prev, ...data.stories]);
-        setPage(nextPage);
-        setHasMore(data.pagination?.hasMore || false);
-      } else {
-        setHasMore(false);
-      }
-    } catch (err) {
-      console.error("Error loading more stories:", err);
-    } finally {
-      setLoadingMore(false);
-    }
-  };
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://onesitread.vercel.app');
+    
+    // Connect to database to get story count
+    await connectToDB();
+    const storyCount = await Story.countDocuments({ 
+      genres: { $regex: new RegExp(`^${genreName}$`, 'i') },
+      published: true 
+    });
+    
+    const description = genreDescriptions[genreName] || 
+                        `Discover captivating ${genreName} stories on OneSitRead - short fiction you can finish in one sitting.`;
+    
+    const genreUrl = `${baseUrl}/genre/${encodeURIComponent(genreName)}`;
+    
+    // Generate OG image
+    const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(genreName + ' Stories')}&author=${storyCount}%20Stories&genre=OneSitRead`;
+    
+    return {
+      title: `${genreName} Stories`,
+      description: description,
+      keywords: [
+        genreName.toLowerCase(),
+        `${genreName.toLowerCase()} stories`,
+        `${genreName.toLowerCase()} fiction`,
+        'short stories',
+        'quick reads',
+        'one sitting reads',
+        'OneSitRead'
+      ],
+      openGraph: {
+        title: `${genreName} Stories - OneSitRead`,
+        description: description,
+        url: genreUrl,
+        siteName: 'OneSitRead',
+        type: 'website',
+        locale: 'en_US',
+        images: [
+          {
+            url: ogImageUrl,
+            width: 1200,
+            height: 630,
+            alt: `${genreName} Stories on OneSitRead`,
+          }
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        site: '@onesitread',
+        title: `${genreName} Stories - OneSitRead`,
+        description: description,
+        images: [ogImageUrl],
+      },
+      alternates: {
+        canonical: genreUrl,
+      },
+      robots: {
+        index: true,
+        follow: true,
+      },
+    };
+  } catch (error) {
+    console.error('Error generating genre metadata:', error);
+    return {
+      title: 'Genre Stories',
+      description: 'Discover captivating short fiction stories on OneSitRead.',
+    };
+  }
+}
 
-  // Genre descriptions for SEO
-  const genreDescriptions = {
-    "Fantasy": "Explore magical worlds, mythical creatures, and epic adventures in our Fantasy story collection.",
-    "Sci-Fi": "Discover futuristic tales, space exploration, and technological wonders in our Science Fiction stories.",
-    "Romance": "Fall in love with heartwarming tales of passion, connection, and relationships.",
-    "Thriller": "Experience edge-of-your-seat suspense, mystery, and psychological tension.",
-    "Horror": "Dive into spine-chilling tales of terror, supernatural encounters, and dark mysteries.",
-    "Adventure": "Embark on thrilling journeys, daring quests, and exciting explorations.",
-    "Drama": "Experience powerful emotional stories that explore the human condition.",
-    "Slice of Life": "Enjoy relatable stories about everyday experiences and ordinary moments.",
-    "Mystery": "Unravel puzzles, solve crimes, and uncover secrets in our mystery collection.",
-    "Comedy": "Laugh out loud with humorous tales and witty narratives."
-  };
-
-  const genreDescription = genreDescriptions[genreName] || `Discover captivating ${genreName} stories on StoryVerse.`;
-
-  return (
-    <main className="min-h-screen bg-[var(--background)]">
-      {/* Structured Data for SEO */}
-      <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "CollectionPage",
-              "name": `${genreName} Stories`,
-              "description": genreDescription,
-              "url": `https://storyverse.com/genre/${genreName}`,
-              "isPartOf": {
-                "@type": "WebSite",
-                "name": "StoryVerse",
-                "url": "https://storyverse.com"
-              },
-              "breadcrumb": {
-                "@type": "BreadcrumbList",
-                "itemListElement": [
-                  {
-                    "@type": "ListItem",
-                    "position": 1,
-                    "name": "Home",
-                    "item": "https://storyverse.com"
-                  },
-                  {
-                    "@type": "ListItem",
-                    "position": 2,
-                    "name": "Genres",
-                    "item": "https://storyverse.com/genres"
-                  },
-                  {
-                    "@type": "ListItem",
-                    "position": 3,
-                    "name": genreName,
-                    "item": `https://storyverse.com/genre/${genreName}`
-                  }
-                ]
-              }
-            })
-          }}
-        />
-        
-        <SiteHeader />
-
-        <div className="px-4 md:px-10 py-8">
-          <header className="mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold mb-3 text-[var(--foreground)]">
-              {genreName} Stories
-            </h1>
-            <p className="text-lg text-[var(--foreground)]/70 max-w-3xl">
-              {genreDescription}
-            </p>
-          </header>
-
-          {loading && (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
-              {[...Array(10)].map((_, i) => (
-                <SkeletonCard key={i} />
-              ))}
-            </div>
-          )}
-
-          {!loading && stories.length === 0 && (
-            <div className="text-gray-500 text-sm">No stories in this genre.</div>
-          )}
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
-            {stories.map((story) => (
-              <StoryCard key={story.id} story={story} />
-            ))}
-          </div>
-
-          {!loading && hasMore && (
-            <div className="flex justify-center mt-8">
-              <button
-                onClick={loadMore}
-                disabled={loadingMore}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loadingMore ? "Loading..." : "Load More"}
-              </button>
-            </div>
-          )}
-        </div>
-
-        <Footer />
-      </main>
-  );
+export default function GenrePage({ params }) {
+  return <GenrePageClient params={params} />;
 }

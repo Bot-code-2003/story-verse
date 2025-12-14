@@ -1,21 +1,35 @@
 // app/sitemap.xml/route.js
-// Dynamic sitemap generation for SEO
+// Dynamic sitemap generation for SEO - fetches all stories and authors from DB
 
 import { NextResponse } from 'next/server';
+import { connectToDB } from '@/lib/mongodb';
+import Story from '@/models/Story';
+import User from '@/models/User';
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://onesitread.com';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://onesitread.vercel.app';
   
   try {
-    // Fetch all stories, authors, and genres from your database
-    // For now, we'll create a basic sitemap structure
+    await connectToDB();
     
+    // Fetch all published stories
+    const stories = await Story.find({ published: true })
+      .select('_id updatedAt createdAt')
+      .lean();
+    
+    // Fetch all authors with at least one story
+    const authors = await User.find({ username: { $exists: true, $ne: '' } })
+      .select('username updatedAt createdAt')
+      .lean();
+    
+    // Static pages
     const staticPages = [
-      '',
-      '/login',
-      '/write',
+      { url: '', priority: '1.0', changefreq: 'daily' },
+      { url: '/about', priority: '0.5', changefreq: 'monthly' },
+      { url: '/stories', priority: '0.8', changefreq: 'daily' },
     ];
     
+    // Genre pages
     const genres = [
       'Fantasy',
       'Sci-Fi',
@@ -24,61 +38,52 @@ export async function GET() {
       'Horror',
       'Adventure',
       'Drama',
-      'Slice%20of%20Life',
+      'Slice of Life',
       'Mystery',
       'Comedy'
     ];
-    
-    // TODO: Fetch dynamic data from your database
-    // const stories = await fetchAllStories();
-    // const authors = await fetchAllAuthors();
     
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
-        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   
   <!-- Static Pages -->
   ${staticPages.map(page => `
   <url>
-    <loc>${baseUrl}${page}</loc>
+    <loc>${baseUrl}${page.url}</loc>
     <lastmod>${new Date().toISOString()}</lastmod>
-    <changefreq>${page === '' ? 'daily' : 'monthly'}</changefreq>
-    <priority>${page === '' ? '1.0' : '0.5'}</priority>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
   </url>`).join('')}
   
   <!-- Genre Pages -->
   ${genres.map(genre => `
   <url>
-    <loc>${baseUrl}/genre/${genre}</loc>
+    <loc>${baseUrl}/genre/${encodeURIComponent(genre)}</loc>
     <lastmod>${new Date().toISOString()}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`).join('')}
   
-  <!-- TODO: Add dynamic story pages -->
-  <!-- Example:
-  ${`
+  <!-- Story Pages -->
+  ${stories.map(story => `
   <url>
-    <loc>${baseUrl}/stories/story-id</loc>
-    <lastmod>2024-01-01T00:00:00.000Z</lastmod>
+    <loc>${baseUrl}/stories/${story._id.toString()}</loc>
+    <lastmod>${(story.updatedAt || story.createdAt || new Date()).toISOString()}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
-  </url>`}
-  -->
+  </url>`).join('')}
   
-  <!-- TODO: Add dynamic author pages -->
-  <!-- Example:
-  ${`
+  <!-- Author Pages -->
+  ${authors.map(author => `
   <url>
-    <loc>${baseUrl}/authors/username</loc>
-    <lastmod>2024-01-01T00:00:00.000Z</lastmod>
+    <loc>${baseUrl}/authors/${encodeURIComponent(author.username)}</loc>
+    <lastmod>${(author.updatedAt || author.createdAt || new Date()).toISOString()}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
-  </url>`}
-  -->
+  </url>`).join('')}
   
 </urlset>`;
 

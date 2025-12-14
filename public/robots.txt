@@ -7,4 +7,4 @@ Disallow: /login
 Disallow: /profile
 
 # Sitemap
-Sitemap: https://storyverse.com/sitemap.xml
+Sitemap: https://onesitread.vercel.app/sitemap.xml

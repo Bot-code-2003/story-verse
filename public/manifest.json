@@ -1,11 +1,11 @@
 {
-  "name": "StoryVerse",
-  "short_name": "StoryVerse",
-  "description": "Discover and share short fiction stories across multiple genres",
+  "name": "OneSitRead",
+  "short_name": "OneSitRead",
+  "description": "Discover captivating short fiction stories you can finish in one sitting",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "background_color": "#0a0a0a",
+  "theme_color": "#667eea",
   "icons": [
     {
       "src": "/icon-192x192.png",

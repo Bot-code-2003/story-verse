@@ -287,12 +287,12 @@ export default function Home() {
               "@type": "WebSite",
               "name": "OneSitRead",
               "description": "Discover and share short fiction stories you can finish in one sitting. Quick reads across all genres.",
-              "url": "https://onesitread.com",
+              "url": "https://onesitread.vercel.app",
               "potentialAction": {
                 "@type": "SearchAction",
                 "target": {
                   "@type": "EntryPoint",
-                  "urlTemplate": "https://onesitread.com/search?q={search_term_string}"
+                  "urlTemplate": "https://onesitread.vercel.app/search?q={search_term_string}"
                 },
                 "query-input": "required name=search_term_string"
               },
@@ -301,7 +301,7 @@ export default function Home() {
                 "name": "OneSitRead",
                 "logo": {
                   "@type": "ImageObject",
-                  "url": "https://onesitread.com/logo.png"
+                  "url": "https://onesitread.vercel.app/logo.png"
                 }
               }
             })

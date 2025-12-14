@@ -1,33 +1,50 @@
 // app/authors/[authorUsername]/page.js
 
 import AuthorPage from "@/components/AuthorPage";
+import { connectToDB } from "@/lib/mongodb";
+import User from "@/models/User";
+import Story from "@/models/Story";
 
-// Generate dynamic metadata for each author
+// Generate dynamic metadata for each author - using direct DB access
 export async function generateMetadata({ params }) {
   try {
-    // Await params as it's a Promise in Next.js 15+
     const resolvedParams = await params;
     const authorUsername = resolvedParams.authorUsername;
     
-    // Fetch author data for metadata
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/authors/${authorUsername}`, {
-      cache: 'no-store' // Always get fresh data for metadata
-    });
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://onesitread.vercel.app');
     
-    if (!response.ok) {
+    if (!authorUsername) {
       return {
         title: 'Author Not Found',
-        description: 'The requested author could not be found.',
+        description: 'The requested author could not be found on OneSitRead.',
       };
     }
     
-    const data = await response.json();
-    const author = data.author;
+    // Connect to database directly
+    await connectToDB();
+    
+    // Fetch author
+    const author = await User.findOne({ username: authorUsername })
+      .select('username name bio profileImage')
+      .lean();
+    
+    if (!author) {
+      return {
+        title: 'Author Not Found',
+        description: 'The requested author could not be found on OneSitRead.',
+      };
+    }
+    
+    // Count stories
+    const storyCount = await Story.countDocuments({ author: author._id, published: true });
     
     const authorName = author.name || author.username || 'Unknown Author';
-    const bio = author.bio || `Read stories by ${authorName} on StoryVerse.`;
-    const storyCount = data.stories?.length || 0;
+    const bio = author.bio || `Read ${storyCount} stories by ${authorName} on OneSitRead - short fiction you can finish in one sitting.`;
+    const authorUrl = `${baseUrl}/authors/${authorUsername}`;
+    
+    // Generate OG image URL
+    const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(authorName)}&author=Author%20Profile&genre=${storyCount}%20Stories`;
     
     return {
       title: `${authorName} - Author Profile`,
@@ -38,40 +55,48 @@ export async function generateMetadata({ params }) {
         'writer',
         'short stories',
         'fiction author',
-        'creative writing'
+        'creative writing',
+        'OneSitRead'
       ],
       authors: [{ name: authorName }],
       openGraph: {
-        title: `${authorName} - Author on StoryVerse`,
+        title: `${authorName} - Author on OneSitRead`,
         description: bio.substring(0, 160),
+        url: authorUrl,
+        siteName: 'OneSitRead',
         type: 'profile',
         profile: {
           username: author.username,
         },
         images: [
           {
-            url: author.profileImage || '/default-avatar.jpg',
+            url: author.profileImage || ogImageUrl,
             width: 400,
             height: 400,
-            alt: `${authorName}'s profile picture`,
+            alt: `${authorName}'s profile`,
           }
         ],
       },
       twitter: {
         card: 'summary',
-        title: `${authorName} - Author on StoryVerse`,
+        site: '@onesitread',
+        title: `${authorName} - Author on OneSitRead`,
         description: bio.substring(0, 160),
-        images: [author.profileImage || '/default-avatar.jpg'],
+        images: [author.profileImage || ogImageUrl],
       },
       alternates: {
-        canonical: `/authors/${authorUsername}`,
+        canonical: authorUrl,
+      },
+      robots: {
+        index: true,
+        follow: true,
       },
     };
   } catch (error) {
     console.error('Error generating author metadata:', error);
     return {
-      title: 'Author Profile - StoryVerse',
-      description: 'Discover talented authors and their stories on StoryVerse.',
+      title: 'Author Profile',
+      description: 'Discover talented authors and their stories on OneSitRead.',
     };
   }
 }
