@@ -143,6 +143,8 @@ export default function Home() {
   const [drama, setDrama] = useState([]);
   const [romance, setRomance] = useState([]);
   const [sliceOfLife, setSliceOfLife] = useState([]);
+  const [thriller, setThriller] = useState([]);
+  const [horror, setHorror] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -197,6 +199,8 @@ export default function Home() {
           dramaList,
           romanceList,
           sliceOfLifeList,
+          thrillerList,
+          horrorList,
         ] = await Promise.all([
           fetchRouteStories("/api/stories/trending", CACHE_KEYS.TRENDING),
           fetchRouteStories("/api/stories/latest"), // ❌ NO CACHE - always fresh
@@ -206,6 +210,8 @@ export default function Home() {
           fetchRouteStories("/api/stories?genre=Drama", CACHE_KEYS.DRAMA),
           fetchRouteStories("/api/stories?genre=Romance", CACHE_KEYS.ROMANCE),
           fetchRouteStories("/api/stories?genre=Slice%20of%20Life", CACHE_KEYS.SLICE_OF_LIFE),
+          fetchRouteStories("/api/stories?genre=Thriller", CACHE_KEYS.THRILLER),
+          fetchRouteStories("/api/stories?genre=Horror", CACHE_KEYS.HORROR),
         ]);
 
         // Use the fetched lists, with sensible fallbacks
@@ -230,6 +236,8 @@ export default function Home() {
         setDrama((dramaList && dramaList.slice(0, 18)) || []);
         setRomance((romanceList && romanceList.slice(0, 18)) || []);
         setSliceOfLife((sliceOfLifeList && sliceOfLifeList.slice(0, 18)) || []);
+        setThriller((thrillerList && thrillerList.slice(0, 18)) || []);
+        setHorror((horrorList && horrorList.slice(0, 18)) || []);
       } catch (err) {
         console.error("Failed to fetch initial data:", err);
         setError("Failed to load stories.");
@@ -331,6 +339,12 @@ export default function Home() {
           )}
           {sliceOfLife.length > 0 && (
             <Section title="Slice of Life" items={sliceOfLife} />
+          )}
+          {thriller.length > 0 && (
+            <Section title="Thriller" items={thriller} />
+          )}
+          {horror.length > 0 && (
+            <Section title="Horror" items={horror} />
           )}
         </div>
 

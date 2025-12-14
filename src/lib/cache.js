@@ -14,6 +14,8 @@ const CACHE_CONFIG = {
   homepage_drama: { ttl: 600000 }, // ✅ 10 min
   homepage_romance: { ttl: 600000 }, // ✅ 10 min
   homepage_sliceoflife: { ttl: 600000 }, // ✅ 10 min
+  homepage_thriller: { ttl: 600000 }, // ✅ 10 min
+  homepage_horror: { ttl: 600000 }, // ✅ 10 min
   homepage_author: { ttl: 600000 }, // ✅ 10 min
   story_: { ttl: 300000 }, // ✅ 5 min - Individual stories (prefix, actual key will be story_[id])
 };
@@ -244,5 +246,7 @@ export const CACHE_KEYS = {
   DRAMA: "homepage_drama",
   ROMANCE: "homepage_romance",
   SLICE_OF_LIFE: "homepage_sliceoflife",
+  THRILLER: "homepage_thriller",
+  HORROR: "homepage_horror",
   FEATURED_AUTHOR: "homepage_author",
 };

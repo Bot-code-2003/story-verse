@@ -32,6 +32,20 @@ export const GENRE_TILES = [
     link: "/genre/slice-of-life",
     count: "143 stories",
   },
+  {
+    name: "Thriller",
+    image:
+      "https://i.pinimg.com/736x/57/75/81/577581bb71d272cb6191274f9247e8e2.jpg",
+    link: "/genre/thriller",
+    count: "143 stories",
+  },
+  {
+    name: "Horror",
+    image:
+      "https://i.pinimg.com/1200x/3e/e5/76/3ee576b1a810b78a282df07dd7860034.jpg",
+    link: "/genre/horror",
+    count: "143 stories",
+  },
 ];
 
 /**
