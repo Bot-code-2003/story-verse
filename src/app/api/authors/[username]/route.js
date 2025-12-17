@@ -50,10 +50,11 @@ export async function GET(req, { params }) {
       following: user.following,
       savedStories: user.savedStories,
       likedStories: user.likedStories,
+      latestContest: user.latestContest || null,
       createdAt: user.createdAt,
     };
 
-    return new Response(JSON.stringify(safeUser), { status: 200 });
+    return new Response(JSON.stringify({ author: safeUser }), { status: 200 });
   } catch (err) {
     console.error("/api/authors/[username] GET error", err);
     return new Response(JSON.stringify({ error: "Server error" }), {

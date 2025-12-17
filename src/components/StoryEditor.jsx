@@ -83,6 +83,47 @@ const SuccessModal = ({ isOpen, onClose, storyId }) => {
   );
 };
 
+// Contest Already Submitted Modal
+const ContestAlreadySubmittedModal = ({ isOpen, onClose, onUncheck }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      ></div>
+
+      <div className="relative bg-[var(--background)] rounded-lg shadow-2xl w-full max-w-md p-6 text-center border border-[var(--foreground)]/10">
+        <div className="text-4xl text-amber-500 mb-4">⚠️</div>
+        <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">
+          Already Submitted
+        </h2>
+        <p className="text-[var(--foreground)]/60 mb-4 text-sm">
+          You've already submitted a story to 7K Sprint Dec 2025. Each author can only submit one story per contest.
+        </p>
+        <p className="text-[var(--foreground)]/50 mb-6 text-xs bg-[var(--foreground)]/5 p-3 rounded-md">
+          💡 <strong>Want to submit a different story?</strong> Delete your previous contest submission from your profile, then you'll be able to submit this story to the contest.
+        </p>
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={onUncheck}
+            className="w-full px-4 py-2 rounded-md bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors"
+          >
+            Publish Without Contest
+          </button>
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-2 rounded-md border border-[var(--foreground)]/20 text-[var(--foreground)] font-medium hover:bg-[var(--foreground)]/5 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- Main Component ---
 export default function StoryEditor({ storyId = null, initialData = null }) {
   const router = useRouter();
@@ -108,6 +149,10 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
   // Word count state
   const [wordCount, setWordCount] = useState(0);
   const [readTime, setReadTime] = useState(1);
+
+  // Contest submission state
+  const [submitToContest, setSubmitToContest] = useState(false);
+  const [showContestAlreadyModal, setShowContestAlreadyModal] = useState(false);
 
   // Helper function to show toast
   const showToast = (message, type) => {
@@ -246,6 +291,7 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
       readTime: autoReadTime,
       genres: selectedGenres,
       published: !!published,
+      contest: published && submitToContest ? "7k-sprint-dec-2025" : null,
     };
   };
 
@@ -253,6 +299,23 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
   const handleSubmit = async (published = false) => {
     if (!validateStep1() || !validateStep2()) return;
     if (published && !validateStep3()) return;
+
+    // Check for duplicate contest submission
+    if (published && submitToContest) {
+      // Check if user already submitted to this contest
+      try {
+        const userRes = await fetch(`/api/authors/${user?.username}`);
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          if (userData.author?.latestContest === "7k-sprint-dec-2025") {
+            setShowContestAlreadyModal(true);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Error checking contest submission:", err);
+      }
+    }
 
     setToastMessage(null);
     setLoading(true);
@@ -384,13 +447,28 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
                   Continue
                 </button>
               ) : (
-                <button
-                  onClick={() => handleSubmit(true)}
-                  disabled={loading}
-                  className="px-6 py-2 rounded-md bg-green-600 text-white font-medium text-sm hover:bg-green-700 transition-colors disabled:opacity-50"
-                >
-                  {loading ? "Publishing..." : "Publish"}
-                </button>
+                <>
+                  {/* Contest Checkbox */}
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={submitToContest}
+                      onChange={(e) => setSubmitToContest(e.target.checked)}
+                      className="w-4 h-4 rounded border-[var(--foreground)]/30 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span className="text-sm text-[var(--foreground)]/70">
+                      Submit to 7K Sprint Dec 2025
+                    </span>
+                  </label>
+
+                  <button
+                    onClick={() => handleSubmit(true)}
+                    disabled={loading}
+                    className="px-6 py-2 rounded-md bg-green-600 text-white font-medium text-sm hover:bg-green-700 transition-colors disabled:opacity-50"
+                  >
+                    {loading ? "Publishing..." : "Publish"}
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -401,6 +479,17 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
         isOpen={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
         storyId={publishedStoryId}
+      />
+
+      <ContestAlreadySubmittedModal
+        isOpen={showContestAlreadyModal}
+        onClose={() => setShowContestAlreadyModal(false)}
+        onUncheck={() => {
+          setShowContestAlreadyModal(false);
+          setSubmitToContest(false);
+          // Auto-submit without contest
+          handleSubmit(true);
+        }}
       />
     </>
   );

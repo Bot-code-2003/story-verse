@@ -73,7 +73,7 @@ export default function AuthorPage() {
         throw new Error("Author not found");
       }
       const authorData = await authorRes.json();
-      setAuthor(authorData);
+      setAuthor(authorData.author || authorData);
       setLoading(false);
     } catch (err) {
       console.error("Error fetching author data:", err);

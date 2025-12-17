@@ -7,16 +7,17 @@
  */
 const CACHE_CONFIG = {
   homepage_latest: { ttl: 0 }, // ❌ No cache - always fresh
-  homepage_trending: { ttl: 7200000 }, // ✅ 2 hours
-  homepage_quickreads: { ttl: 7200000 }, // ✅ 2 hours
-  homepage_editorpicks: { ttl: 7200000 }, // ✅ 2 hours
-  homepage_fantasy: { ttl: 7200000 }, // ✅ 2 hours
-  homepage_drama: { ttl: 7200000 }, // ✅ 2 hours
-  homepage_romance: { ttl: 7200000 }, // ✅ 2 hours
-  homepage_sliceoflife: { ttl: 7200000 }, // ✅ 2 hours
-  homepage_thriller: { ttl: 7200000 }, // ✅ 2 hours
-  homepage_horror: { ttl: 7200000 }, // ✅ 2 hours
-  homepage_author: { ttl: 7200000 }, // ✅ 2 hours
+  homepage_trending: { ttl: 21600000 }, // ✅ 6 hours (was 2 hours)
+  homepage_quickreads: { ttl: 21600000 }, // ✅ 6 hours
+  homepage_editorpicks: { ttl: 21600000 }, // ✅ 6 hours
+  homepage_fantasy: { ttl: 21600000 }, // ✅ 6 hours
+  homepage_drama: { ttl: 21600000 }, // ✅ 6 hours
+  homepage_romance: { ttl: 21600000 }, // ✅ 6 hours
+  homepage_sliceoflife: { ttl: 21600000 }, // ✅ 6 hours
+  homepage_thriller: { ttl: 21600000 }, // ✅ 6 hours
+  homepage_horror: { ttl: 21600000 }, // ✅ 6 hours
+  homepage_author: { ttl: 21600000 }, // ✅ 6 hours
+  contest_stories_: { ttl: 1800000 }, // ✅ 30 min - Contest stories (prefix)
   story_: { ttl: 300000 }, // ✅ 5 min - Individual stories (prefix, actual key will be story_[id])
 };
 
@@ -249,4 +250,5 @@ export const CACHE_KEYS = {
   THRILLER: "homepage_thriller",
   HORROR: "homepage_horror",
   FEATURED_AUTHOR: "homepage_author",
+  CONTEST_WINNERS: "contest_stories_7k-sprint-dec-2025",
 };

@@ -25,6 +25,7 @@ export async function GET() {
     // Static pages
     const staticPages = [
       { url: '', priority: '1.0', changefreq: 'daily' },
+      { url: '/contests', priority: '0.9', changefreq: 'weekly' },
       { url: '/about', priority: '0.5', changefreq: 'monthly' },
       { url: '/stories', priority: '0.8', changefreq: 'daily' },
     ];

@@ -31,9 +31,37 @@ const storySchema = new mongoose.Schema(
       warm: { type: Number, default: 0 },
       dark: { type: Number, default: 0 },
     },
+    contest: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );
+
+// ⚡ PERFORMANCE: Database Indexes for Fast Queries
+// These indexes dramatically improve query performance by avoiding full collection scans
+
+// 1. Genre filtering + published status + sorting by date (for genre pages)
+storySchema.index({ genres: 1, published: 1, createdAt: -1 });
+
+// 2. Trending stories (sort by likes, filter by published)
+storySchema.index({ likesCount: -1, published: 1 });
+
+// 3. Latest stories (sort by creation date, filter by published)
+storySchema.index({ createdAt: -1, published: 1 });
+
+// 4. Editor picks (filter by editorPick flag and published status)
+storySchema.index({ editorPick: 1, published: 1, createdAt: -1 });
+
+// 5. Contest stories (filter by contest ID)
+storySchema.index({ contest: 1, published: 1 });
+
+// 6. Author's stories (for author pages)
+storySchema.index({ author: 1, published: 1, createdAt: -1 });
+
+// 7. Quick reads optimization (if you add a wordCount or readTime filter later)
+storySchema.index({ readTime: 1, published: 1, createdAt: -1 });
 
 const Story = mongoose.models.Story || mongoose.model("Story", storySchema);
 

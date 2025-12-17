@@ -1,4 +1,4 @@
-// src/app/api/stories/quickreads/route.js
+// src/app/api/contests/[contestId]/stories/route.js
 import { NextResponse } from "next/server";
 import { connectToDB } from "@/lib/mongodb";
 import Story from "@/models/Story";
@@ -6,8 +6,7 @@ import User from "@/models/User";
 import { ObjectId } from "mongodb";
 
 /**
- * Quick reads: readTime <= 6 (minutes). Limit 10.
- * Fallback: if none found, return latest 6 stories.
+ * Returns stories submitted to a specific contest, ordered by likes (descending)
  */
 
 async function normalizeStories(stories) {
@@ -76,37 +75,38 @@ async function normalizeStories(stories) {
   );
 }
 
-export async function GET() {
+export async function GET(request, { params }) {
   try {
+    const { contestId } = await params;
+
+    if (!contestId) {
+      return NextResponse.json(
+        { error: "Contest ID is required" },
+        { status: 400 }
+      );
+    }
+
     await connectToDB();
 
-    // ⚡ PERFORMANCE: Use readTime index (defined in Story model)
-    let stories = await Story.find({ readTime: { $lte: 6 }, published: true })
-      .select('title coverImage genres readTime author createdAt') // Minimal fields
-      .sort({ createdAt: -1 }) // Uses index: { readTime: 1, published: 1, createdAt: -1 }
-      .limit(18)
-      .populate({ path: "author", select: "username name" })
-      .lean(); // ⚡ CRITICAL: 5-10x faster
-
-    // Fallback to latest if none match quick read criteria
-    if (!stories || stories.length === 0) {
-      stories = await Story.find({ published: true })
-        .select('title coverImage genres readTime author createdAt')
-        .sort({ createdAt: -1 })
-        .limit(18)
-        .populate({ path: "author", select: "username name" })
-        .lean();
-    }
+    // Find all published stories submitted to this contest, ordered by likes
+    const stories = await Story.find({
+      contest: contestId,
+      published: true,
+    })
+      .sort({ likes: -1, createdAt: -1 })
+      .populate({ path: "author", select: "username name profileImage" })
+      .lean();
 
     const normalized = await normalizeStories(stories);
 
     return NextResponse.json({
       ok: true,
       count: normalized.length,
+      contestId,
       stories: normalized,
     });
   } catch (err) {
-    console.error("GET /api/stories/quickreads error:", err);
+    console.error("GET /api/contests/[contestId]/stories error:", err);
     return NextResponse.json(
       { error: "Server error", message: err.message },
       { status: 500 }

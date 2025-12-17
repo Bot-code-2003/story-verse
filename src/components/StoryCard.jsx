@@ -37,9 +37,9 @@ export default function StoryCard({ story, showAuthor = true }) {
   return (
     <Link
       href={storyPath}
-      className="min-w-[160px] md:min-w-[200px] lg:min-w-[250px] max-w-[180px] md:max-w-[220px] group cursor-pointer transition duration-200 ease-in-out"
+      className="w-full min-w-[160px] md:min-w-[200px] lg:min-w-0 group cursor-pointer transition duration-200 ease-in-out flex-shrink-0"
     >
-      <div className="relative h-[200px] md:h-[280px] lg:h-[350px] rounded-lg overflow-hidden bg-background/20">
+      <div className="relative w-full aspect-[5/7] rounded-lg overflow-hidden bg-background/20">
         {finalImage ? (
           <img
             src={finalImage}

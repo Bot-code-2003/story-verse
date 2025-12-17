@@ -72,6 +72,13 @@ export default function SiteHeader() {
         <nav className="hidden lg:flex items-center gap-6 xl:gap-8 flex-1 max-w-4xl">
           <div className="flex items-center gap-6 xl:gap-8">
             <BrowseMenu isMobile={false} />
+            {/* Contest menu - commented out for future implementation */}
+            {/* <Link
+              href="/contests"
+              className="text-sm font-medium text-[var(--foreground)]/80 hover:text-[var(--foreground)] transition whitespace-nowrap"
+            >
+              Contests
+            </Link> */}
             {/* Write as a button (permission-checked) */}
             <button
               onClick={() => handleWriteClick({ closeMobile: false })}
@@ -145,6 +152,15 @@ export default function SiteHeader() {
                 )}
                 <span>{theme === "light" ? "Dark" : "Light"}</span>
               </button>
+
+              {/* Contest menu - commented out for future implementation */}
+              {/* <Link
+                href="/contests"
+                onClick={closeMobileMenu}
+                className="flex-1 flex items-center justify-center py-3 px-4 rounded-lg border border-[var(--foreground)]/20 text-[var(--foreground)] hover:bg-[var(--foreground)]/5 transition font-medium text-sm"
+              >
+                Contests
+              </Link> */}
 
               <button
                 onClick={() => handleWriteClick({ closeMobile: true })}

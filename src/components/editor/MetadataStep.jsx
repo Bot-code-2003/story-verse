@@ -2,18 +2,10 @@
 
 import React from "react";
 import { compressStoryCover } from "@/lib/imageCompression";
+import { GENRE_TILES } from "@/constants/genres";
 
-const GENRES = [
-  "Fantasy",
-  "Romance",
-  "Thriller",
-  "Sci-Fi",
-  "Horror",
-  "Slice of Life",
-  "Adventure",
-  "Drama",
-  "Mythic Fiction"
-];
+// Extract genre names from GENRE_TILES
+const GENRES = GENRE_TILES.map(genre => genre.name);
 
 export default function MetadataStep({
   coverImageUrl,

@@ -22,8 +22,10 @@ export async function GET(req, { params }) {
       ? { _id: new mongoose.Types.ObjectId(storyId) }
       : { _id: storyId };
 
-    // Try populate explicitly selecting public user fields
+    // ⚡ PERFORMANCE: For individual story page, we need ALL fields
+    // (unlike list views which only need minimal fields)
     let story = await Story.findOne(query)
+      .select('title description content coverImage genres readTime author likesCount pulse contest createdAt updatedAt published')
       .populate({
         path: "author",
         model: "User",

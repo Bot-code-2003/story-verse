@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Story from "@/models/Story";
+import User from "@/models/User";
 import { ObjectId } from "mongodb";
 
 export async function DELETE(req, { params }) {
@@ -41,6 +42,12 @@ export async function DELETE(req, { params }) {
         { error: "Unauthorized - you can only delete your own stories" },
         { status: 403 }
       );
+    }
+
+    // If the story was submitted to a contest, clear the user's latestContest field
+    // This allows them to submit a new story to the same contest
+    if (story.contest) {
+      await User.findByIdAndUpdate(userId, { latestContest: null });
     }
 
     // Delete the story

@@ -82,31 +82,17 @@ export async function GET() {
   try {
     await connectToDB();
 
-    // Prefer sorting by a popularity metric if present (likes, views).
-    // Check if any story doc has likes or views fields populated.
-    const hasPopularityField = await Story.exists({
-      $or: [{ likes: { $exists: true } }, { views: { $exists: true } }],
-    });
-
-    let stories = [];
-
-    if (hasPopularityField) {
-      // Try to sort by likes then views then createdAt
-      stories = await Story.find({})
-        .sort({ likes: -1, views: -1, createdAt: -1 })
-        .limit(10)
-        .populate({ path: "author", select: "username name profileImage" })
-        .lean();
-    } else {
-      // Fallback: random sample of up to 6 stories
-      const agg = await Story.aggregate([{ $sample: { size: 6 } }]);
-      // Populate author manually for sampled docs (we need to re-query to get author object)
-      const ids = agg.map((d) => d._id);
-      stories = await Story.find({ _id: { $in: ids } })
-        .limit(10)
-        .populate({ path: "author", select: "username name profileImage" })
-        .lean();
-    }
+    // ⚡ PERFORMANCE: Use likesCount index for trending (defined in Story model)
+    // Sort by likesCount descending, filter by published, limit to 18
+    let stories = await Story.find({ published: true })
+      .select('title coverImage genres readTime author createdAt likesCount') // Minimal fields
+      .sort({ likesCount: -1, createdAt: -1 }) // Uses index: { likesCount: -1, published: 1 }
+      .limit(18)
+      .populate({ 
+        path: "author", 
+        select: "username name" // Minimal author data
+      })
+      .lean(); // ⚡ CRITICAL: 5-10x faster than Mongoose documents
 
     const normalized = await normalizeStories(stories);
 

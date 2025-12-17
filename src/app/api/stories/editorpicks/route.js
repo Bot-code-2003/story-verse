@@ -81,13 +81,13 @@ export async function GET() {
   try {
     await connectToDB();
 
-    const stories = await Story.find({ editorPick: true })
-      .sort({ createdAt: -1 })
-      .limit(3)
-      .populate({ path: "author", select: "username name profileImage" })
-      .lean();
-
-    console.log("stories", stories);
+    // ⚡ PERFORMANCE: Use editorPick index (defined in Story model)
+    const stories = await Story.find({ editorPick: true, published: true })
+      .select('title coverImage genres readTime author createdAt') // Minimal fields
+      .sort({ createdAt: -1 }) // Uses index: { editorPick: 1, published: 1, createdAt: -1 }
+      .limit(18)
+      .populate({ path: "author", select: "username name" })
+      .lean(); // ⚡ CRITICAL: 5-10x faster
 
     const normalized = await normalizeStories(stories);
 

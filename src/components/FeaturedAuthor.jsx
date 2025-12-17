@@ -33,7 +33,7 @@ export default function FeaturedAuthors() {
     fetchActiveAuthors();
   }, []);
 
-  // Auto-rotate carousel every 8 seconds
+  // Auto-rotate carousel every 8 seconds - resets when currentIndex changes
   useEffect(() => {
     if (authors.length === 0) return;
     
@@ -42,7 +42,7 @@ export default function FeaturedAuthors() {
     }, 8000);
 
     return () => clearInterval(interval);
-  }, [authors.length]);
+  }, [authors.length, currentIndex]); // Reset timer whenever currentIndex changes
 
   const goToPrevious = () => {
     setCurrentIndex((prev) => (prev === 0 ? authors.length - 1 : prev - 1));

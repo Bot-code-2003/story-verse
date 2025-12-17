@@ -20,7 +20,20 @@ export async function connectToDB() {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI).then((mongoose) => mongoose);
+    // ⚡ PERFORMANCE: Optimized connection pool settings
+    const opts = {
+      maxPoolSize: 10,              // Max 10 concurrent connections
+      minPoolSize: 2,               // Keep 2 connections ready
+      serverSelectionTimeoutMS: 5000, // Fail fast if DB is down
+      socketTimeoutMS: 45000,       // Socket timeout
+      family: 4,                    // Use IPv4 (faster than IPv6 in most cases)
+    };
+    
+    cached.promise = mongoose.connect(MONGODB_URI, opts)
+      .then((mongoose) => {
+        console.log('✅ MongoDB connected with optimized pool');
+        return mongoose;
+      });
   }
 
   cached.conn = await cached.promise;

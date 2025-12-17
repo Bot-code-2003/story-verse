@@ -12,7 +12,7 @@ export default function EditorsPick({ stories }) {
       {/* Hero Banner with Background */}
       <div className="relative rounded-3xl overflow-hidden mb-12">
         {/* Background Image */}
-        <div className="relative h-[300px] md:h-[350px]">
+        <div className="relative h-[300px] md:h-[200px]">
           <img
             src="https://i.pinimg.com/originals/98/ad/fa/98adfaae828e28e5afef8598c089eec5.gif"
             alt="Editor's Pick Background"

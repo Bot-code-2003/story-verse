@@ -12,6 +12,8 @@ import DiscoverGenres from "@/components/DiscoverGenres";
 import BecomeAuthorBanner from "@/components/BecomeAuthorBanner";
 import FeaturedAuthor from "@/components/FeaturedAuthor";
 import EditorsPick from "@/components/EditorsPick";
+// Contest-related imports - commented out for future implementation
+// import ContestWinners from "@/components/ContestWinners";
 import Footer from "@/components/Footer";
 import SkeletonSection from "@/components/skeletons/SkeletonSection";
 import SkeletonHomepage from "@/components/skeletons/SkeletonHomepage";
@@ -107,7 +109,9 @@ function Section({ title, items }) {
         >
           <div className="flex gap-4 pb-4">
             {items.map((story) => (
-              <StoryCard key={story.id} story={story} />
+              <div key={story.id} className="w-[160px] md:w-[200px] lg:w-[250px] flex-shrink-0">
+                <StoryCard story={story} />
+              </div>
             ))}
           </div>
         </div>
@@ -122,21 +126,77 @@ function Section({ title, items }) {
         >
           <ChevronRight />
         </button>
-        
-        {/* Gradient fade on right edge for mobile - indicates more content */}
-        <div className="md:hidden absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[var(--background)] via-[var(--background)]/80 to-transparent pointer-events-none z-[5]"></div>
       </div>
     </section>
   );
 }
 // End of Section component
 
+// ---------------------- FEATURED THIS WEEK COMPONENT ----------------------
+function FeaturedThisWeek({ items }) {
+  const scrollRef = useRef(null);
+
+  if (!items || items.length === 0) return null;
+
+  return (
+    <section className="mb-10 relative">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xl font-semibold text-[var(--foreground)]">
+          Featured This Week
+        </h3>
+        {/* Mobile scroll hint - only visible on small screens */}
+        <span className="lg:hidden text-xs text-[var(--foreground)]/50 flex items-center gap-1">
+          <span>Swipe</span>
+          <ChevronRight className="w-3 h-3" />
+        </span>
+      </div>
+      
+      {/* Desktop: 6-column grid (no scroll) */}
+      <div className="hidden lg:grid lg:grid-cols-6 gap-4">
+        {items.map((story) => (
+          <StoryCard key={story.id} story={story} />
+        ))}
+      </div>
+
+      {/* Mobile/Tablet: Horizontal scroll with visual cue */}
+      <div className="lg:hidden relative">
+        <div
+          ref={scrollRef}
+          className="overflow-x-auto scrollbar-hide"
+        >
+          <div className="flex gap-4 pb-4">
+            {items.map((story) => (
+              <div key={story.id} className="w-[160px] md:w-[200px] flex-shrink-0">
+                <StoryCard story={story} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+// End of FeaturedThisWeek component
+
 export default function Home() {
+  // ⭐ FEATURED THIS WEEK - Manually curated story IDs
+  const FEATURED_THIS_WEEK_IDS = [
+    "693ec8b5945dc639e08f963c", // Add your story IDs here
+    "693c1ba2d837caf4fc701968", // Example: duplicate for demo
+    "693d1d1d52fefada2249a462",
+    "693e4ac9e6dfb2eef8a4d372",
+    "69355933cdab065d273496e5",
+    "69358203cdab065d27349aa9"
+  ];
+
   // global / main lists
   const [stories, setStories] = useState([]); // using trending as the main 'stories' fallback
   const [latest, setLatest] = useState([]);
   const [quickReads, setQuickReads] = useState([]);
   const [editorPicks, setEditorPicks] = useState([]); // ⭐ editor picks
+  const [featuredThisWeek, setFeaturedThisWeek] = useState([]); // ⭐ featured this week
+  // Contest-related state - commented out for future implementation
+  // const [contestWinners, setContestWinners] = useState([]); // 🏆 contest winners
 
   // genre-specific lists - Only active genres
   const [fantasy, setFantasy] = useState([]);
@@ -180,6 +240,26 @@ export default function Home() {
     }
   };
 
+  // Helper to fetch stories by IDs
+  const fetchStoriesByIds = async (ids) => {
+    try {
+      const res = await fetch("/api/stories/by-ids", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+      });
+      if (!res.ok) {
+        console.warn("fetch stories by IDs failed:", res.status);
+        return [];
+      }
+      const json = await res.json();
+      return json?.stories || [];
+    } catch (err) {
+      console.warn("fetch stories by IDs error:", err);
+      return [];
+    }
+  };
+
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -187,7 +267,7 @@ export default function Home() {
       setError(null);
 
       try {
-        // parallel fetch: trending/latest/quickreads + editor picks + genres
+        // parallel fetch: trending/latest/quickreads + editor picks + featured this week + genres
         // ❌ Latest = NO CACHE (always fresh)
         // ✅ Others = 10-minute cache
         const [
@@ -195,6 +275,8 @@ export default function Home() {
           latestList,
           quickReadsList,
           editorPicksList,
+          featuredThisWeekList,
+          // contestWinnersList, // 🏆 contest winners - commented out for future implementation
           fantasyList,
           dramaList,
           romanceList,
@@ -206,6 +288,8 @@ export default function Home() {
           fetchRouteStories("/api/stories/latest"), // ❌ NO CACHE - always fresh
           fetchRouteStories("/api/stories/quickreads", CACHE_KEYS.QUICK_READS),
           fetchRouteStories("/api/stories/editorpicks", CACHE_KEYS.EDITOR_PICKS),
+          fetchStoriesByIds(FEATURED_THIS_WEEK_IDS), // ⭐ featured this week - manual IDs
+          // fetchRouteStories("/api/contests/7k-sprint-dec-2025/stories", CACHE_KEYS.CONTEST_WINNERS), // 🏆 contest winners - commented out
           fetchRouteStories("/api/stories?genre=Fantasy", CACHE_KEYS.FANTASY),
           fetchRouteStories("/api/stories?genre=Drama", CACHE_KEYS.DRAMA),
           fetchRouteStories("/api/stories?genre=Romance", CACHE_KEYS.ROMANCE),
@@ -225,12 +309,20 @@ export default function Home() {
         const finalEditorPicks = editorPicksList.length
           ? editorPicksList.slice(0, 18)
           : [];
+        // Contest winners - commented out for future implementation
+        // const finalContestWinners = contestWinnersList.length
+        //   ? contestWinnersList.slice(0, 3) // Top 3 winners
+        //   : [];
 
         setStories(finalTrending); // trending used as main 'stories' fallback
         setLatest(finalLatest);
         setQuickReads(finalQuickReads);
         setEditorPicks(finalEditorPicks); // ⭐ set editor picks
+        setFeaturedThisWeek(featuredThisWeekList || []); // ⭐ set featured this week
+        // setContestWinners(finalContestWinners); // 🏆 set contest winners - commented out
         console.log("finalEditorPicks", finalEditorPicks);
+        console.log("featuredThisWeek", featuredThisWeekList);
+        // console.log("finalContestWinners", finalContestWinners); // commented out
         // update genres to show up to 18 each
         setFantasy((fantasyList && fantasyList.slice(0, 18)) || []);
         setDrama((dramaList && dramaList.slice(0, 18)) || []);
@@ -311,27 +403,37 @@ export default function Home() {
         <SiteHeader />
 
         <div className="px-4 md:px-10 py-6">
+          {/* 1. Hero Carousel - First impression with winner spotlight */}
           <Carousel />
 
-          {/* ---------------------- SECTIONS ---------------------- */}
-          <Section title="Trending Now" items={trending} />
+          {/* 2. Trending Now - IMMEDIATE social proof (what's hot RIGHT NOW) */}
+          {/* <Section title="Trending Now" items={trending} /> */}
 
-          {/* ⭐ use editorPicks instead of stories */}
+          {/* Contest Winners - commented out for future implementation */}
+          {/* <ContestWinners winners={contestWinners} /> */}
+
+          {/* 3. Featured This Week - Manually curated stories */}
+          <FeaturedThisWeek items={featuredThisWeek} />
+
+          {/* 4. Editor's Pick - Curated quality content */}
           <EditorsPick stories={editorPicks} />
 
-          {/* Pass quickReads directly to ShortReads to avoid client-side filtering */}
-          {/* <ShortReads stories={quickReads} /> */}
-          <FeaturedAuthor />
+          {/* 5. New Releases - Fresh content */}
           <Section title="New Releases" items={newReleases} />
+
+          {/* 6. Featured Author - Community spotlight */}
+          <FeaturedAuthor />
+
+          {/* 7. Genre Discovery - Visual exploration */}
           <DiscoverGenres />
 
-
-          {/* Genre sections using the dynamically fetched state */}
+          {/* 8. Genre Sections - Deep dive into categories */}
           {fantasy.length > 0 && (
             <Section title="Fantasy Picks" items={fantasy} />
           )}
           {drama.length > 0 && <Section title="Dramatic Reads" items={drama} />}
           
+          {/* 9. CTA Banner - Conversion point */}
           <BecomeAuthorBanner />
           
           {romance.length > 0 && (
@@ -340,9 +442,9 @@ export default function Home() {
           {sliceOfLife.length > 0 && (
             <Section title="Slice of Life" items={sliceOfLife} />
           )}
-          {thriller.length > 0 && (
+          {/* {thriller.length > 0 && (
             <Section title="Thriller" items={thriller} />
-          )}
+          )} */}
           {horror.length > 0 && (
             <Section title="Horror" items={horror} />
           )}

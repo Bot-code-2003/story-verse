@@ -138,12 +138,13 @@ export default function StoryContent({
         <style jsx global>{`
           /* Story Content Container */
           .story-content {
-            line-height: 1.8;
-            font-size: 1.125rem;
+            line-height: 1.9;
+            font-size: 1.1875rem;
             color: var(--foreground);
             animation: fadeInUp 0.8s ease-out;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-            letter-spacing: 0.01em;
+            font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
+            letter-spacing: 0.015em;
+            word-spacing: 0.05em;
           }
           
           @keyframes fadeInUp {
@@ -159,11 +160,11 @@ export default function StoryContent({
           
           /* Paragraphs */
           .story-content p {
-            margin-bottom: 1.75rem;
-            line-height: 1.8;
-            font-size: 1.125rem;
+            margin-bottom: 2rem;
+            line-height: 1.9;
+            font-size: 1.1875rem;
             color: var(--foreground);
-            opacity: 0.9;
+            opacity: 0.92;
             font-weight: 400;
             text-align: justify;
             text-justify: inter-word;
@@ -174,15 +175,26 @@ export default function StoryContent({
             margin-top: 0;
           }
           
+          /* Enhanced Drop Cap - First Letter */
           .story-content p:first-child::first-letter {
-            font-size: 3.5rem;
+            font-size: 5rem;
             font-weight: 700;
-            line-height: 1;
+            line-height: 0.85;
             float: left;
-            margin-right: 0.5rem;
-            margin-top: 0.1rem;
-            color: var(--foreground);
+            margin-right: 0.75rem;
+            margin-top: 0.15rem;
+            margin-bottom: -0.1rem;
+            color: #4f46e5;
+            font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
             opacity: 1;
+            text-shadow: 2px 2px 4px rgba(79, 70, 229, 0.1);
+          }
+          
+          @media (prefers-color-scheme: dark) {
+            .story-content p:first-child::first-letter {
+              color: #818cf8;
+              text-shadow: 2px 2px 4px rgba(129, 140, 248, 0.2);
+            }
           }
           
           .story-content p:last-child {
@@ -199,6 +211,7 @@ export default function StoryContent({
             letter-spacing: -0.03em;
             line-height: 1.2;
             opacity: 1;
+            font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
           }
           
           .story-content h2 {
@@ -210,6 +223,7 @@ export default function StoryContent({
             letter-spacing: -0.025em;
             line-height: 1.3;
             opacity: 1;
+            font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
           }
           
           .story-content h3 {
@@ -221,6 +235,7 @@ export default function StoryContent({
             letter-spacing: -0.02em;
             line-height: 1.4;
             opacity: 1;
+            font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
           }
           
           .story-content h4 {
@@ -230,6 +245,7 @@ export default function StoryContent({
             margin-bottom: 1rem;
             color: var(--foreground);
             opacity: 1;
+            font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
           }
           
           .story-content h5,
@@ -240,6 +256,7 @@ export default function StoryContent({
             margin-bottom: 0.875rem;
             color: var(--foreground);
             opacity: 1;
+            font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
           }
           
           .story-content h1:first-child,
@@ -274,22 +291,22 @@ export default function StoryContent({
           
           /* Links */
           .story-content a {
-            color: #3b82f6;
+            color: #4f46e5;
             text-decoration: none;
-            border-bottom: 1px solid #3b82f6;
+            border-bottom: 1px solid #4f46e5;
             transition: all 0.2s ease;
             font-weight: 500;
           }
           
           .story-content a:hover {
-            color: #2563eb;
-            border-bottom-color: #2563eb;
-            background-color: rgba(59, 130, 246, 0.1);
+            color: #4338ca;
+            border-bottom-color: #4338ca;
+            background-color: rgba(79, 70, 229, 0.1);
           }
           
           /* Blockquotes */
           .story-content blockquote {
-            border-left: 4px solid #3b82f6;
+            border-left: 4px solid #4f46e5;
             padding-left: 1.5rem;
             padding-right: 1rem;
             padding-top: 0.5rem;
@@ -297,10 +314,10 @@ export default function StoryContent({
             margin: 2rem 0;
             font-style: italic;
             color: var(--foreground);
-            opacity: 0.85;
-            font-size: 1.25rem;
-            line-height: 1.7;
-            background: rgba(59, 130, 246, 0.05);
+            opacity: 0.88;
+            font-size: 1.3rem;
+            line-height: 1.8;
+            background: rgba(79, 70, 229, 0.05);
             border-radius: 0 0.5rem 0.5rem 0;
           }
           
@@ -317,7 +334,7 @@ export default function StoryContent({
           .story-content ol {
             margin: 1.5rem 0;
             padding-left: 2rem;
-            line-height: 1.8;
+            line-height: 1.9;
           }
           
           .story-content ul {
@@ -331,7 +348,7 @@ export default function StoryContent({
           .story-content li {
             margin-bottom: 0.75rem;
             color: var(--foreground);
-            opacity: 0.9;
+            opacity: 0.92;
           }
           
           .story-content li:last-child {
@@ -400,25 +417,27 @@ export default function StoryContent({
           
           /* Selection */
           .story-content ::selection {
-            background-color: rgba(59, 130, 246, 0.3);
+            background-color: rgba(79, 70, 229, 0.25);
             color: var(--foreground);
           }
           
           /* Responsive Typography */
           @media (max-width: 768px) {
             .story-content {
-              font-size: 1rem;
-              line-height: 1.75;
+              font-size: 1.0625rem;
+              line-height: 1.8;
             }
             
             .story-content p {
-              font-size: 1rem;
-              margin-bottom: 1.5rem;
+              font-size: 1.0625rem;
+              margin-bottom: 1.75rem;
               text-align: left;
+              line-height: 1.8;
             }
             
             .story-content p:first-child::first-letter {
-              font-size: 3rem;
+              font-size: 4rem;
+              margin-right: 0.6rem;
             }
             
             .story-content h1 {
@@ -453,7 +472,19 @@ export default function StoryContent({
             }
             
             .story-content blockquote {
-              background: rgba(59, 130, 246, 0.1);
+              background: rgba(129, 140, 248, 0.1);
+              border-left-color: #818cf8;
+            }
+            
+            .story-content a {
+              color: #818cf8;
+              border-bottom-color: #818cf8;
+            }
+            
+            .story-content a:hover {
+              color: #a5b4fc;
+              border-bottom-color: #a5b4fc;
+              background-color: rgba(129, 140, 248, 0.15);
             }
           }
         `}</style>
