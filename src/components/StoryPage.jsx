@@ -38,52 +38,6 @@ import SkeletonStoryPage from "@/components/skeletons/SkeletonStoryPage";
 const MAX_RECOMMENDATIONS = 6;
 
 
-// --- API FETCH UTILITIES ---
-
-/**
- * Search for a story in all available homepage caches
- * @param {string} storyId - The story ID to search for
- * @returns {object|null} - Story data if found in any cache, null otherwise
- */
-const findStoryInCaches = (storyId) => {
-  // List of all homepage cache keys to search
-  const cacheKeys = [
-    'homepage_trending',
-    'homepage_quickreads',
-    'homepage_editorpicks',
-    'homepage_fantasy',
-    'homepage_drama',
-    'homepage_romance',
-    'homepage_sliceoflife',
-    'homepage_author', // Featured author stories
-  ];
-
-  // Search through each cache
-  for (const cacheKey of cacheKeys) {
-    try {
-      const cached = localStorage.getItem(cacheKey);
-      if (!cached) continue;
-
-      const { data, timestamp } = JSON.parse(cached);
-      const now = Date.now();
-      
-      // Check if cache is still valid (10 minutes = 600000ms)
-      if (now - timestamp < 600000 && Array.isArray(data)) {
-        // Search for the story in this cache
-        const story = data.find(s => s.id === storyId || s._id === storyId);
-        if (story) {
-          console.log(`✅ Found story in cache: ${cacheKey}`);
-          return story;
-        }
-      }
-    } catch (error) {
-      // Skip this cache if there's an error
-      continue;
-    }
-  }
-
-  return null;
-};
 
 /**
  * Fetches the story and author data from the new API endpoint.
@@ -92,22 +46,13 @@ const findStoryInCaches = (storyId) => {
  * @returns {{story: object, authorData: object | null, liked: boolean, saved: boolean}}
  */
 const fetchStoryAndAuthor = async (id, userId = null) => {
-  // First, try to find the story in existing homepage caches
-  const cachedStory = findStoryInCaches(id);
-  
-  // If found in cache and user is not logged in, use it
-  if (cachedStory && !userId) {
-    console.log(`🚀 Using story from homepage cache (no API call needed)`);
-    return {
-      story: cachedStory,
-      authorData: cachedStory.author || null,
-      liked: false,
-      saved: false,
-      userPulse: null,
-    };
-  }
+  // ⚠️ IMPORTANT: Don't use homepage cache for story pages!
+  // Homepage cache only has minimal fields (title, coverImage, genres, readTime)
+  // Story pages need ALL fields (content, description, etc.)
+  // So we skip the homepage cache and fetch full story data
   
   // Create cache key for individual story
+
   const cacheKey = `story_${id}`;
   
   // For logged-in users, skip cache to get fresh interaction data
