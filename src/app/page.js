@@ -240,9 +240,27 @@ export default function Home() {
     }
   };
 
-  // Helper to fetch stories by IDs
-  const fetchStoriesByIds = async (ids) => {
+  // Helper to fetch stories by IDs with caching support
+  const fetchStoriesByIds = async (ids, cacheKey = null) => {
     try {
+      // If cache key provided, use caching
+      if (cacheKey) {
+        return await fetchWithCache(cacheKey, async () => {
+          const res = await fetch("/api/stories/by-ids", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids }),
+          });
+          if (!res.ok) {
+            console.warn("fetch stories by IDs failed:", res.status);
+            return [];
+          }
+          const json = await res.json();
+          return json?.stories || [];
+        });
+      }
+
+      // No cache - direct fetch
       const res = await fetch("/api/stories/by-ids", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -288,7 +306,7 @@ export default function Home() {
           fetchRouteStories("/api/stories/latest"), // ❌ NO CACHE - always fresh
           fetchRouteStories("/api/stories/quickreads", CACHE_KEYS.QUICK_READS),
           fetchRouteStories("/api/stories/editorpicks", CACHE_KEYS.EDITOR_PICKS),
-          fetchStoriesByIds(FEATURED_THIS_WEEK_IDS), // ⭐ featured this week - manual IDs
+          fetchStoriesByIds(FEATURED_THIS_WEEK_IDS, CACHE_KEYS.FEATURED_WEEK), // ⭐ featured this week with cache
           // fetchRouteStories("/api/contests/7k-sprint-dec-2025/stories", CACHE_KEYS.CONTEST_WINNERS), // 🏆 contest winners - commented out
           fetchRouteStories("/api/stories?genre=Fantasy", CACHE_KEYS.FANTASY),
           fetchRouteStories("/api/stories?genre=Drama", CACHE_KEYS.DRAMA),

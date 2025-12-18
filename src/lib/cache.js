@@ -10,6 +10,7 @@ const CACHE_CONFIG = {
   homepage_trending: { ttl: 21600000 }, // ✅ 6 hours (was 2 hours)
   homepage_quickreads: { ttl: 21600000 }, // ✅ 6 hours
   homepage_editorpicks: { ttl: 21600000 }, // ✅ 6 hours
+  homepage_featuredweek: { ttl: 21600000 }, // ✅ 6 hours - Featured This Week
   homepage_fantasy: { ttl: 21600000 }, // ✅ 6 hours
   homepage_drama: { ttl: 21600000 }, // ✅ 6 hours
   homepage_romance: { ttl: 21600000 }, // ✅ 6 hours
@@ -243,6 +244,7 @@ export const CACHE_KEYS = {
   TRENDING: "homepage_trending",
   QUICK_READS: "homepage_quickreads",
   EDITOR_PICKS: "homepage_editorpicks",
+  FEATURED_WEEK: "homepage_featuredweek", // ⭐ Featured This Week
   FANTASY: "homepage_fantasy",
   DRAMA: "homepage_drama",
   ROMANCE: "homepage_romance",
