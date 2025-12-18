@@ -428,20 +428,29 @@ export default function AuthorPage() {
                   {stories.map((story) => (
                     <div key={story.id} className="relative">
                       <StoryCard story={story} />
-                      {/* Delete button for own stories */}
+                      {/* Edit and Delete buttons for own stories */}
                       {isOwnProfile && activeTab === "stories" && (
-                        <button
-                          onClick={() => handleDeleteStory(story.id)}
-                          disabled={deletingStoryId === story.id}
-                          className="absolute top-3 right-3 p-2 rounded-full bg-red-600 text-white hover:bg-red-700 transition shadow-lg disabled:opacity-50 z-10"
-                          title="Delete story"
-                        >
-                          {deletingStoryId === story.id ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <Trash2 size={16} />
-                          )}
-                        </button>
+                        <div className="absolute top-3 right-3 flex gap-2 z-10">
+                          <button
+                            onClick={() => router.push(`/write/${story.id}`)}
+                            className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition shadow-lg"
+                            title="Edit story"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteStory(story.id)}
+                            disabled={deletingStoryId === story.id}
+                            className="p-2 rounded-full bg-red-600 text-white hover:bg-red-700 transition shadow-lg disabled:opacity-50"
+                            title="Delete story"
+                          >
+                            {deletingStoryId === story.id ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Trash2 size={16} />
+                            )}
+                          </button>
+                        </div>
                       )}
                     </div>
                   ))}

@@ -24,6 +24,7 @@ import { getGenreFallback } from "@/constants/genres";
 import StoryHero from "@/components/story/StoryHero";
 import StoryContent from "@/components/story/StoryContent";
 import CommentsSection from "@/components/story/CommentsSection";
+import FloatingActionBar from "@/components/FloatingActionBar";
 import RecommendationsSection from "@/components/story/RecommendationsSection";
 
 // Import caching utilities
@@ -584,66 +585,13 @@ export default function StoryPage() {
 
   const finalContent = sanitizeStoryContent(story.content);
 
-  // Helper function to split content at 40% for ShareBox injection
-  const splitContentAt40Percent = (htmlContent) => {
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
-    
-    // Get all content elements (paragraphs and headings) recursively
-    const paragraphs = Array.from(tempDiv.querySelectorAll('p, h1, h2, h3, h4, h5, h6'));
-    
-    if (paragraphs.length === 0) {
-      return { beforeShare: htmlContent, afterShare: '' };
+  // Scroll to comments function
+  const scrollToComments = () => {
+    const commentsSection = document.querySelector('[data-comments-section]');
+    if (commentsSection) {
+      commentsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    
-    // For very short stories (1-2 paragraphs), split at 50%
-    // For longer stories, split at 40%
-    let splitIndex;
-    if (paragraphs.length <= 2) {
-      splitIndex = 1; // Split after first paragraph
-    } else {
-      splitIndex = Math.floor(paragraphs.length * 0.4);
-      if (splitIndex === 0) splitIndex = 1; // Ensure at least 1 paragraph before
-    }
-    
-    if (splitIndex >= paragraphs.length) {
-      return { beforeShare: htmlContent, afterShare: '' };
-    }
-    
-    // Insert a unique marker after the split element
-    const splitElement = paragraphs[splitIndex];
-    const marker = '<!--SHAREBOX_SPLIT_MARKER-->';
-    
-    // Insert marker after the split element
-    if (splitElement.nextSibling) {
-      splitElement.parentNode.insertBefore(
-        document.createComment('SHAREBOX_SPLIT_MARKER'),
-        splitElement.nextSibling
-      );
-    } else {
-      splitElement.parentNode.appendChild(
-        document.createComment('SHAREBOX_SPLIT_MARKER')
-      );
-    }
-    
-    // Get the HTML with the marker
-    const markedHtml = tempDiv.innerHTML;
-    
-    // Split at the marker
-    const parts = markedHtml.split(marker);
-    
-    if (parts.length === 2) {
-      return {
-        beforeShare: parts[0],
-        afterShare: parts[1]
-      };
-    }
-    
-    // Fallback if marker not found
-    return { beforeShare: htmlContent, afterShare: '' };
   };
-
-  const { beforeShare, afterShare } = splitContentAt40Percent(finalContent);
 
 const primaryGenre =
   story.genres && story.genres.length > 0 ? story.genres[0] : "General";
@@ -726,12 +674,7 @@ const finalCoverImage = story.coverImage || coverGenreFallback;
 
         {/* Story Content */}
         <StoryContent
-          beforeShare={beforeShare}
-          afterShare={afterShare}
-          storyTitle={story.title}
-          finalCoverImage={finalCoverImage}
-          isLiked={isLiked}
-          onLikeClick={handleLikeClick}
+          content={finalContent}
         />
 
         {/* Pulse Check - At the end of story */}
@@ -770,6 +713,15 @@ const finalCoverImage = story.coverImage || coverGenreFallback;
 
         <Footer />
       </div>
+
+      {/* Floating Action Bar */}
+      <FloatingActionBar
+        isLiked={isLiked}
+        onLikeClick={handleLikeClick}
+        commentsCount={comments.length}
+        storyTitle={story.title}
+        onScrollToComments={scrollToComments}
+      />
 
       {/* Login Prompt Modal (remains unchanged) */}
       {showLoginPrompt && (

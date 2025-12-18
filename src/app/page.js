@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef } from "react"; // 1. Import useRef
 import { fetchWithCache, CACHE_KEYS } from "@/lib/cache";
+import { FEATURED_STORIES } from "@/constants/featured_stories"; // Import featured stories
 
 import Carousel from "@/components/Carousel";
 import StoryCard from "@/components/StoryCard";
@@ -179,16 +180,6 @@ function FeaturedThisWeek({ items }) {
 // End of FeaturedThisWeek component
 
 export default function Home() {
-  // ⭐ FEATURED THIS WEEK - Manually curated story IDs
-  const FEATURED_THIS_WEEK_IDS = [
-    "693ec8b5945dc639e08f963c", // Add your story IDs here
-    "693c1ba2d837caf4fc701968", // Example: duplicate for demo
-    "693d1d1d52fefada2249a462",
-    "693e4ac9e6dfb2eef8a4d372",
-    "69355933cdab065d273496e5",
-    "69358203cdab065d27349aa9"
-  ];
-
   // global / main lists
   const [stories, setStories] = useState([]); // using trending as the main 'stories' fallback
   const [latest, setLatest] = useState([]);
@@ -240,44 +231,6 @@ export default function Home() {
     }
   };
 
-  // Helper to fetch stories by IDs with caching support
-  const fetchStoriesByIds = async (ids, cacheKey = null) => {
-    try {
-      // If cache key provided, use caching
-      if (cacheKey) {
-        return await fetchWithCache(cacheKey, async () => {
-          const res = await fetch("/api/stories/by-ids", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ids }),
-          });
-          if (!res.ok) {
-            console.warn("fetch stories by IDs failed:", res.status);
-            return [];
-          }
-          const json = await res.json();
-          return json?.stories || [];
-        });
-      }
-
-      // No cache - direct fetch
-      const res = await fetch("/api/stories/by-ids", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids }),
-      });
-      if (!res.ok) {
-        console.warn("fetch stories by IDs failed:", res.status);
-        return [];
-      }
-      const json = await res.json();
-      return json?.stories || [];
-    } catch (err) {
-      console.warn("fetch stories by IDs error:", err);
-      return [];
-    }
-  };
-
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -285,7 +238,7 @@ export default function Home() {
       setError(null);
 
       try {
-        // parallel fetch: trending/latest/quickreads + editor picks + featured this week + genres
+        // parallel fetch: trending/latest/quickreads + editor picks + genres
         // ❌ Latest = NO CACHE (always fresh)
         // ✅ Others = 10-minute cache
         const [
@@ -293,7 +246,6 @@ export default function Home() {
           latestList,
           quickReadsList,
           editorPicksList,
-          featuredThisWeekList,
           // contestWinnersList, // 🏆 contest winners - commented out for future implementation
           fantasyList,
           dramaList,
@@ -306,7 +258,6 @@ export default function Home() {
           fetchRouteStories("/api/stories/latest"), // ❌ NO CACHE - always fresh
           fetchRouteStories("/api/stories/quickreads", CACHE_KEYS.QUICK_READS),
           fetchRouteStories("/api/stories/editorpicks", CACHE_KEYS.EDITOR_PICKS),
-          fetchStoriesByIds(FEATURED_THIS_WEEK_IDS, CACHE_KEYS.FEATURED_WEEK), // ⭐ featured this week with cache
           // fetchRouteStories("/api/contests/7k-sprint-dec-2025/stories", CACHE_KEYS.CONTEST_WINNERS), // 🏆 contest winners - commented out
           fetchRouteStories("/api/stories?genre=Fantasy", CACHE_KEYS.FANTASY),
           fetchRouteStories("/api/stories?genre=Drama", CACHE_KEYS.DRAMA),
@@ -336,10 +287,13 @@ export default function Home() {
         setLatest(finalLatest);
         setQuickReads(finalQuickReads);
         setEditorPicks(finalEditorPicks); // ⭐ set editor picks
-        setFeaturedThisWeek(featuredThisWeekList || []); // ⭐ set featured this week
+        
+        // ⭐ Use hardcoded FEATURED_STORIES from constants
+        setFeaturedThisWeek(FEATURED_STORIES.slice(0, 6)); // Take first 6 stories
+        
         // setContestWinners(finalContestWinners); // 🏆 set contest winners - commented out
         console.log("finalEditorPicks", finalEditorPicks);
-        console.log("featuredThisWeek", featuredThisWeekList);
+        console.log("featuredThisWeek (from constants)", FEATURED_STORIES.slice(0, 6));
         // console.log("finalContestWinners", finalContestWinners); // commented out
         // update genres to show up to 18 each
         setFantasy((fantasyList && fantasyList.slice(0, 18)) || []);

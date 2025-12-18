@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Heart, Share2, Sparkles, Star, BookOpen, Bookmark, Coffee, Moon, Sun } from "lucide-react";
+import ShareModal from "@/components/ShareModal";
 
 export default function ShareBox({ 
   storyTitle = "The Boy Who Carried the Sun Through Winter", 
@@ -9,18 +10,10 @@ export default function ShareBox({
   isLiked = false,
   onLikeClick
 }) {
-  const [copied, setCopied] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const handleShare = () => {
-    setCopied(true);
-    const url = typeof window !== "undefined" ? window.location.href : "";
-    navigator.clipboard.writeText(url).catch((err) => {
-      console.error("Failed to copy:", err);
-    });
-
-    setTimeout(() => {
-      setCopied(false);
-    }, 2000);
+    setShowShareModal(true);
   };
 
   return (
@@ -123,11 +116,19 @@ export default function ShareBox({
                 active:translate-x-1 active:translate-y-1"
             >
               <Share2 className="w-4 sm:w-5 h-4 sm:h-5 transition-transform duration-200 group-hover/btn:scale-110" />
-              <span>{copied ? "Copied!" : "Share"}</span>
+              <span>Share</span>
             </button>
           </div>
         </div>
       </div>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        storyTitle={storyTitle}
+        storyUrl={typeof window !== "undefined" ? window.location.href : ""}
+      />
     </div>
   );
 }

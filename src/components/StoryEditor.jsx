@@ -47,7 +47,7 @@ const ToastNotification = ({ message, type, onClose }) => {
 };
 
 // Success Modal Component
-const SuccessModal = ({ isOpen, onClose, storyId }) => {
+const SuccessModal = ({ isOpen, onClose, storyId, isEdit = false }) => {
   const router = useRouter();
 
   if (!isOpen) return null;
@@ -62,14 +62,18 @@ const SuccessModal = ({ isOpen, onClose, storyId }) => {
       <div className="relative bg-[var(--background)] rounded-lg shadow-2xl w-full max-w-sm p-6 text-center border border-[var(--foreground)]/10">
         <div className="text-4xl text-green-600 mb-4">✓</div>
         <h2 className="text-2xl font-semibold text-[var(--foreground)] mb-2">
-          Story Published
+          {isEdit ? "Story Updated" : "Story Published"}
         </h2>
         <p className="text-[var(--foreground)]/60 mb-4 text-sm">
-          Your story is now live and ready to be read.
+          {isEdit 
+            ? "Your changes have been saved successfully."
+            : "Your story is now live and ready to be read."}
         </p>
-        <p className="text-[var(--foreground)]/40 mb-6 text-xs italic">
-          Note: It may take up to 5 minutes for your story to appear on the homepage.
-        </p>
+        {!isEdit && (
+          <p className="text-[var(--foreground)]/40 mb-6 text-xs italic">
+            Note: It may take up to 5 minutes for your story to appear on the homepage.
+          </p>
+        )}
         <div className="flex flex-col gap-3">
           <button
             onClick={() => router.push("/")}
@@ -185,6 +189,13 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
     load();
     return () => (mounted = false);
   }, [storyId, initialData]);
+
+  // Load initialData content into editor when it's available
+  useEffect(() => {
+    if (initialData && editorRef.current && initialData.content) {
+      editorRef.current.innerHTML = initialData.content;
+    }
+  }, [initialData]);
 
   // Rich Text Editor Command
   const format = (cmd, value = null) => {
@@ -448,8 +459,8 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
                 </button>
               ) : (
                 <>
-                  {/* Contest Checkbox */}
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  {/* Contest Checkbox - Commented out */}
+                  {/* <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={submitToContest}
@@ -459,14 +470,16 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
                     <span className="text-sm text-[var(--foreground)]/70">
                       Submit to 7K Sprint Dec 2025
                     </span>
-                  </label>
+                  </label> */}
 
                   <button
                     onClick={() => handleSubmit(true)}
                     disabled={loading}
                     className="px-6 py-2 rounded-md bg-green-600 text-white font-medium text-sm hover:bg-green-700 transition-colors disabled:opacity-50"
                   >
-                    {loading ? "Publishing..." : "Publish"}
+                    {loading 
+                      ? (storyId ? "Updating..." : "Publishing...") 
+                      : (storyId ? "Update" : "Publish")}
                   </button>
                 </>
               )}
@@ -479,6 +492,7 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
         isOpen={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
         storyId={publishedStoryId}
+        isEdit={!!storyId}
       />
 
       <ContestAlreadySubmittedModal

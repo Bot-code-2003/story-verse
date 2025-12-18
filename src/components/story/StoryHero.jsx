@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Heart, Bookmark, Clock, MessageCircle, Share2 } from "lucide-react";
 import { GENRE_TILES } from "@/constants/genres";
 import { useState } from "react";
+import ShareModal from "@/components/ShareModal";
 
 // Helper function to get genre link
 const getGenreLink = (genreName) => {
@@ -24,7 +25,7 @@ export default function StoryHero({
   handleSaveClick,
   commentsCount = 0
 }) {
-  const [shareSuccess, setShareSuccess] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const scrollToComments = () => {
     const commentsSection = document.querySelector('[data-comments-section]');
@@ -33,27 +34,8 @@ export default function StoryHero({
     }
   };
 
-  const handleShare = async () => {
-    const shareData = {
-      title: story.title,
-      text: story.description || `Read "${story.title}" on OneSitRead - finish it in one sitting!`,
-      url: window.location.href
-    };
-
-    try {
-      if (navigator.share) {
-        // Use native share if available
-        await navigator.share(shareData);
-      } else {
-        // Fallback: Copy to clipboard
-        await navigator.clipboard.writeText(window.location.href);
-        setShareSuccess(true);
-        setTimeout(() => setShareSuccess(false), 2000);
-      }
-    } catch (err) {
-      // User cancelled or error occurred
-      console.log('Share failed:', err);
-    }
+  const handleShare = () => {
+    setShowShareModal(true);
   };
 
   return (
@@ -169,16 +151,10 @@ export default function StoryHero({
 
               <button
                 onClick={handleShare}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all ${
-                  shareSuccess
-                    ? "bg-green-50 text-green-600 border border-green-200"
-                    : "bg-[var(--foreground)]/5 text-[var(--foreground)]/70 border border-[var(--foreground)]/10 hover:bg-[var(--foreground)]/10"
-                }`}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all bg-[var(--foreground)]/5 text-[var(--foreground)]/70 border border-[var(--foreground)]/10 hover:bg-[var(--foreground)]/10"
               >
                 <Share2 className="w-4 h-4" />
-                <span className="text-sm">
-                  {shareSuccess ? "Copied!" : "Share"}
-                </span>
+                <span className="text-sm">Share</span>
               </button>
             </div>
           </div>
@@ -195,6 +171,14 @@ export default function StoryHero({
           </div>
         </div>
       </div>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        storyTitle={story.title}
+        storyUrl={typeof window !== "undefined" ? window.location.href : ""}
+      />
     </div>
   );
 }

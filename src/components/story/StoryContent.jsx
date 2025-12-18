@@ -1,7 +1,5 @@
 "use client";
 
-import ShareBox from "@/components/ShareBox";
-
 const MAX_WORD_COUNT = 7000;
 
 /**
@@ -67,70 +65,9 @@ const truncateHtmlToWordCount = (htmlContent, maxWords) => {
   return resultDiv.innerHTML;
 };
 
-export default function StoryContent({
-  beforeShare,
-  afterShare,
-  storyTitle,
-  finalCoverImage,
-  isLiked,
-  onLikeClick
-}) {
-  // Combine content and limit to 7000 words
-  const combinedContent = beforeShare + (afterShare || '');
-  const limitedContent = truncateHtmlToWordCount(combinedContent, MAX_WORD_COUNT);
-  
-  // Re-split the limited content at 40%
-  const splitContentAt40Percent = (htmlContent) => {
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
-    
-    const paragraphs = Array.from(tempDiv.querySelectorAll('p, h1, h2, h3, h4, h5, h6'));
-    
-    if (paragraphs.length === 0) {
-      return { beforeShare: htmlContent, afterShare: '' };
-    }
-    
-    let splitIndex;
-    if (paragraphs.length <= 2) {
-      splitIndex = 1;
-    } else {
-      splitIndex = Math.floor(paragraphs.length * 0.4);
-      if (splitIndex === 0) splitIndex = 1;
-    }
-    
-    if (splitIndex >= paragraphs.length) {
-      return { beforeShare: htmlContent, afterShare: '' };
-    }
-    
-    const splitElement = paragraphs[splitIndex];
-    const marker = '<!--SHAREBOX_SPLIT_MARKER-->';
-    
-    if (splitElement.nextSibling) {
-      splitElement.parentNode.insertBefore(
-        document.createComment('SHAREBOX_SPLIT_MARKER'),
-        splitElement.nextSibling
-      );
-    } else {
-      splitElement.parentNode.appendChild(
-        document.createComment('SHAREBOX_SPLIT_MARKER')
-      );
-    }
-    
-    const markedHtml = tempDiv.innerHTML;
-    const parts = markedHtml.split(marker);
-    
-    if (parts.length === 2) {
-      return {
-        beforeShare: parts[0],
-        afterShare: parts[1]
-      };
-    }
-    
-    return { beforeShare: htmlContent, afterShare: '' };
-  };
-  
-  const { beforeShare: limitedBeforeShare, afterShare: limitedAfterShare } = 
-    splitContentAt40Percent(limitedContent);
+export default function StoryContent({ content }) {
+  // Limit content to 7000 words
+  const limitedContent = truncateHtmlToWordCount(content, MAX_WORD_COUNT);
   
   return (
     <div className="pt-20 pb-4 px-6">
@@ -489,27 +426,11 @@ export default function StoryContent({
           }
         `}</style>
         
-        {/* First 40% of content */}
+        {/* Full story content */}
         <div
           className="story-content"
-          dangerouslySetInnerHTML={{ __html: limitedBeforeShare }}
+          dangerouslySetInnerHTML={{ __html: limitedContent }}
         />
-        
-        {/* ShareBox at 40% */}
-        <ShareBox 
-          storyTitle={storyTitle} 
-          coverImage={finalCoverImage}
-          isLiked={isLiked}
-          onLikeClick={onLikeClick}
-        />
-        
-        {/* Remaining 60% of content */}
-        {limitedAfterShare && (
-          <div
-            className="story-content"
-            dangerouslySetInnerHTML={{ __html: limitedAfterShare }}
-          />
-        )}
       </div>
     </div>
   );
