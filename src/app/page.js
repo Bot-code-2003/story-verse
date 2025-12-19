@@ -1,7 +1,7 @@
 // src/app/page.js
 "use client";
 
-import { useState, useEffect, useRef } from "react"; // 1. Import useRef
+import { useState, useEffect } from "react";
 import { fetchWithCache, CACHE_KEYS } from "@/lib/cache";
 import { FEATURED_STORIES } from "@/constants/featured_stories"; // Import featured stories
 
@@ -56,77 +56,41 @@ const ChevronRight = ({ className = "w-6 h-6" }) => (
 );
 
 
-// ---------------------- SECTION COMPONENT (Reusable Story List Row) ----------------------
+// ---------------------- SECTION COMPONENT (Reusable Story List - 6 Column Grid) ----------------------
 function Section({ title, items }) {
-  // 2. Create a ref for the scrollable container
-  const scrollRef = useRef(null);
-  const scrollDistance = 300; // Define scroll step size in pixels
-
-  // 3. Scroll handler functions
-  const scroll = (direction) => {
-    if (scrollRef.current) {
-      const scrollAmount =
-        direction === "left" ? -scrollDistance : scrollDistance;
-      // Use scrollBy for relative scrolling and 'smooth' for animation
-      scrollRef.current.scrollBy({
-        left: scrollAmount,
-        behavior: "smooth",
-      });
-    }
-  };
-
   if (!items || items.length === 0) return <SkeletonSection />;
 
   return (
-    <section className="mb-10 relative"> {/* 4. Add 'relative' for absolute positioning of arrows */}
+    <section className="mb-10 relative">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold text-[var(--foreground)]">
           {title}
         </h3>
         {/* Mobile scroll hint - only visible on small screens */}
-        <span className="md:hidden text-xs text-[var(--foreground)]/50 flex items-center gap-1">
+        <span className="lg:hidden text-xs text-[var(--foreground)]/50 flex items-center gap-1">
           <span>Swipe</span>
           <ChevronRight className="w-3 h-3" />
         </span>
       </div>
       
-      {/* Scrollable Container Wrapper */}
-      <div className="relative">
-        {/* Left Arrow Button */}
-        <button
-          onClick={() => scroll("left")}
-          className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 
-                     p-1 bg-[var(--background)] text-[var(--foreground)] opacity-70 hover:opacity-100 
-                     rounded-full transition-opacity shadow-lg hidden md:block" // Hidden on small screens
-          aria-label={`Scroll left on ${title}`}
-        >
-          <ChevronLeft />
-        </button>
+      {/* Desktop: 6-column grid (no scroll) */}
+      <div className="hidden lg:grid lg:grid-cols-6 gap-4">
+        {items.map((story) => (
+          <StoryCard key={story.id} story={story} />
+        ))}
+      </div>
 
-        {/* Story Card Scroll Container - Assign the ref here */}
-        <div
-          ref={scrollRef} // 5. Assign the ref
-          className="overflow-x-auto scrollbar-hide"
-        >
+      {/* Mobile/Tablet: Horizontal scroll */}
+      <div className="lg:hidden relative">
+        <div className="overflow-x-auto scrollbar-hide">
           <div className="flex gap-4 pb-4">
             {items.map((story) => (
-              <div key={story.id} className="w-[160px] md:w-[200px] lg:w-[250px] flex-shrink-0">
+              <div key={story.id} className="w-[160px] md:w-[200px] flex-shrink-0">
                 <StoryCard story={story} />
               </div>
             ))}
           </div>
         </div>
-
-        {/* Right Arrow Button */}
-        <button
-          onClick={() => scroll("right")}
-          className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 
-                     p-1 bg-[var(--background)] text-[var(--foreground)] opacity-70 hover:opacity-100 
-                     rounded-full transition-opacity shadow-lg hidden md:block" // Hidden on small screens
-          aria-label={`Scroll right on ${title}`}
-        >
-          <ChevronRight />
-        </button>
       </div>
     </section>
   );
@@ -135,8 +99,6 @@ function Section({ title, items }) {
 
 // ---------------------- FEATURED THIS WEEK COMPONENT ----------------------
 function FeaturedThisWeek({ items }) {
-  const scrollRef = useRef(null);
-
   if (!items || items.length === 0) return null;
 
   return (
@@ -159,12 +121,9 @@ function FeaturedThisWeek({ items }) {
         ))}
       </div>
 
-      {/* Mobile/Tablet: Horizontal scroll with visual cue */}
+      {/* Mobile/Tablet: Horizontal scroll */}
       <div className="lg:hidden relative">
-        <div
-          ref={scrollRef}
-          className="overflow-x-auto scrollbar-hide"
-        >
+        <div className="overflow-x-auto scrollbar-hide">
           <div className="flex gap-4 pb-4">
             {items.map((story) => (
               <div key={story.id} className="w-[160px] md:w-[200px] flex-shrink-0">
@@ -233,102 +192,103 @@ export default function Home() {
 
 
   useEffect(() => {
-    const fetchAll = async () => {
+    // ⭐ SET HARDCODED DATA IMMEDIATELY (no waiting for API calls)
+    const transformedFeaturedStories = FEATURED_STORIES.slice(0, 6).map(story => ({
+      ...story,
+      id: story._id?.$oid || story._id || story.id, // Extract ID from MongoDB structure
+      author: story.author?.$oid || story.author // Handle author ID if needed
+    }));
+    setFeaturedThisWeek(transformedFeaturedStories);
+    console.log("featuredThisWeek (transformed - immediate)", transformedFeaturedStories);
+
+    // ⭐ FETCH API DATA INDEPENDENTLY (progressive rendering)
+    // Each fetch updates state as soon as it completes, allowing sections to render independently
+    const fetchData = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        // parallel fetch: trending/latest/quickreads + editor picks + genres
-        // ❌ Latest = NO CACHE (always fresh)
-        // ✅ Others = 10-minute cache
-        const [
-          trendingList,
-          latestList,
-          quickReadsList,
-          editorPicksList,
-          // contestWinnersList, // 🏆 contest winners - commented out for future implementation
-          fantasyList,
-          dramaList,
-          romanceList,
-          sliceOfLifeList,
-          thrillerList,
-          horrorList,
-        ] = await Promise.all([
-          fetchRouteStories("/api/stories/trending", CACHE_KEYS.TRENDING),
-          fetchRouteStories("/api/stories/latest"), // ❌ NO CACHE - always fresh
-          fetchRouteStories("/api/stories/quickreads", CACHE_KEYS.QUICK_READS),
-          fetchRouteStories("/api/stories/editorpicks", CACHE_KEYS.EDITOR_PICKS),
-          // fetchRouteStories("/api/contests/7k-sprint-dec-2025/stories", CACHE_KEYS.CONTEST_WINNERS), // 🏆 contest winners - commented out
-          fetchRouteStories("/api/stories?genre=Fantasy", CACHE_KEYS.FANTASY),
-          fetchRouteStories("/api/stories?genre=Drama", CACHE_KEYS.DRAMA),
-          fetchRouteStories("/api/stories?genre=Romance", CACHE_KEYS.ROMANCE),
-          fetchRouteStories("/api/stories?genre=Slice%20of%20Life", CACHE_KEYS.SLICE_OF_LIFE),
-          fetchRouteStories("/api/stories?genre=Thriller", CACHE_KEYS.THRILLER),
-          fetchRouteStories("/api/stories?genre=Horror", CACHE_KEYS.HORROR),
-        ]);
+        // Fetch trending stories (with cache) - limit to 6
+        fetchRouteStories("/api/stories/trending", CACHE_KEYS.TRENDING)
+          .then(list => {
+            setStories(list.length ? list.slice(0, 6) : []);
+          })
+          .catch(err => console.warn("Failed to fetch trending:", err));
 
-        // Use the fetched lists, with sensible fallbacks
-        const finalTrending = trendingList.length
-          ? trendingList.slice(0, 18)
-          : [];
-        const finalLatest = latestList.length ? latestList.slice(0, 18) : [];
-        const finalQuickReads = quickReadsList.length
-          ? quickReadsList.slice(0, 18)
-          : [];
-        const finalEditorPicks = editorPicksList.length
-          ? editorPicksList.slice(0, 18)
-          : [];
+        // Fetch latest stories (NO CACHE - always fresh) - limit to 6
+        fetchRouteStories("/api/stories/latest")
+          .then(list => {
+            setLatest(list.length ? list.slice(0, 6) : []);
+          })
+          .catch(err => console.warn("Failed to fetch latest:", err));
+
+        // Fetch quick reads (with cache) - limit to 6
+        fetchRouteStories("/api/stories/quickreads", CACHE_KEYS.QUICK_READS)
+          .then(list => {
+            setQuickReads(list.length ? list.slice(0, 6) : []);
+          })
+          .catch(err => console.warn("Failed to fetch quick reads:", err));
+
+        // Fetch editor picks (with cache) - limit to 6
+        fetchRouteStories("/api/stories/editorpicks", CACHE_KEYS.EDITOR_PICKS)
+          .then(list => {
+            setEditorPicks(list.length ? list.slice(0, 6) : []);
+            console.log("finalEditorPicks", list.slice(0, 6));
+          })
+          .catch(err => console.warn("Failed to fetch editor picks:", err));
+
+        // Fetch genre stories independently - limit to 6 each
+        fetchRouteStories("/api/stories?genre=Fantasy", CACHE_KEYS.FANTASY)
+          .then(list => setFantasy(list.length ? list.slice(0, 6) : []))
+          .catch(err => console.warn("Failed to fetch Fantasy:", err));
+
+        fetchRouteStories("/api/stories?genre=Drama", CACHE_KEYS.DRAMA)
+          .then(list => setDrama(list.length ? list.slice(0, 6) : []))
+          .catch(err => console.warn("Failed to fetch Drama:", err));
+
+        fetchRouteStories("/api/stories?genre=Romance", CACHE_KEYS.ROMANCE)
+          .then(list => setRomance(list.length ? list.slice(0, 6) : []))
+          .catch(err => console.warn("Failed to fetch Romance:", err));
+
+        fetchRouteStories("/api/stories?genre=Slice%20of%20Life", CACHE_KEYS.SLICE_OF_LIFE)
+          .then(list => setSliceOfLife(list.length ? list.slice(0, 6) : []))
+          .catch(err => console.warn("Failed to fetch Slice of Life:", err));
+
+        fetchRouteStories("/api/stories?genre=Thriller", CACHE_KEYS.THRILLER)
+          .then(list => setThriller(list.length ? list.slice(0, 6) : []))
+          .catch(err => console.warn("Failed to fetch Thriller:", err));
+
+        fetchRouteStories("/api/stories?genre=Horror", CACHE_KEYS.HORROR)
+          .then(list => setHorror(list.length ? list.slice(0, 6) : []))
+          .catch(err => console.warn("Failed to fetch Horror:", err));
+
         // Contest winners - commented out for future implementation
-        // const finalContestWinners = contestWinnersList.length
-        //   ? contestWinnersList.slice(0, 3) // Top 3 winners
-        //   : [];
+        // fetchRouteStories("/api/contests/7k-sprint-dec-2025/stories", CACHE_KEYS.CONTEST_WINNERS)
+        //   .then(list => setContestWinners(list.length ? list.slice(0, 3) : []))
+        //   .catch(err => console.warn("Failed to fetch contest winners:", err));
 
-        setStories(finalTrending); // trending used as main 'stories' fallback
-        setLatest(finalLatest);
-        setQuickReads(finalQuickReads);
-        setEditorPicks(finalEditorPicks); // ⭐ set editor picks
-        
-        // ⭐ Use hardcoded FEATURED_STORIES from constants
-        // Transform MongoDB structure to match API format (extract _id.$oid to id)
-        const transformedFeaturedStories = FEATURED_STORIES.slice(0, 6).map(story => ({
-          ...story,
-          id: story._id?.$oid || story._id || story.id, // Extract ID from MongoDB structure
-          author: story.author?.$oid || story.author // Handle author ID if needed
-        }));
-        setFeaturedThisWeek(transformedFeaturedStories);
-        
-        // setContestWinners(finalContestWinners); // 🏆 set contest winners - commented out
-        console.log("finalEditorPicks", finalEditorPicks);
-        console.log("featuredThisWeek (transformed)", transformedFeaturedStories);
-        // console.log("finalContestWinners", finalContestWinners); // commented out
-        // update genres to show up to 18 each
-        setFantasy((fantasyList && fantasyList.slice(0, 18)) || []);
-        setDrama((dramaList && dramaList.slice(0, 18)) || []);
-        setRomance((romanceList && romanceList.slice(0, 18)) || []);
-        setSliceOfLife((sliceOfLifeList && sliceOfLifeList.slice(0, 18)) || []);
-        setThriller((thrillerList && thrillerList.slice(0, 18)) || []);
-        setHorror((horrorList && horrorList.slice(0, 18)) || []);
       } catch (err) {
         console.error("Failed to fetch initial data:", err);
         setError("Failed to load stories.");
       } finally {
-        setLoading(false);
+        // Set loading to false after a short delay to allow first batch of requests to start
+        setTimeout(() => setLoading(false), 100);
       }
     };
 
-    fetchAll();
+    fetchData();
   }, []);
 
   // Derived UI lists
-  const trending = stories.slice(0, 18); // trending comes from /api/stories/trending
+  const trending = stories.slice(0, 6); // trending comes from /api/stories/trending
 
   // New Releases: prefer backend 'latest'; fallback to sorting 'stories' by createdAt
   const newReleases =
     latest && latest.length
-      ? latest.slice(0, 18)
+      ? latest.slice(0, 6)
       : [...stories]
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 18);
+          .slice(0, 6);
 
 
   // --- Error State Only (removed global loading) ---
