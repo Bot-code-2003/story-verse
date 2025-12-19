@@ -289,11 +289,17 @@ export default function Home() {
         setEditorPicks(finalEditorPicks); // ⭐ set editor picks
         
         // ⭐ Use hardcoded FEATURED_STORIES from constants
-        setFeaturedThisWeek(FEATURED_STORIES.slice(0, 6)); // Take first 6 stories
+        // Transform MongoDB structure to match API format (extract _id.$oid to id)
+        const transformedFeaturedStories = FEATURED_STORIES.slice(0, 6).map(story => ({
+          ...story,
+          id: story._id?.$oid || story._id || story.id, // Extract ID from MongoDB structure
+          author: story.author?.$oid || story.author // Handle author ID if needed
+        }));
+        setFeaturedThisWeek(transformedFeaturedStories);
         
         // setContestWinners(finalContestWinners); // 🏆 set contest winners - commented out
         console.log("finalEditorPicks", finalEditorPicks);
-        console.log("featuredThisWeek (from constants)", FEATURED_STORIES.slice(0, 6));
+        console.log("featuredThisWeek (transformed)", transformedFeaturedStories);
         // console.log("finalContestWinners", finalContestWinners); // commented out
         // update genres to show up to 18 each
         setFantasy((fantasyList && fantasyList.slice(0, 18)) || []);

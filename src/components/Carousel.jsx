@@ -116,7 +116,7 @@ export default function HeroCarousel() {
   const isWinnerSlide = currentSlide.id === -1;
 
   return (
-    <section className="relative w-full h-[300px] md:h-[500px] rounded-2xl mb-12 overflow-hidden">
+    <section className="relative w-full h-[40vh] md:h-[60vh] rounded-2xl mb-12 overflow-hidden">
       {/* BACKGROUND IMAGES */}
       {slides.map((slide, i) => {
         const isWinner = slide.id === -1;

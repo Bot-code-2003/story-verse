@@ -1,6 +1,14 @@
+import { Inter } from 'next/font/google';
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import "./globals.css";
+
+// Configure Inter font (Helvetica-like alternative)
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 // Global SEO Metadata
 export const metadata = {
@@ -90,7 +98,7 @@ export default function RootLayout({ children }) {
         <link rel="manifest" href="/manifest.json" />
       </head>
       {/* IMPORTANT: Apply theme to <body> via provider */}
-      <body suppressHydrationWarning>
+      <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider>
           <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>
