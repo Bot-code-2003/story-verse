@@ -303,7 +303,7 @@ export default function StoryPage() {
         setIsSaved(saved);
         setUserPulse(fetchedUserPulse);
 
-        // Set Author Name
+        // Set Author Name - prioritize 'name' over 'username'
         setAuthorName(
           fetchedAuthorData?.name ||
             fetchedAuthorData?.username ||
@@ -718,6 +718,8 @@ const finalCoverImage = story.coverImage || coverGenreFallback;
       <FloatingActionBar
         isLiked={isLiked}
         onLikeClick={handleLikeClick}
+        isSaved={isSaved}
+        onSaveClick={handleSaveClick}
         commentsCount={comments.length}
         storyTitle={story.title}
         onScrollToComments={scrollToComments}

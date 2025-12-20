@@ -19,11 +19,12 @@ export default function StoryCard({ story, showAuthor = true }) {
   // ✅ Always normalize genres
   const genresArr = Array.isArray(genres) ? genres : [];
 
-  // ✅ Author name safety
+  // ✅ Author name safety - prioritize 'name' over 'username'
   let authorName = "Unknown";
 
   if (author && typeof author === "object") {
-    authorName = author.username?.replace(/^@/, "") || author.name || "Unknown";
+    // Try name first, then username, then fallback to Unknown
+    authorName = author.name || author.username?.replace(/^@/, "") || "Unknown";
   } else if (typeof author === "string" && author.length < 30) {
     authorName = author.replace(/^@/, "");
   }
@@ -70,7 +71,7 @@ export default function StoryCard({ story, showAuthor = true }) {
 
         {showAuthor && (
           <p className="text-xs md:text-sm text-foreground/70 mt-0.5 line-clamp-1">
-            {`By @${authorName}`}
+            {`By ${authorName}`}
           </p>
         )}
 

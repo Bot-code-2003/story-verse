@@ -12,7 +12,7 @@ export default function RecommendationsSection({ recommendations, primaryGenre }
 
   return (
     <div className="py-16 px-6 bg-[var(--foreground)]/5 border-t border-[var(--foreground)]/10">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         <h2 className="text-3xl font-bold mb-8 text-[var(--foreground)] text-center">
           You May Also Like
         </h2>

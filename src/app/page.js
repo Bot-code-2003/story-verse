@@ -354,13 +354,19 @@ export default function Home() {
           <FeaturedThisWeek items={featuredThisWeek} />
 
           {/* 4. Editor's Pick - Curated quality content */}
-          <EditorsPick stories={editorPicks} />
+          <div id="editors-pick">
+            <EditorsPick stories={editorPicks} />
+          </div>
 
           {/* 5. New Releases - Fresh content */}
-          <Section title="New Releases" items={newReleases} />
+          <div id="new-releases">
+            <Section title="New Releases" items={newReleases} />
+          </div>
 
           {/* 6. Featured Author - Community spotlight */}
-          <FeaturedAuthor />
+          <div id="featured-authors">
+            <FeaturedAuthor />
+          </div>
 
           {/* 7. Genre Discovery - Visual exploration */}
           <DiscoverGenres />

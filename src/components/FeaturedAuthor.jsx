@@ -11,7 +11,7 @@ export default function FeaturedAuthors() {
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const limit = typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches
-  ? 150
+  ? 80
   : 300;
 
   useEffect(() => {
@@ -134,7 +134,7 @@ export default function FeaturedAuthors() {
                       </h3>
                     </Link>
                     <p className="text-[var(--foreground)]/50 text-sm mb-2">
-                      @{currentAuthor.username}
+                      {currentAuthor.username}
                     </p>
                   </div>
                 </div>

@@ -39,7 +39,7 @@ export default function StoryHero({
   };
 
   return (
-    <div className="pt-24 pb-16 px-6">
+    <div className="pt-12 sm:pt-24 pb-16 px-6">
       <div className="max-w-4xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16 items-center">
           {/* Left: Title, Description, Author, Buttons */}
@@ -48,7 +48,7 @@ export default function StoryHero({
               {story.title}
             </h1>
             {story.description && (
-              <p className="text-lg md:text-xl text-[var(--foreground)]/70 leading-relaxed">
+              <p className="text-base md:text-lg text-[var(--foreground)]/70 leading-relaxed">
                 {story.description}
               </p>
             )}
@@ -68,7 +68,7 @@ export default function StoryHero({
               </div>
             )}
 
-            <div className="flex items-center gap-6 pt-4">
+            <div className="flex items-center gap-1 sm:gap-6 pt-4">
               <Link
                 href={`/authors/${authorData.username || ""}`}
                 className="flex items-center gap-3 hover:opacity-80 transition-opacity"

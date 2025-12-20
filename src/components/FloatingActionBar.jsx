@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Heart, MessageCircle, Share2 } from "lucide-react";
+import { Heart, MessageCircle, Share2, Bookmark } from "lucide-react";
 import ShareModal from "@/components/ShareModal";
 
 export default function FloatingActionBar({ 
   isLiked, 
-  onLikeClick, 
+  onLikeClick,
+  isSaved,
+  onSaveClick,
   commentsCount = 0,
   storyTitle,
   onScrollToComments 
@@ -44,7 +46,7 @@ export default function FloatingActionBar({
             : "opacity-0 translate-y-20 pointer-events-none"
         }`}
       >
-        <div className="bg-[var(--background)] border border-[var(--foreground)]/10 rounded-full shadow-2xl px-6 py-3 flex items-center gap-6 backdrop-blur-lg">
+        <div className="bg-[var(--background)] border border-[var(--foreground)]/10 rounded-full shadow-2xl px-4 sm:px-6 py-3 flex items-center gap-3 sm:gap-6 backdrop-blur-lg">
           {/* Like Button */}
           <button
             onClick={onLikeClick}
@@ -56,7 +58,24 @@ export default function FloatingActionBar({
             <Heart
               className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`}
             />
-            <span className="text-sm font-medium">Like</span>
+            <span className="hidden sm:inline text-sm font-medium">Like</span>
+          </button>
+
+          {/* Divider */}
+          <div className="h-6 w-px bg-[var(--foreground)]/10" />
+
+          {/* Save Button */}
+          <button
+            onClick={onSaveClick}
+            className={`flex items-center gap-2 transition-all hover:scale-110 ${
+              isSaved ? "text-blue-500" : "text-[var(--foreground)]/60 hover:text-blue-500"
+            }`}
+            aria-label={isSaved ? "Unsave story" : "Save story"}
+          >
+            <Bookmark
+              className={`w-5 h-5 ${isSaved ? "fill-current" : ""}`}
+            />
+            <span className="hidden sm:inline text-sm font-medium">Save</span>
           </button>
 
           {/* Divider */}
@@ -65,7 +84,7 @@ export default function FloatingActionBar({
           {/* Comments Button */}
           <button
             onClick={onScrollToComments}
-            className="flex items-center gap-2 text-[var(--foreground)]/60 hover:text-blue-500 transition-all hover:scale-110"
+            className="flex items-center gap-2 text-[var(--foreground)]/60 hover:text-purple-500 transition-all hover:scale-110"
             aria-label="Go to comments"
           >
             <MessageCircle className="w-5 h-5" />
@@ -82,7 +101,7 @@ export default function FloatingActionBar({
             aria-label="Share story"
           >
             <Share2 className="w-5 h-5" />
-            <span className="text-sm font-medium">Share</span>
+            <span className="hidden sm:inline text-sm font-medium">Share</span>
           </button>
         </div>
       </div>

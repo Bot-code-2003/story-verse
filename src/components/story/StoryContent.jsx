@@ -79,7 +79,7 @@ export default function StoryContent({ content }) {
             font-size: 1.1875rem;
             color: var(--foreground);
             animation: fadeInUp 0.8s ease-out;
-            font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
+            font-family: var(--font-roboto-mono), 'Roboto Mono', monospace;
             letter-spacing: 0.015em;
             word-spacing: 0.05em;
           }
@@ -122,7 +122,7 @@ export default function StoryContent({ content }) {
             margin-top: 0.15rem;
             margin-bottom: -0.1rem;
             color: #4f46e5;
-            font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
+            font-family: var(--font-roboto-mono), 'Roboto Mono', monospace;
             opacity: 1;
             text-shadow: 2px 2px 4px rgba(79, 70, 229, 0.1);
           }
@@ -148,7 +148,7 @@ export default function StoryContent({ content }) {
             letter-spacing: -0.03em;
             line-height: 1.2;
             opacity: 1;
-            font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
+            font-family: var(--font-roboto-mono), 'Roboto Mono', monospace;
           }
           
           .story-content h2 {
@@ -160,7 +160,7 @@ export default function StoryContent({ content }) {
             letter-spacing: -0.025em;
             line-height: 1.3;
             opacity: 1;
-            font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
+            font-family: var(--font-roboto-mono), 'Roboto Mono', monospace;
           }
           
           .story-content h3 {
@@ -172,7 +172,7 @@ export default function StoryContent({ content }) {
             letter-spacing: -0.02em;
             line-height: 1.4;
             opacity: 1;
-            font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
+            font-family: var(--font-roboto-mono), 'Roboto Mono', monospace;
           }
           
           .story-content h4 {
@@ -182,7 +182,7 @@ export default function StoryContent({ content }) {
             margin-bottom: 1rem;
             color: var(--foreground);
             opacity: 1;
-            font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
+            font-family: var(--font-roboto-mono), 'Roboto Mono', monospace;
           }
           
           .story-content h5,
@@ -193,7 +193,7 @@ export default function StoryContent({ content }) {
             margin-bottom: 0.875rem;
             color: var(--foreground);
             opacity: 1;
-            font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
+            font-family: var(--font-roboto-mono), 'Roboto Mono', monospace;
           }
           
           .story-content h1:first-child,

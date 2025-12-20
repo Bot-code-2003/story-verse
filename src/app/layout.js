@@ -1,4 +1,4 @@
-import { Inter } from 'next/font/google';
+import { Inter, Roboto_Mono } from 'next/font/google';
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import "./globals.css";
@@ -8,6 +8,14 @@ const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-inter',
+});
+
+// Configure Roboto Mono font for story content
+const robotoMono = Roboto_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-roboto-mono',
+  weight: ['100', '200', '300', '400', '500', '600', '700'],
 });
 
 // Global SEO Metadata
@@ -98,7 +106,7 @@ export default function RootLayout({ children }) {
         <link rel="manifest" href="/manifest.json" />
       </head>
       {/* IMPORTANT: Apply theme to <body> via provider */}
-      <body className={inter.className} suppressHydrationWarning>
+      <body className={`${inter.className} ${inter.variable} ${robotoMono.variable}`} suppressHydrationWarning>
         <ThemeProvider>
           <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>
