@@ -12,6 +12,10 @@ const storySchema = new mongoose.Schema(
     coverImage: String,
     readTime: Number,
     genres: [String],
+    tags: {
+      type: [String],
+      default: [],
+    },
     likesCount: {
       type: Number,
       default: 0,
@@ -62,6 +66,9 @@ storySchema.index({ author: 1, published: 1, createdAt: -1 });
 
 // 7. Quick reads optimization (if you add a wordCount or readTime filter later)
 storySchema.index({ readTime: 1, published: 1, createdAt: -1 });
+
+// 8. Tags search (for tag filtering and discovery)
+storySchema.index({ tags: 1, published: 1, likesCount: -1 });
 
 const Story = mongoose.models.Story || mongoose.model("Story", storySchema);
 

@@ -25,7 +25,7 @@ export async function GET(req, { params }) {
     // ⚡ PERFORMANCE: For individual story page, we need ALL fields
     // (unlike list views which only need minimal fields)
     let story = await Story.findOne(query)
-      .select('title description content coverImage genres readTime author likesCount pulse contest createdAt updatedAt published')
+      .select('title description content coverImage genres tags readTime author likesCount pulse contest createdAt updatedAt published')
       .populate({
         path: "author",
         model: "User",

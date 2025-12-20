@@ -142,6 +142,7 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
   const [title, setTitle] = useState(initialData?.title || "");
   const [description, setDescription] = useState(initialData?.description || "");
   const [selectedGenres, setSelectedGenres] = useState(initialData?.genres || []);
+  const [tags, setTags] = useState(initialData?.tags || []);
   const [coverImageUrl, setCoverImageUrl] = useState(initialData?.coverImage || "");
   const [uploadingImage, setUploadingImage] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -311,6 +312,7 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
       coverImage: coverImageUrl.trim(),
       readTime: autoReadTime,
       genres: selectedGenres,
+      tags: tags,
       published: !!published,
       contest: published && submitToContest ? "7k-sprint-dec-2025" : null,
     };
@@ -418,6 +420,8 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
                 setCoverImageUrl={setCoverImageUrl}
                 selectedGenres={selectedGenres}
                 setSelectedGenres={setSelectedGenres}
+                tags={tags}
+                setTags={setTags}
                 uploadingImage={uploadingImage}
                 setUploadingImage={setUploadingImage}
                 showToast={showToast}

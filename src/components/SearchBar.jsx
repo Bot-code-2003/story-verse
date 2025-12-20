@@ -77,7 +77,7 @@ export default function SearchBar() {
     (results.stories?.length || 0) + (results.authors?.length || 0);
 
   return (
-    <div ref={searchRef} className="relative w-full md:w-80">
+    <div ref={searchRef} className="relative w-full md:w-120">
       {/* Search Input */}
       <div
         className={`
