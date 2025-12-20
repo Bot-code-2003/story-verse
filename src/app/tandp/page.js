@@ -19,10 +19,9 @@ export default function TermsAndPrivacyPage() {
             Terms of Use, Privacy Policy & AI Usage
           </h1>
           <p className="text-sm sm:text-base text-[var(--foreground)]/70 max-w-2xl">
-            These pages explain how StoryVerse works, what’s expected from
+            These pages explain how TheStoryBits works, what’s expected from
             you as a reader or writer, and how we handle your data and the
-            use of AI tools. This is a draft / placeholder – replace with
-            your real legal copy before going to production.
+            use of AI tools.
           </p>
         </section>
 
@@ -62,10 +61,10 @@ export default function TermsAndPrivacyPage() {
           <div className="space-y-6 text-sm sm:text-base text-[var(--foreground)]/80 leading-relaxed">
             <div>
               <h3 className="text-base sm:text-lg font-semibold text-[var(--foreground)] mb-1.5">
-                1. Your agreement with StoryVerse
+                1. Your agreement with TheStoryBits
               </h3>
               <p>
-                By creating an account or using StoryVerse in any way, you
+                By creating an account or using TheStoryBits in any way, you
                 are agreeing to these Terms of Use. If you do not agree,
                 please do not use the platform.
               </p>
@@ -78,7 +77,7 @@ export default function TermsAndPrivacyPage() {
               <p>
                 You must be old enough to use online services under the laws
                 of your country (typically 13+). If you’re under the required
-                age, you may only use StoryVerse with permission and
+                age, you may only use TheStoryBits with permission and
                 supervision from a parent or guardian.
               </p>
             </div>
@@ -88,9 +87,9 @@ export default function TermsAndPrivacyPage() {
                 3. Your content
               </h3>
               <p className="mb-2">
-                StoryVerse lets you publish stories, comments, and other
+                StoryBits lets you publish stories, comments, and other
                 content. You keep ownership of anything you create. However,
-                by posting on StoryVerse you grant us a worldwide,
+                by posting on TheStoryBits you grant us a worldwide,
                 non-exclusive license to store, display, and distribute your
                 content in order to operate the platform.
               </p>
@@ -122,7 +121,7 @@ export default function TermsAndPrivacyPage() {
                 5. No guarantees
               </h3>
               <p>
-                StoryVerse is provided “as is”. We do not guarantee that the
+                TheStoryBits is provided “as is”. We do not guarantee that the
                 service will be always available, error-free, or suitable for
                 any specific purpose. You use the platform at your own risk.
               </p>
@@ -135,7 +134,7 @@ export default function TermsAndPrivacyPage() {
               <p>
                 We may update these Terms periodically. When that happens,
                 we will change the “Last updated” date above. If you continue
-                using StoryVerse after changes go live, you are agreeing to
+                using TheStoryBits after changes go live, you are agreeing to
                 the updated Terms.
               </p>
             </div>
@@ -168,7 +167,7 @@ export default function TermsAndPrivacyPage() {
                 2. How we use your data
               </h3>
               <ul className="list-disc list-inside space-y-1">
-                <li>Operate and improve StoryVerse</li>
+                <li>Operate and improve TheStoryBits</li>
                 <li>Secure accounts and prevent abuse</li>
                 <li>Provide recommendations</li>
                 <li>Analytics and performance</li>
@@ -240,9 +239,9 @@ export default function TermsAndPrivacyPage() {
                 1. Our stance on AI
               </h3>
               <p>
-                StoryVerse supports the responsible use of artificial
+                TheStoryBits supports the responsible use of artificial
                 intelligence (AI) as a creative assistance tool — not as a
-                full replacement for human creativity. Stories on StoryVerse
+                full replacement for human creativity. Stories on TheStoryBits
                 should always reflect meaningful human input, imagination, and
                 intent.
               </p>
@@ -294,7 +293,7 @@ export default function TermsAndPrivacyPage() {
                 4. Prohibited AI usage
               </h3>
               <p className="mb-2">
-                The following types of AI usage are not allowed on StoryVerse:
+                The following types of AI usage are not allowed on TheStoryBits:
               </p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Fully automated, mass-generated stories with minimal effort</li>
@@ -328,7 +327,7 @@ export default function TermsAndPrivacyPage() {
                 6. Enforcement
               </h3>
               <p>
-                StoryVerse may remove AI-assisted content or restrict accounts
+                TheStoryBits may remove AI-assisted content or restrict accounts
                 if AI is used in a way that results in spam, low-quality
                 output, copyright risk, or harm to the integrity and
                 experience of the platform.

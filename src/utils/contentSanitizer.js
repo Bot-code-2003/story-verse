@@ -1,5 +1,5 @@
 /**
- * Professional Content Sanitizer for StoryVerse
+ * Professional Content Sanitizer for TheStoryBits
  * Normalizes content from any source (Word, Google Docs, Medium, etc.)
  * to consistent, clean HTML that matches our platform's styling
  */

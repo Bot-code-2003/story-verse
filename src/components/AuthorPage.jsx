@@ -205,8 +205,8 @@ export default function AuthorPage() {
         <SiteHeader />
         <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
           <div className="text-center">
-            <p className="text-red-500 text-lg mb-4">
-              {error || "Author not found"}
+            <p className="text-[var(--foreground)]/60 text-lg mb-4">
+              We couldn't find the author you're looking for.
             </p>
             <button
               onClick={() => router.back()}
@@ -248,7 +248,7 @@ export default function AuthorPage() {
                 "jobTitle": "Author",
                 "worksFor": {
                   "@type": "Organization",
-                  "name": "StoryVerse"
+                  "name": "TheStoryBits"
                 }
               },
               "breadcrumb": {
@@ -258,19 +258,19 @@ export default function AuthorPage() {
                     "@type": "ListItem",
                     "position": 1,
                     "name": "Home",
-                    "item": "https://storyverse.com"
+                    "item": "https://thestorybits.com"
                   },
                   {
                     "@type": "ListItem",
                     "position": 2,
                     "name": "Authors",
-                    "item": "https://storyverse.com/authors"
+                    "item": "https://thestorybits.com/authors"
                   },
                   {
                     "@type": "ListItem",
                     "position": 3,
                     "name": author.name || author.username,
-                    "item": `https://storyverse.com/authors/${author.username}`
+                    "item": `https://thestorybits.com/authors/${author.username}`
                   }
                 ]
               }

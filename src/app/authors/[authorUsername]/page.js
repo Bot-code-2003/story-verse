@@ -14,25 +14,23 @@ export async function generateMetadata({ params }) {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
                     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://thestorybits.com');
     
-    if (!authorUsername) {
-      return {
-        title: 'Author Not Found',
-        description: 'The requested author could not be found on TheStoryBits.',
-      };
-    }
+    // Clean the username (handle @ prefix and decoding)
+    const cleanUsername = decodeURIComponent(authorUsername).replace(/^@/, '');
     
     // Connect to database directly
     await connectToDB();
     
-    // Fetch author
-    const author = await User.findOne({ username: authorUsername })
+    // Fetch author - case insensitive search
+    const author = await User.findOne({ 
+      username: { $regex: new RegExp(`^${cleanUsername}$`, 'i') } 
+    })
       .select('username name bio profileImage')
       .lean();
     
     if (!author) {
       return {
-        title: 'Author Not Found',
-        description: 'The requested author could not be found on TheStoryBits.',
+        title: 'Author Profile',
+        description: 'Read captivating short stories by talented authors on TheStoryBits.',
       };
     }
     

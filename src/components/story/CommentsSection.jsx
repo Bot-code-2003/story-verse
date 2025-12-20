@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Heart } from "lucide-react";
+import Link from "next/link";
 
 export default function CommentsSection({
   comments,
@@ -52,53 +53,57 @@ export default function CommentsSection({
                 className="border-b border-[var(--foreground)]/10 pb-4"
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold flex-shrink-0">
-                    {comment.user?.profileImage ? (
-                      <img
-                        src={comment.user.profileImage}
-                        alt={comment.user.name || "User"}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span>
-                        {(comment.user?.name || "U").charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-[var(--foreground)]">
-                        {comment.user?.name || "Anonymous"}
-                      </span>
-                      <span className="text-sm text-[var(--foreground)]/50">
-                        {new Date(comment.createdAt).toLocaleDateString()}
-                      </span>
+                  <Link 
+                    href={`/authors/${comment.user?.username || comment.user?.id || ""}`}
+                    className="flex items-start gap-3 hover:opacity-80 transition-opacity flex-1"
+                  >
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                      {comment.user?.profileImage ? (
+                        <img
+                          src={comment.user.profileImage}
+                          alt={comment.user.name || "User"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span>
+                          {(comment.user?.name || comment.user?.username || "U").charAt(0).toUpperCase()}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-[var(--foreground)]/80 mb-2">
-                      {comment.text}
-                    </p>
-                    <button
-                      onClick={() => {
-                        if (!user) {
-                          setShowLoginPrompt(true);
-                          return;
-                        }
-                        handleCommentLike(comment.id, comment.liked);
-                      }}
-                      className={`text-sm flex items-center gap-1 transition ${
-                        comment.liked
-                          ? "text-red-500"
-                          : "text-[var(--foreground)]/60 hover:text-red-500"
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-[var(--foreground)] hover:underline">
+                          {comment.user?.name || comment.user?.username || "Anonymous"}
+                        </span>
+                      </div>
+                      <p className="text-[var(--foreground)]/80 mb-2">
+                        {comment.text}
+                      </p>
+                    </div>
+                  </Link>
+                </div>
+                <div className="ml-[52px]">
+                  <button
+                    onClick={() => {
+                      if (!user) {
+                        setShowLoginPrompt(true);
+                        return;
+                      }
+                      handleCommentLike(comment.id, comment.liked);
+                    }}
+                    className={`text-sm flex items-center gap-1 transition ${
+                      comment.liked
+                        ? "text-red-500"
+                        : "text-[var(--foreground)]/60 hover:text-red-500"
+                    }`}
+                  >
+                    <Heart
+                      className={`w-4 h-4 ${
+                        comment.liked ? "fill-current" : ""
                       }`}
-                    >
-                      <Heart
-                        className={`w-4 h-4 ${
-                          comment.liked ? "fill-current" : ""
-                        }`}
-                      />
-                      <span>{comment.likesCount || 0}</span>
-                    </button>
-                  </div>
+                    />
+                    <span>{comment.likesCount || 0}</span>
+                  </button>
                 </div>
               </div>
             ))}
