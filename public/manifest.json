@@ -1,7 +1,7 @@
 {
-  "name": "OneSitRead",
-  "short_name": "OneSitRead",
-  "description": "Discover captivating short fiction stories you can finish in one sitting",
+  "name": "TheStoryBits",
+  "short_name": "TheStoryBits",
+  "description": "Discover captivating bite-sized fiction stories",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",

@@ -243,7 +243,7 @@ export default function AuthorPage() {
                 "alternateName": author.username,
                 "description": author.bio || `Author on TheStoryBits`,
                 "image": author.profileImage || "",
-                "url": `https://onesitread.com/authors/${author.username}`,
+                "url": `https://thestorybits.com/authors/${author.username}`,
                 "sameAs": author.socialLinks || [],
                 "jobTitle": "Author",
                 "worksFor": {

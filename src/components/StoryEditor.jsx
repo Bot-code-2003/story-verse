@@ -12,6 +12,9 @@ import TitleDescriptionStep from "@/components/editor/TitleDescriptionStep";
 import ContentEditorStep from "@/components/editor/ContentEditorStep";
 import MetadataStep from "@/components/editor/MetadataStep";
 
+// Word limit constant - aligned with "bite-sized" branding
+const MAX_WORD_COUNT = 4000;
+
 // --- Toast Notification Component ---
 const ToastNotification = ({ message, type, onClose }) => {
   useEffect(() => {
@@ -263,6 +266,13 @@ export default function StoryEditor({ storyId = null, initialData = null }) {
       showToast("Story content cannot be empty.", "error");
       return false;
     }
+    
+    // Check word count limit
+    if (wordCount > MAX_WORD_COUNT) {
+      showToast(`Story exceeds maximum word limit of ${MAX_WORD_COUNT.toLocaleString()} words. Current: ${wordCount.toLocaleString()} words.`, "error");
+      return false;
+    }
+    
     return true;
   };
 

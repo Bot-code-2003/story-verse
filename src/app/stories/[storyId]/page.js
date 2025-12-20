@@ -17,7 +17,7 @@ export async function generateMetadata({ params }) {
     
     // Base URL for absolute URLs (required for social media scrapers)
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
-                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://onesitread.vercel.app');
+                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://thestorybits.com');
     
     // Validate storyId
     if (!storyId || !mongoose.Types.ObjectId.isValid(storyId)) {
@@ -98,8 +98,8 @@ export async function generateMetadata({ params }) {
       },
       twitter: {
         card: 'summary_large_image',
-        site: '@onesitread',
-        creator: '@onesitread',
+        site: '@thestorybits',
+        creator: '@thestorybits',
         title: `${title} by ${authorName}`,
         description: description,
         images: [ogImageUrl],

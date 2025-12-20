@@ -12,7 +12,7 @@ export async function generateMetadata({ params }) {
     const authorUsername = resolvedParams.authorUsername;
     
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
-                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://onesitread.vercel.app');
+                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://thestorybits.com');
     
     if (!authorUsername) {
       return {
@@ -80,7 +80,7 @@ export async function generateMetadata({ params }) {
       },
       twitter: {
         card: 'summary',
-        site: '@onesitread',
+        site: '@thestorybits',
         title: `${authorName} - Author on TheStoryBits`,
         description: bio.substring(0, 160),
         images: [author.profileImage || ogImageUrl],

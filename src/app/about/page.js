@@ -195,7 +195,7 @@ export default function AboutPage() {
                 Worlds in minutes
               </h3>
               <p className="text-xl text-[var(--foreground)]/70 mb-10 leading-relaxed">
-                Fantasy, sci-fi, romance, horror. Stories you can finish in one sitting. 
+                Fantasy, sci-fi, romance, horror. Bite-sized stories perfect for quick escapes. 
                 No commitment. Just curiosity.
               </p>
               <Link

@@ -7,7 +7,7 @@ import Story from '@/models/Story';
 import User from '@/models/User';
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://onesitread.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://thestorybits.com';
   
   try {
     await connectToDB();

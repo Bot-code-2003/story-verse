@@ -57,7 +57,19 @@ export default function ContentEditorStep({ editorRef, format, wordCount }) {
       {/* Sticky Toolbar */}
       <div className="sticky top-0 z-20 bg-[var(--background)] border-b border-[var(--foreground)]/10 shadow-sm">
         <div className="max-w-5xl mx-auto px-6 py-4">
-          <EditorToolbar format={format} />
+          <div className="flex items-center justify-between">
+            <EditorToolbar format={format} />
+            <div className="flex items-center gap-2">
+              <span className={`text-sm font-medium ${wordCount > 4000 ? 'text-red-500' : 'text-[var(--foreground)]/60'}`}>
+                {wordCount.toLocaleString()} / 4,000 words
+              </span>
+              {wordCount > 4000 && (
+                <span className="text-xs text-red-500 font-medium">
+                  Exceeds limit!
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

@@ -25,7 +25,7 @@ export async function generateMetadata({ params }) {
     const genreName = decodeURIComponent(resolvedParams.name);
     
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
-                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://onesitread.vercel.app');
+                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://thestorybits.com');
     
     // Connect to database to get story count
     await connectToDB();
@@ -52,7 +52,7 @@ export async function generateMetadata({ params }) {
         'short stories',
         'TheStoryBits',
         'story bits',
-        'OneSitRead'
+        'TheStoryBits',
       ],
       openGraph: {
         title: `${genreName} Stories - TheStoryBits`,
@@ -72,7 +72,7 @@ export async function generateMetadata({ params }) {
       },
       twitter: {
         card: 'summary_large_image',
-        site: '@onesitread',
+        site: '@thestorybits',
         title: `${genreName} Stories - TheStoryBits`,
         description: description,
         images: [ogImageUrl],
