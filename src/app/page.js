@@ -315,23 +315,23 @@ export default function Home() {
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              "name": "OneSitRead",
-              "description": "Discover and share short fiction stories you can finish in one sitting. Quick reads across all genres.",
-              "url": "https://onesitread.vercel.app",
+              "name": "TheStoryBits",
+              "description": "Discover and share bite-sized fiction stories. Quick reads across all genres.",
+              "url": "https://thestorybits.com",
               "potentialAction": {
                 "@type": "SearchAction",
                 "target": {
                   "@type": "EntryPoint",
-                  "urlTemplate": "https://onesitread.vercel.app/search?q={search_term_string}"
+                  "urlTemplate": "https://thestorybits.com/search?q={search_term_string}"
                 },
                 "query-input": "required name=search_term_string"
               },
               "publisher": {
                 "@type": "Organization",
-                "name": "OneSitRead",
+                "name": "TheStoryBits",
                 "logo": {
                   "@type": "ImageObject",
-                  "url": "https://onesitread.vercel.app/logo.png"
+                  "url": "https://thestorybits.com/logo.png"
                 }
               }
             })

@@ -24,7 +24,7 @@ export async function generateMetadata({ params }) {
       console.error('Invalid storyId for metadata:', storyId);
       return {
         title: 'Story Not Found',
-        description: 'The requested story could not be found on OneSitRead.',
+        description: 'The requested story could not be found on TheStoryBits.',
       };
     }
     
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }) {
       console.error('Story not found for metadata:', storyId);
       return {
         title: 'Story Not Found',
-        description: 'The requested story could not be found on OneSitRead.',
+        description: 'The requested story could not be found on TheStoryBits.',
       };
     }
     
@@ -52,7 +52,7 @@ export async function generateMetadata({ params }) {
     const title = story.title || 'Untitled Story';
     const description = story.description || 
                         (story.content ? story.content.replace(/<[^>]*>/g, '').substring(0, 160) + '...' : 
-                        'Read this captivating short fiction story on OneSitRead - finish it in one sitting!');
+                        'Read this captivating short fiction story on TheStoryBits - bite-sized stories you can enjoy anytime!');
     const authorName = story.author?.name || story.author?.username || 'Unknown Author';
     const primaryGenre = story.genres?.[0] || 'Fiction';
     const storyUrl = `${baseUrl}/stories/${storyId}`;
@@ -68,7 +68,8 @@ export async function generateMetadata({ params }) {
         'short story',
         'fiction',
         'creative writing',
-        'one sitting read',
+        'story bits',
+        'quick fiction',
         'quick read',
         authorName,
         'online reading'
@@ -78,7 +79,7 @@ export async function generateMetadata({ params }) {
         title: `${title} by ${authorName}`,
         description: description,
         url: storyUrl,
-        siteName: 'OneSitRead',
+        siteName: 'TheStoryBits',
         type: 'article',
         publishedTime: story.createdAt?.toISOString?.() || story.createdAt,
         modifiedTime: story.updatedAt?.toISOString?.() || story.createdAt,
@@ -90,7 +91,7 @@ export async function generateMetadata({ params }) {
             url: ogImageUrl,
             width: 1200,
             height: 630,
-            alt: `${title} by ${authorName} - OneSitRead`,
+            alt: `${title} by ${authorName} - TheStoryBits`,
             type: 'image/png',
           }
         ],
@@ -117,7 +118,7 @@ export async function generateMetadata({ params }) {
     console.error('Error generating metadata:', error);
     return {
       title: 'Short Fiction Stories',
-      description: 'Read captivating short fiction stories on OneSitRead - stories you can finish in one sitting.',
+      description: 'Read captivating short fiction stories on TheStoryBits - bite-sized stories across all genres.',
     };
   }
 }

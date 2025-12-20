@@ -253,7 +253,7 @@ function LoginPageContent() {
           <div className="hidden lg:block text-white space-y-8">
             <div className="space-y-6">
               <Link href="/" className="text-6xl font-bold leading-tight">
-                OneSitRead
+                TheStoryBits
               </Link>
             </div>
           </div>
@@ -266,7 +266,7 @@ function LoginPageContent() {
                 <Link href="/" className="inline-flex items-center gap-2">
                   <BookOpen className="w-6 h-6 text-gray-900" />
                   <span className="text-xl font-bold text-gray-900">
-                    OneSitRead
+                    TheStoryBits
                   </span>
                 </Link>
               </div>

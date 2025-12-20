@@ -20,16 +20,16 @@ const robotoMono = Roboto_Mono({
 
 // Global SEO Metadata
 export const metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://onesitread.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://thestorybits.com'),
   title: {
-    default: 'OneSitRead - Short Fiction Stories You Can Finish in One Sitting',
-    template: '%s | OneSitRead'
+    default: 'TheStoryBits - Bite-Sized Fiction Stories',
+    template: '%s | TheStoryBits'
   },
-  description: 'Discover captivating short fiction stories you can finish in one sitting. Read, write, and share bite-sized stories across all genres with a vibrant community.',
-  keywords: ['short stories', 'one sitting reads', 'quick reads', 'fiction', 'creative writing', 'storytelling', 'literature', 'bite-sized stories', 'fast reads'],
-  authors: [{ name: 'OneSitRead Team' }],
-  creator: 'OneSitRead',
-  publisher: 'OneSitRead',
+  description: 'Discover captivating short fiction stories in bite-sized bits. Read, write, and share quick stories across all genres with a vibrant community.',
+  keywords: ['short stories', 'story bits', 'quick reads', 'fiction', 'creative writing', 'storytelling', 'literature', 'bite-sized stories', 'fast reads', 'micro fiction'],
+  authors: [{ name: 'TheStoryBits Team' }],
+  creator: 'TheStoryBits',
+  publisher: 'TheStoryBits',
   formatDetection: {
     email: false,
     address: false,
@@ -39,24 +39,24 @@ export const metadata = {
     type: 'website',
     locale: 'en_US',
     url: '/',
-    siteName: 'OneSitRead',
-    title: 'OneSitRead - Short Fiction Stories You Can Finish in One Sitting',
-    description: 'Discover captivating short fiction stories you can finish in one sitting. Read, write, and share bite-sized stories across all genres.',
+    siteName: 'TheStoryBits',
+    title: 'TheStoryBits - Bite-Sized Fiction Stories',
+    description: 'Discover captivating short fiction stories in bite-sized bits. Read, write, and share quick stories across all genres.',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'OneSitRead - Short Fiction Stories',
+        alt: 'TheStoryBits - Bite-Sized Fiction Stories',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'OneSitRead - Short Fiction Stories You Can Finish in One Sitting',
-    description: 'Discover captivating short fiction stories you can finish in one sitting. Perfect for quick reads.',
+    title: 'TheStoryBits - Bite-Sized Fiction Stories',
+    description: 'Discover captivating short fiction stories in bite-sized bits. Perfect for quick reads.',
     images: ['/og-image.jpg'],
-    creator: '@onesitread',
+    creator: '@thestorybits',
   },
   robots: {
     index: true,

@@ -61,7 +61,7 @@ export async function GET(request) {
                 letterSpacing: '-0.02em',
               }}
             >
-              OneSitRead
+              TheStoryBits
             </div>
             
             <div

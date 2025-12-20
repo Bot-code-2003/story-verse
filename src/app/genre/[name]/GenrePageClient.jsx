@@ -73,7 +73,38 @@ export default function GenrePageClient({ params }) {
     "Comedy": "Laugh out loud with humorous tales and witty narratives."
   };
 
-  const genreDescription = genreDescriptions[genreName] || `Discover captivating ${genreName} stories on OneSitRead.`;
+  const genreDescription = genreDescriptions[genreName] || `Discover captivating ${genreName} stories on TheStoryBits.`;
+
+  // Structured data for SEO
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": `${genreName} Stories`,
+    "description": genreDescription,
+    "url": typeof window !== 'undefined' ? window.location.href : '',
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "TheStoryBits",
+      "url": "https://thestorybits.com"
+    },
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://thestorybits.com"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": genreName,
+          "item": `https://thestorybits.com/genre/${genreName}`
+        }
+      ]
+    }
+  };
 
   return (
     <main className="min-h-screen bg-[var(--background)]">
@@ -81,35 +112,7 @@ export default function GenrePageClient({ params }) {
       <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "CollectionPage",
-              "name": `${genreName} Stories`,
-              "description": genreDescription,
-              "url": `https://onesitread.vercel.app/genre/${genreName}`,
-              "isPartOf": {
-                "@type": "WebSite",
-                "name": "OneSitRead",
-                "url": "https://onesitread.vercel.app"
-              },
-              "breadcrumb": {
-                "@type": "BreadcrumbList",
-                "itemListElement": [
-                  {
-                    "@type": "ListItem",
-                    "position": 1,
-                    "name": "Home",
-                    "item": "https://onesitread.vercel.app"
-                  },
-                  {
-                    "@type": "ListItem",
-                    "position": 2,
-                    "name": genreName,
-                    "item": `https://onesitread.vercel.app/genre/${genreName}`
-                  }
-                ]
-              }
-            })
+            __html: JSON.stringify(structuredData)
           }}
         />
         

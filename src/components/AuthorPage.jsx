@@ -241,7 +241,7 @@ export default function AuthorPage() {
                 "@type": "Person",
                 "name": author.name || author.username,
                 "alternateName": author.username,
-                "description": author.bio || `Author on OneSitRead`,
+                "description": author.bio || `Author on TheStoryBits`,
                 "image": author.profileImage || "",
                 "url": `https://onesitread.com/authors/${author.username}`,
                 "sameAs": author.socialLinks || [],

@@ -621,19 +621,19 @@ const finalCoverImage = story.coverImage || coverGenreFallback;
               "author": {
                 "@type": "Person",
                 "name": authorName,
-                "url": `https://onesitread.com/authors/${authorData.username || ''}`
+                "url": `https://thestorybits.com/authors/${authorData.username || ''}`
               },
               "publisher": {
                 "@type": "Organization",
-                "name": "OneSitRead",
+                "name": "TheStoryBits",
                 "logo": {
                   "@type": "ImageObject",
-                  "url": "https://onesitread.com/logo.png"
+                  "url": "https://thestorybits.com/logo.png"
                 }
               },
               "mainEntityOfPage": {
                 "@type": "WebPage",
-                "@id": `https://onesitread.com/stories/${story.id}`
+                "@id": `https://thestorybits.com/stories/${story.id}`
               },
               "genre": story.genres || [],
               "wordCount": story.content?.split(/\s+/).length || 0,

@@ -64,7 +64,7 @@ export default function SiteHeader() {
         {/* Left: Logo */}
         <Link href="/">
           <h1 className="text-lg md:text-xl font-extrabold text-[var(--foreground)] cursor-pointer whitespace-nowrap">
-            OneSitRead
+            TheStoryBits
           </h1>
         </Link>
 

@@ -17,7 +17,7 @@ export async function generateMetadata({ params }) {
     if (!authorUsername) {
       return {
         title: 'Author Not Found',
-        description: 'The requested author could not be found on OneSitRead.',
+        description: 'The requested author could not be found on TheStoryBits.',
       };
     }
     
@@ -32,7 +32,7 @@ export async function generateMetadata({ params }) {
     if (!author) {
       return {
         title: 'Author Not Found',
-        description: 'The requested author could not be found on OneSitRead.',
+        description: 'The requested author could not be found on TheStoryBits.',
       };
     }
     
@@ -40,7 +40,7 @@ export async function generateMetadata({ params }) {
     const storyCount = await Story.countDocuments({ author: author._id, published: true });
     
     const authorName = author.name || author.username || 'Unknown Author';
-    const bio = author.bio || `Read ${storyCount} stories by ${authorName} on OneSitRead - short fiction you can finish in one sitting.`;
+    const bio = author.bio || `Read ${storyCount} stories by ${authorName} on TheStoryBits - bite-sized fiction across all genres.`;
     const authorUrl = `${baseUrl}/authors/${authorUsername}`;
     
     // Generate OG image URL
@@ -56,14 +56,15 @@ export async function generateMetadata({ params }) {
         'short stories',
         'fiction author',
         'creative writing',
-        'OneSitRead'
+        'TheStoryBits',
+        'story bits',
       ],
       authors: [{ name: authorName }],
       openGraph: {
-        title: `${authorName} - Author on OneSitRead`,
+        title: `${authorName} - Author on TheStoryBits`,
         description: bio.substring(0, 160),
         url: authorUrl,
-        siteName: 'OneSitRead',
+        siteName: 'TheStoryBits',
         type: 'profile',
         profile: {
           username: author.username,
@@ -80,7 +81,7 @@ export async function generateMetadata({ params }) {
       twitter: {
         card: 'summary',
         site: '@onesitread',
-        title: `${authorName} - Author on OneSitRead`,
+        title: `${authorName} - Author on TheStoryBits`,
         description: bio.substring(0, 160),
         images: [author.profileImage || ogImageUrl],
       },
@@ -96,7 +97,7 @@ export async function generateMetadata({ params }) {
     console.error('Error generating author metadata:', error);
     return {
       title: 'Author Profile',
-      description: 'Discover talented authors and their stories on OneSitRead.',
+      description: 'Discover talented authors and their stories on TheStoryBits.',
     };
   }
 }

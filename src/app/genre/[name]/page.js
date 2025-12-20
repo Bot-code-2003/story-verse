@@ -35,12 +35,12 @@ export async function generateMetadata({ params }) {
     });
     
     const description = genreDescriptions[genreName] || 
-                        `Discover captivating ${genreName} stories on OneSitRead - short fiction you can finish in one sitting.`;
+                        `Discover captivating ${genreName} stories on TheStoryBits - bite-sized fiction across all genres.`;
     
     const genreUrl = `${baseUrl}/genre/${encodeURIComponent(genreName)}`;
     
     // Generate OG image
-    const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(genreName + ' Stories')}&author=${storyCount}%20Stories&genre=OneSitRead`;
+    const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(genreName + ' Stories')}&author=${storyCount}%20Stories&genre=TheStoryBits`;
     
     return {
       title: `${genreName} Stories`,
@@ -50,15 +50,15 @@ export async function generateMetadata({ params }) {
         `${genreName.toLowerCase()} stories`,
         `${genreName.toLowerCase()} fiction`,
         'short stories',
-        'quick reads',
-        'one sitting reads',
+        'TheStoryBits',
+        'story bits',
         'OneSitRead'
       ],
       openGraph: {
-        title: `${genreName} Stories - OneSitRead`,
+        title: `${genreName} Stories - TheStoryBits`,
         description: description,
         url: genreUrl,
-        siteName: 'OneSitRead',
+        siteName: 'TheStoryBits',
         type: 'website',
         locale: 'en_US',
         images: [
@@ -66,14 +66,14 @@ export async function generateMetadata({ params }) {
             url: ogImageUrl,
             width: 1200,
             height: 630,
-            alt: `${genreName} Stories on OneSitRead`,
+            alt: `${genreName} Stories on TheStoryBits`,
           }
         ],
       },
       twitter: {
         card: 'summary_large_image',
         site: '@onesitread',
-        title: `${genreName} Stories - OneSitRead`,
+        title: `${genreName} Stories - TheStoryBits`,
         description: description,
         images: [ogImageUrl],
       },
@@ -89,7 +89,7 @@ export async function generateMetadata({ params }) {
     console.error('Error generating genre metadata:', error);
     return {
       title: 'Genre Stories',
-      description: 'Discover captivating short fiction stories on OneSitRead.',
+      description: 'Discover captivating short fiction stories on TheStoryBits.',
     };
   }
 }
