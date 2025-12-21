@@ -34,7 +34,7 @@ export const FEATURED_STORIES = [
 },
 {
   "_id": {
-    "$oid": "693d1d1d52fefada2249a462"
+    "$oid": "693d1d0459f1aec7e54942ff"
   },
   "title": "Before the First Lie Was Told",
   "description": "In a world where hearts spoke directly to hearts, there was no room for deception. The K'as knew only truth, until they discovered words. What began as a gift became the tool that taught them to hide, to deceive, and to suffer alone.",
@@ -103,7 +103,7 @@ export const FEATURED_STORIES = [
 },
 {
   "_id": {
-    "$oid": "693e4ac9e6dfb2eef8a4d372"
+    "$oid": "693e492b054ee2f9aebd361f"
   },
   "title": "A Small Tax on Miracles",
   "description": "Every miracle, healing, survival, impossible luck, comes with a delayed “tax” paid later in life. A tax clerk reviews claims and notices one woman has never been charged despite repeated miracles. Investigating her life reveals she has been quietly paying the tax upfront through kindness, restraint, and sacrifice.",
