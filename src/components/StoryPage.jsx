@@ -464,6 +464,85 @@ export default function StoryPage() {
     }
   };
 
+  // Handler for reply to a comment
+  const handleReplyComment = async (text, parentCommentId, replyingToUserId) => {
+    if (!ensureAuthOrPrompt()) return;
+    if (!text.trim()) return;
+
+    setSubmittingComment(true);
+    try {
+      const userId = user?._id || user?.id;
+      const res = await fetch(`/api/stories/${encodeURIComponent(storyId)}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          text: text.trim(),
+          parentComment: parentCommentId,
+          replyingToUser: replyingToUserId,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to post reply");
+
+      const data = await res.json();
+      // Add new reply to the beginning of the list
+      setComments((prev) => [data.comment, ...prev]);
+    } catch (err) {
+      console.error("Error posting reply:", err);
+      alert("Failed to post reply. Please try again.");
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  // Handler for editing a comment
+  const handleEditComment = async (commentId, newText) => {
+    if (!ensureAuthOrPrompt()) return;
+    if (!newText.trim()) return;
+
+    try {
+      const userId = user?._id || user?.id;
+      const res = await fetch(`/api/comments/${encodeURIComponent(commentId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, text: newText.trim() }),
+      });
+
+      if (!res.ok) throw new Error("Failed to edit comment");
+
+      const data = await res.json();
+      // Update comment in the list
+      setComments((prev) =>
+        prev.map((c) => (c.id === commentId ? { ...c, ...data.comment } : c))
+      );
+    } catch (err) {
+      console.error("Error editing comment:", err);
+      alert("Failed to edit comment. Please try again.");
+    }
+  };
+
+  // Handler for deleting a comment
+  const handleDeleteComment = async (commentId) => {
+    if (!ensureAuthOrPrompt()) return;
+
+    try {
+      const userId = user?._id || user?.id;
+      const res = await fetch(
+        `/api/comments/${encodeURIComponent(commentId)}?userId=${encodeURIComponent(userId)}`,
+        { method: "DELETE" }
+      );
+
+      if (!res.ok) throw new Error("Failed to delete comment");
+
+      // Remove comment from the list
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+    } catch (err) {
+      console.error("Error deleting comment:", err);
+      alert("Failed to delete comment. Please try again.");
+    }
+  };
+
   // Handler for Like button - now uses API
   const handleLikeClick = async () => {
     if (!ensureAuthOrPrompt()) return;
@@ -699,10 +778,14 @@ const finalCoverImage = story.coverImage || coverGenreFallback;
           handleSubmitComment={handleSubmitComment}
           submittingComment={submittingComment}
           handleCommentLike={handleCommentLike}
+          handleDeleteComment={handleDeleteComment}
+          handleEditComment={handleEditComment}
+          handleReplyComment={handleReplyComment}
           setShowLoginPrompt={setShowLoginPrompt}
           loadingComments={loadingComments}
           hasMoreComments={hasMoreComments}
           loadMoreComments={loadMoreComments}
+          storyAuthorId={story?.author || authorData?.id || authorData?._id}
         />
 
         {/* RECOMMENDED STORIES */}

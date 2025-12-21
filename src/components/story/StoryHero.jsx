@@ -116,7 +116,7 @@ export default function StoryHero({
             <div className="flex items-center gap-3 pt-2">
               <button
                 onClick={handleLikeClick}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full font-medium transition-all ${
                   isLiked
                     ? "bg-red-50 text-red-600 border border-red-200"
                     : "bg-[var(--foreground)]/5 text-[var(--foreground)]/70 border border-[var(--foreground)]/10 hover:bg-[var(--foreground)]/10"
@@ -126,16 +126,16 @@ export default function StoryHero({
                   className={`w-4 h-4 ${isLiked ? "fill-current" : ""}`}
                 />
                 <span className="text-sm">
-                  {isLiked ? "Liked" : "Like"}
+                  <span className="hidden sm:inline">{isLiked ? "Liked" : "Like"}</span>
                   {typeof story.likesCount === "number" && story.likesCount > 0 && (
-                    <span className="ml-1 opacity-80">· {story.likesCount}</span>
+                    <span className="sm:ml-1 sm:opacity-80"><span className="hidden sm:inline">· </span>{story.likesCount}</span>
                   )}
                 </span>
               </button>
 
               <button
                 onClick={handleSaveClick}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full font-medium transition-all ${
                   isSaved
                     ? "bg-blue-50 text-blue-600 border border-blue-200"
                     : "bg-[var(--foreground)]/5 text-[var(--foreground)]/70 border border-[var(--foreground)]/10 hover:bg-[var(--foreground)]/10"
@@ -144,17 +144,17 @@ export default function StoryHero({
                 <Bookmark
                   className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`}
                 />
-                <span className="text-sm">
+                <span className="text-sm hidden sm:inline">
                   {isSaved ? "Saved" : "Save"}
                 </span>
               </button>
 
               <button
                 onClick={handleShare}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all bg-[var(--foreground)]/5 text-[var(--foreground)]/70 border border-[var(--foreground)]/10 hover:bg-[var(--foreground)]/10"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full font-medium transition-all bg-[var(--foreground)]/5 text-[var(--foreground)]/70 border border-[var(--foreground)]/10 hover:bg-[var(--foreground)]/10"
               >
                 <Share2 className="w-4 h-4" />
-                <span className="text-sm">Share</span>
+                <span className="text-sm hidden sm:inline">Share</span>
               </button>
             </div>
           </div>

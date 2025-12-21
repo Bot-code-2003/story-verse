@@ -35,6 +35,10 @@ export async function GET(req, { params }) {
         path: "user",
         select: "username name profileImage",
       })
+      .populate({
+        path: "replyingToUser",
+        select: "username name",
+      })
       .lean();
 
     // Get total count for pagination info
@@ -59,6 +63,14 @@ export async function GET(req, { params }) {
           createdAt: comment.createdAt,
           updatedAt: comment.updatedAt,
           liked,
+          parentComment: comment.parentComment?.toString() || null,
+          replyingToUser: comment.replyingToUser
+            ? {
+                id: comment.replyingToUser._id?.toString(),
+                username: comment.replyingToUser.username,
+                name: comment.replyingToUser.name,
+              }
+            : null,
           user: comment.user
             ? {
                 id: comment.user._id?.toString(),
@@ -96,7 +108,7 @@ export async function POST(req, { params }) {
     await connectToDB();
 
     const { storyId } = await params;
-    const { userId, text } = await req.json();
+    const { userId, text, parentComment, replyingToUser } = await req.json();
 
     if (!storyId || !userId || !text) {
       return NextResponse.json(
@@ -114,18 +126,37 @@ export async function POST(req, { params }) {
       );
     }
 
-    // Create comment
-    const comment = await Comment.create({
+    // Create comment data object
+    const commentData = {
       story: storyId,
       user: userId,
       text: text.trim(),
-    });
+    };
+
+    // Add reply fields if provided
+    if (parentComment) {
+      commentData.parentComment = parentComment;
+    }
+    if (replyingToUser) {
+      commentData.replyingToUser = replyingToUser;
+    }
+
+    // Create comment
+    const comment = await Comment.create(commentData);
 
     // Populate user info
     await comment.populate({
       path: "user",
       select: "username name profileImage",
     });
+
+    // Populate replyingToUser if exists
+    if (comment.replyingToUser) {
+      await comment.populate({
+        path: "replyingToUser",
+        select: "username name",
+      });
+    }
 
     return NextResponse.json({
       ok: true,
@@ -136,6 +167,14 @@ export async function POST(req, { params }) {
         createdAt: comment.createdAt,
         updatedAt: comment.updatedAt,
         liked: false, // User just created it, hasn't liked it yet
+        parentComment: comment.parentComment?.toString() || null,
+        replyingToUser: comment.replyingToUser
+          ? {
+              id: comment.replyingToUser._id?.toString(),
+              username: comment.replyingToUser.username,
+              name: comment.replyingToUser.name,
+            }
+          : null,
         user: comment.user
           ? {
               id: comment.user._id?.toString(),

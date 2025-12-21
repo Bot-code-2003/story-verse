@@ -21,6 +21,17 @@ const commentSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // Reply support - single thread
+    parentComment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comment",
+      default: null,
+    },
+    replyingToUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
   },
   { timestamps: true }
 );
