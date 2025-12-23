@@ -107,24 +107,18 @@ function FeaturedThisWeek({ items }) {
         <h3 className="text-xl font-semibold text-[var(--foreground)]">
           Featured This Week
         </h3>
-        {/* Mobile scroll hint - only visible on small screens */}
-        <span className="lg:hidden text-xs text-[var(--foreground)]/50 flex items-center gap-1">
+        {/* Scroll hint visible on all screens */}
+        <span className="text-xs text-[var(--foreground)]/50 flex items-center gap-1">
           <span>Swipe</span>
           <ChevronRight className="w-3 h-3" />
         </span>
       </div>
       
-      {/* Desktop: 6-column grid (no scroll) */}
-      <div className="hidden lg:grid lg:grid-cols-6 gap-4">
-        {items.map((story) => (
-          <StoryCard key={story.id} story={story} />
-        ))}
-      </div>
-
-      {/* Mobile/Tablet: Horizontal scroll */}
-      <div className="lg:hidden relative">
+      {/* Horizontal Scroll Layout for All Screens */}
+      <div className="relative group">
+        {/* Add fade masks for scroll indication if needed, sticking to simple scroll for now */}
         <div className="overflow-x-auto scrollbar-hide">
-          <div className="flex gap-4 pb-4">
+          <div className="flex gap-4 pb-4 px-1">
             {items.map((story) => (
               <div key={story.id} className="w-[160px] md:w-[200px] flex-shrink-0">
                 <StoryCard story={story} />
@@ -193,7 +187,7 @@ export default function Home() {
 
   useEffect(() => {
     // ⭐ SET HARDCODED DATA IMMEDIATELY (no waiting for API calls)
-    const transformedFeaturedStories = FEATURED_STORIES.slice(0, 6).map(story => ({
+    const transformedFeaturedStories = FEATURED_STORIES.slice(0, 20).map(story => ({
       ...story,
       id: story._id?.$oid || story._id || story.id, // Extract ID from MongoDB structure
       author: story.author?.$oid || story.author // Handle author ID if needed

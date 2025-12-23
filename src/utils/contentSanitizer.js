@@ -18,7 +18,8 @@ export function sanitizeStoryContent(content) {
   if (isHTML) {
     return sanitizeHTML(content);
   } else {
-    return convertPlainTextToHTML(content);
+    // Convert to basic HTML then sanitize (which includes autolinking now)
+    return sanitizeHTML(convertPlainTextToHTML(content));
   }
 }
 
@@ -35,16 +36,22 @@ function sanitizeHTML(htmlContent) {
   // Step 2: Clean all elements - remove inline styles, classes, and unwanted attributes
   cleanAllElements(tempDiv);
 
-  // Step 3: Normalize headings
+  // Step 3: Autolink URLs (before structure changes but after cleaning basic elements)
+  autolinkContent(tempDiv);
+
+  // Step 4: Normalize headings
   normalizeHeadings(tempDiv);
 
-  // Step 4: Normalize paragraphs
+  // Step 4: Normalize divs (convert to paragraphs or unwrap)
+  normalizeDivs(tempDiv);
+
+  // Step 5: Normalize paragraphs
   normalizeParagraphs(tempDiv);
 
-  // Step 5: Clean up whitespace and empty elements
+  // Step 6: Clean up whitespace and empty elements
   cleanupWhitespace(tempDiv);
 
-  // Step 6: Ensure proper structure
+  // Step 7: Ensure proper structure
   ensureProperStructure(tempDiv);
 
   return tempDiv.innerHTML;
@@ -147,6 +154,112 @@ function cleanAllElements(container) {
 }
 
 /**
+ * Autolink URLs in text content
+ */
+function autolinkContent(container) {
+  const walker = document.createTreeWalker(
+    container,
+    NodeFilter.SHOW_TEXT,
+    {
+      acceptNode: function(node) {
+        // Skip if parent is already an anchor
+        if (node.parentNode.tagName === 'A') return NodeFilter.FILTER_REJECT;
+        // Skip literal script/style content if any remains (should likely be gone)
+        if (['SCRIPT', 'STYLE'].includes(node.parentNode.tagName)) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    },
+    false
+  );
+
+  const textNodes = [];
+  while (walker.nextNode()) {
+    textNodes.push(walker.currentNode);
+  }
+
+  // Improved Regex
+  // Matches:
+  // 1. Emails
+  // 2. URLs with protocol or www
+  // 3. URLs/Domains with common TLDs (simple whitelist to avoid excessive false positives)
+  // Use non-capturing groups for the structure, capturing for the logic if needed
+  const linkRegex = /((?:[\w.+-]+@[\w-]+\.[\w.-]+))|((?:https?:\/\/|www\.)[^\s]+)|(\b(?:[\w-]+\.)+[\w-]{2,}\.(?:com|org|net|edu|gov|io|co|uk|in|biz|info|me|xyz)(?:\/[^\s]*)?)/gi;
+
+  textNodes.forEach(node => {
+    const text = node.textContent;
+    if (!linkRegex.test(text)) return;
+
+    const fragment = document.createDocumentFragment();
+    let lastIndex = 0;
+    let match;
+    
+    // Reset regex index
+    linkRegex.lastIndex = 0;
+
+    while ((match = linkRegex.exec(text)) !== null) {
+      let url = match[0];
+      const index = match.index;
+      
+      // Basic cleanup for trailing punctuation
+      const trailingPunctuation = /[.,;!?)]$/;
+      let suffix = "";
+      while (trailingPunctuation.test(url)) {
+        suffix = url.slice(-1) + suffix;
+        url = url.slice(0, -1);
+      }
+      if (url.length === 0) {
+        url = suffix; // Revert
+        suffix = "";
+      }
+
+      // Determine type
+      // Match[1] is Email
+      // Match[2] is Protocol/WWW
+      // Match[3] is Naked Domain
+      const isEmail = !!match[1] || (url.includes('@') && !url.includes('/'));
+      
+      // Add text before match
+      if (index > lastIndex) {
+        fragment.appendChild(document.createTextNode(text.substring(lastIndex, index)));
+      }
+
+      const a = document.createElement('a');
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      
+      if (isEmail) {
+        a.href = `mailto:${url}`;
+        a.textContent = url;
+      } else {
+        // Handle URL
+        let href = url;
+        if (!href.match(/^https?:\/\//i) && !href.startsWith('mailto:')) {
+           href = 'https://' + href;
+        }
+        a.href = href;
+        a.textContent = url;
+      }
+      
+      fragment.appendChild(a);
+
+      // Add stripped punctuation back as text
+      if (suffix) {
+        fragment.appendChild(document.createTextNode(suffix));
+      }
+
+      lastIndex = index + match[0].length;
+    }
+
+    // Add remaining text
+    if (lastIndex < text.length) {
+      fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+    }
+
+    node.parentNode.replaceChild(fragment, node);
+  });
+}
+
+/**
  * Normalize headings - fix nesting, standardize levels
  */
 function normalizeHeadings(container) {
@@ -181,6 +294,43 @@ function normalizeHeadings(container) {
       const h2 = document.createElement('h2');
       h2.textContent = heading.textContent;
       heading.replaceWith(h2);
+    }
+  });
+}
+
+/**
+ * Normalize divs - convert to paragraphs or unwrap
+ */
+function normalizeDivs(container) {
+  const divs = container.querySelectorAll('div');
+  
+  divs.forEach(div => {
+    // Skip if div is the container itself
+    if (div === container) return;
+
+    // Check if div contains block elements
+    const blockSelectors = [
+      'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
+      'blockquote', 'ul', 'ol', 'pre', 'div', 
+      'hr', 'table', 'address', 'article', 
+      'aside', 'section', 'main', 'nav'
+    ];
+    
+    const hasBlock = div.querySelector(blockSelectors.join(', '));
+    
+    if (hasBlock) {
+      // Unwrap: move children before this div, then remove div
+      while (div.firstChild) {
+        div.parentNode.insertBefore(div.firstChild, div);
+      }
+      div.remove();
+    } else {
+      // Convert to p
+      const p = document.createElement('p');
+      while (div.firstChild) {
+        p.appendChild(div.firstChild);
+      }
+      div.replaceWith(p);
     }
   });
 }
