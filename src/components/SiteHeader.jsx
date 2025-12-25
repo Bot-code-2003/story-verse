@@ -131,11 +131,11 @@ export default function SiteHeader() {
             </button>
           </div>
 
-          {/* Mobile Notification Bell - Show outside menu on mobile */}
+          {/* Mobile Notification Bell - Show only on small screens (hidden on md and up since desktop bell shows there) */}
           {user && (
             <Link
               href="/notifications"
-              className="lg:hidden relative p-2 rounded-full border border-[var(--foreground)]/10 text-[var(--foreground)]/80 hover:bg-[var(--foreground)]/5 transition flex-shrink-0"
+              className="md:hidden relative p-2 rounded-full border border-[var(--foreground)]/10 text-[var(--foreground)]/80 hover:bg-[var(--foreground)]/5 transition flex-shrink-0"
               aria-label="Notifications"
             >
               <Bell className="w-5 h-5" />

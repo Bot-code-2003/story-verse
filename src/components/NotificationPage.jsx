@@ -131,6 +131,30 @@ export default function NotificationPage() {
             )}
           </div>
 
+          {/* ===== ANNOUNCEMENT BANNER - Customize this section ===== */}
+          <div className="mb-6 p-3 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-200/50 dark:border-blue-800/50 rounded-xl">
+            <div className="flex items-center gap-4">
+              {/* Image - 1/4 width */}
+              <div className="w-1/4 flex-shrink-0">
+                <img
+                  src="https://i.pinimg.com/1200x/f3/73/8c/f3738cbe9005d8341e1b7d0bc4cd2bd5.jpg"  // <-- CHANGE THIS IMAGE
+                  alt="thestorybits christmas announcement"
+                  className="w-24 h-24 rounded-lg object-cover"
+                />
+              </div>
+              {/* Title + Message - 3/4 width */}
+              <div className="w-3/4">
+                <h3 className="text-sm font-semibold text-[var(--foreground)] mb-1">
+                  Merry Christmas  {/* <-- CHANGE THIS TITLE */}
+                </h3>
+                <p className="text-xs text-[var(--foreground)]/70 leading-relaxed">
+                  Wishing you a warm, quiet Christmas.
+                </p>
+              </div>
+            </div>
+          </div>
+          {/* ===== END ANNOUNCEMENT BANNER ===== */}
+
           {/* Loading State */}
           {loading && notifications.length === 0 && (
             <div className="flex items-center justify-center py-16">

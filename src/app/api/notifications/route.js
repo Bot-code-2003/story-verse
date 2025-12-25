@@ -2,6 +2,9 @@
 import { NextResponse } from "next/server";
 import { connectToDB } from "@/lib/mongodb";
 import Notification from "@/models/Notification";
+import User from "@/models/User";
+import Story from "@/models/Story";
+import Comment from "@/models/Comment";
 import mongoose from "mongoose";
 
 // GET: Fetch notifications for a user with pagination

@@ -36,16 +36,10 @@ const notificationSchema = new mongoose.Schema(
 );
 
 // Indexes for efficient querying
-// 1. Fetch user's notifications (unread first, newest first)
-notificationSchema.index({ recipient: 1, read: 1, createdAt: -1 });
+// 1. Fetch user's notifications (newest first)
+notificationSchema.index({ recipient: 1, createdAt: -1 });
 
-// 2. Prevent duplicate notifications for same action
-notificationSchema.index(
-  { recipient: 1, sender: 1, type: 1, story: 1, comment: 1 },
-  { unique: true, sparse: true }
-);
-
-// 3. Count unread for a user
+// 2. Count unread for a user
 notificationSchema.index({ recipient: 1, read: 1 });
 
 const Notification =
