@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
-import { Sun, Moon, Menu, X } from "lucide-react";
+import { Sun, Moon, Menu, X, Bell } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -10,11 +10,13 @@ import SearchBar from "./SearchBar";
 import AuthButtons from "./AuthButtons";
 import BrowseMenu from "./BrowseMenu";
 import { useAuth } from "@/context/AuthContext";
+import { useNotifications } from "@/context/NotificationContext";
 
 export default function SiteHeader() {
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const { user } = useAuth();
+  const { unreadCount } = useNotifications();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sfUser, setSfUser] = useState(null); // added state to store sf_user
@@ -94,6 +96,21 @@ export default function SiteHeader() {
         <div className="flex items-center gap-2 md:gap-3">
           {/* Desktop/Tablet Auth + Theme - Show on md and up */}
           <div className="hidden md:flex items-center gap-2 lg:gap-3">
+            {/* Notification Bell - only show when logged in */}
+            {user && (
+              <Link
+                href="/notifications"
+                className="relative p-2 rounded-full border border-[var(--foreground)]/10 text-[var(--foreground)]/80 hover:bg-[var(--foreground)]/5 transition flex-shrink-0"
+                aria-label="Notifications"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-red-500 rounded-full">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
             <AuthButtons />
             <button
               onClick={toggleTheme}
@@ -113,6 +130,22 @@ export default function SiteHeader() {
               )}
             </button>
           </div>
+
+          {/* Mobile Notification Bell - Show outside menu on mobile */}
+          {user && (
+            <Link
+              href="/notifications"
+              className="lg:hidden relative p-2 rounded-full border border-[var(--foreground)]/10 text-[var(--foreground)]/80 hover:bg-[var(--foreground)]/5 transition flex-shrink-0"
+              aria-label="Notifications"
+            >
+              <Bell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] flex items-center justify-center px-1 text-[9px] font-bold text-white bg-red-500 rounded-full">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </Link>
+          )}
 
           {/* Mobile/Tablet Menu Button - Show on lg and below */}
           <button

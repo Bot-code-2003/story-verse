@@ -14,6 +14,7 @@
     "db:analyze": "node scripts/analyzeQueries.js"
   },
   "dependencies": {
+    "date-fns": "^4.1.0",
     "lucide-react": "^0.555.0",
     "mongoose": "^9.0.0",
     "next": "^16.0.10",

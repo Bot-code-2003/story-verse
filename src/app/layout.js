@@ -1,6 +1,7 @@
 import { Inter, Roboto_Mono } from 'next/font/google';
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { NotificationProvider } from "@/context/NotificationContext";
 import "./globals.css";
 
 // Configure Inter font (Helvetica-like alternative)
@@ -121,9 +122,14 @@ export default function RootLayout({ children }) {
       {/* IMPORTANT: Apply theme to <body> via provider */}
       <body className={`${inter.className} ${inter.variable} ${robotoMono.variable}`} suppressHydrationWarning>
         <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <NotificationProvider>
+              {children}
+            </NotificationProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
   );
 }
+

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { connectToDB } from "@/lib/mongodb";
 import Comment from "@/models/Comment";
 import CommentLike from "@/models/CommentLike";
+import Notification from "@/models/Notification";
 
 // POST: Toggle like on a comment
 export async function POST(req, { params }) {
@@ -34,6 +35,25 @@ export async function POST(req, { params }) {
         // Update denormalized count
         comment.likesCount = (comment.likesCount || 0) + 1;
         await comment.save();
+
+        // Create notification for comment author (skip if liking own comment)
+        const commentAuthorId = comment.user?.toString();
+        if (commentAuthorId && commentAuthorId !== userId) {
+          try {
+            await Notification.create({
+              recipient: commentAuthorId,
+              sender: userId,
+              type: "comment_like",
+              story: comment.story,
+              comment: commentId,
+            });
+          } catch (notifErr) {
+            // Ignore duplicate notification errors
+            if (notifErr.code !== 11000) {
+              console.error("Error creating comment like notification:", notifErr);
+            }
+          }
+        }
       } catch (err) {
         // If duplicate key error, user already liked this comment
         if (err.code === 11000) {

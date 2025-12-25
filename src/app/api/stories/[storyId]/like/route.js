@@ -4,6 +4,7 @@ import { connectToDB } from "@/lib/mongodb";
 import Story from "@/models/Story";
 import User from "@/models/User";
 import StoryLike from "@/models/StoryLike";
+import Notification from "@/models/Notification";
 
 // /api/stories/[storyId]/like
 export async function POST(req, { params }) {
@@ -44,6 +45,24 @@ export async function POST(req, { params }) {
         story.likesCount = (story.likesCount || 0) + 1;
         story.likes = story.likesCount; // Keep backward compatibility
         await story.save();
+
+        // Create notification for story author (skip if liking own story)
+        const storyAuthorId = story.author?.toString();
+        if (storyAuthorId && storyAuthorId !== userId) {
+          try {
+            await Notification.create({
+              recipient: storyAuthorId,
+              sender: userId,
+              type: "story_like",
+              story: storyId,
+            });
+          } catch (notifErr) {
+            // Ignore duplicate notification errors (user already liked before)
+            if (notifErr.code !== 11000) {
+              console.error("Error creating story like notification:", notifErr);
+            }
+          }
+        }
       } catch (err) {
         // If duplicate key error, user already liked this story
         if (err.code === 11000) {

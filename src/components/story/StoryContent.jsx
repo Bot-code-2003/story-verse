@@ -233,6 +233,8 @@ export default function StoryContent({ content }) {
             border-bottom: 1px solid #4f46e5;
             transition: all 0.2s ease;
             font-weight: 500;
+            word-break: break-word;
+            overflow-wrap: break-word;
           }
           
           .story-content a:hover {

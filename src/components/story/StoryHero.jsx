@@ -68,7 +68,7 @@ export default function StoryHero({
               </div>
             )}
 
-            <div className="flex items-center gap-1 sm:gap-6 pt-4">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-6 pt-4">
               <Link
                 href={`/authors/${authorData.username || ""}`}
                 className="flex items-center gap-3 hover:opacity-80 transition-opacity"
@@ -98,22 +98,14 @@ export default function StoryHero({
                   )}
                 </div>
               </Link>
-              <div className="h-10 w-px bg-[var(--foreground)]/20"></div>
+              <div className="hidden sm:block h-10 w-px bg-[var(--foreground)]/20"></div>
               <div className="flex items-center gap-2 text-[var(--foreground)]/60">
                 <Clock className="w-4 h-4" />
                 <span className="text-sm">{story.readTime} min</span>
               </div>
-              <div className="h-10 w-px bg-[var(--foreground)]/20"></div>
-              <button
-                onClick={scrollToComments}
-                className="flex items-center gap-2 text-[var(--foreground)]/60 hover:text-[var(--foreground)] transition-colors"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span className="text-sm">{commentsCount}</span>
-              </button>
             </div>
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-3">
               <button
                 onClick={handleLikeClick}
                 className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full font-medium transition-all ${
@@ -146,6 +138,16 @@ export default function StoryHero({
                 />
                 <span className="text-sm hidden sm:inline">
                   {isSaved ? "Saved" : "Save"}
+                </span>
+              </button>
+
+              <button
+                onClick={scrollToComments}
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full font-medium transition-all bg-[var(--foreground)]/5 text-[var(--foreground)]/70 border border-[var(--foreground)]/10 hover:bg-[var(--foreground)]/10"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span className="text-sm">
+                  <span className="hidden sm:inline">Comments · </span>{commentsCount}
                 </span>
               </button>
 

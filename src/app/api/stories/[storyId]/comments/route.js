@@ -4,6 +4,7 @@ import { connectToDB } from "@/lib/mongodb";
 import Story from "@/models/Story";
 import Comment from "@/models/Comment";
 import CommentLike from "@/models/CommentLike";
+import Notification from "@/models/Notification";
 import mongoose from "mongoose";
 
 // GET: Fetch comments for a story with pagination
@@ -156,6 +157,45 @@ export async function POST(req, { params }) {
         path: "replyingToUser",
         select: "username name",
       });
+    }
+
+    // Create notifications
+    const storyAuthorId = story.author?.toString();
+    
+    // Notify story author about new comment (skip if commenting on own story)
+    if (storyAuthorId && storyAuthorId !== userId) {
+      try {
+        await Notification.create({
+          recipient: storyAuthorId,
+          sender: userId,
+          type: "comment",
+          story: storyId,
+          comment: comment._id,
+        });
+      } catch (notifErr) {
+        // Ignore duplicate notification errors
+        if (notifErr.code !== 11000) {
+          console.error("Error creating comment notification:", notifErr);
+        }
+      }
+    }
+
+    // If this is a reply, also notify the user being replied to (if different from story author)
+    if (replyingToUser && replyingToUser !== userId && replyingToUser !== storyAuthorId) {
+      try {
+        await Notification.create({
+          recipient: replyingToUser,
+          sender: userId,
+          type: "comment",
+          story: storyId,
+          comment: comment._id,
+        });
+      } catch (notifErr) {
+        // Ignore duplicate notification errors
+        if (notifErr.code !== 11000) {
+          console.error("Error creating reply notification:", notifErr);
+        }
+      }
     }
 
     return NextResponse.json({
