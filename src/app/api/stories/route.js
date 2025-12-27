@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { connectToDB } from "@/lib/mongodb";
 import Story from "@/models/Story";
 import { normalizeStories } from "@/lib/normalizeStories";
+import { compressContent, getCompressionStats } from "@/lib/compression";
 
 /* GET /api/stories?genre=<>&tag=<> */
 export async function GET(request) {
@@ -100,11 +101,38 @@ export async function POST(request) {
       }
     }
 
+    // ⚡ PERFORMANCE: Compress story content
+    const originalContent = body.content;
+    const compressedContent = compressContent(originalContent);
+    const compressionStats = getCompressionStats(originalContent, compressedContent);
+    
+    if (compressionStats.wasCompressed) {
+      console.log(`📦 Story compressed: ${compressionStats.savings} saved`);
+    }
+
+    await connectToDB();
+
+    // ⚡ PERFORMANCE: Populate authorSnapshot for denormalization
+    let authorSnapshot = { name: null, username: null, profileImage: null };
+    if (authorVal) {
+      const User = (await import("@/models/User")).default;
+      const authorDoc = await User.findById(authorVal).select("name username profileImage").lean();
+      if (authorDoc) {
+        authorSnapshot = {
+          name: authorDoc.name || null,
+          username: authorDoc.username || null,
+          profileImage: authorDoc.profileImage || null,
+        };
+      }
+    }
+
     const doc = {
       title: String(body.title).trim(),
       description: body.description ? String(body.description).trim() : "",
-      content: body.content,
+      content: compressedContent,
+      isCompressed: compressionStats.wasCompressed,
       coverImage: body.coverImage ? String(body.coverImage).trim() : "",
+      thumbnailImage: body.thumbnailImage || null,
       readTime:
         body.readTime !== undefined && body.readTime !== null
           ? Number(body.readTime)
@@ -112,12 +140,11 @@ export async function POST(request) {
       genres,
       tags,
       author: authorVal,
+      authorSnapshot,
       published: !!body.published,
       contest: body.contest || null,
       createdAt: new Date(),
     };
-
-    await connectToDB();
     const created = await Story.create(doc);
 
     // If submitting to a contest, update the user's latestContest field

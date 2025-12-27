@@ -39,6 +39,22 @@ const storySchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    // ⚡ PERFORMANCE: Content compression flag
+    isCompressed: {
+      type: Boolean,
+      default: false,
+    },
+    // ⚡ PERFORMANCE: Pre-processed thumbnail for list views (200px)
+    thumbnailImage: {
+      type: String,
+      default: null,
+    },
+    // ⚡ PERFORMANCE: Denormalized author snapshot (avoids populate() calls)
+    authorSnapshot: {
+      name: { type: String, default: null },
+      username: { type: String, default: null },
+      profileImage: { type: String, default: null },
+    },
   },
   { timestamps: true }
 );

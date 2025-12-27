@@ -7,6 +7,7 @@ import StoryLike from "@/models/StoryLike";
 import StorySave from "@/models/StorySave";
 import PulseFeedback from "@/models/PulseFeedback";
 import mongoose from "mongoose";
+import { decompressContent } from "@/lib/compression";
 
 export async function GET(req, { params }) {
   try {
@@ -25,7 +26,7 @@ export async function GET(req, { params }) {
     // ⚡ PERFORMANCE: For individual story page, we need ALL fields
     // (unlike list views which only need minimal fields)
     let story = await Story.findOne(query)
-      .select('title description content coverImage genres tags readTime author likesCount pulse contest createdAt updatedAt published')
+      .select('title description content isCompressed coverImage genres tags readTime author likesCount pulse contest createdAt updatedAt published')
       .populate({
         path: "author",
         model: "User",
@@ -110,6 +111,13 @@ export async function GET(req, { params }) {
     // Normalize story payload for the client
     const normalizedStory = { ...story };
     normalizedStory.id = normalizedStory._id?.toString?.();
+    
+    // ⚡ PERFORMANCE: Decompress content if compressed
+    // decompressContent auto-detects by marker, but also check isCompressed flag as fallback
+    if (normalizedStory.content) {
+      normalizedStory.content = decompressContent(normalizedStory.content);
+    }
+    
     normalizedStory.author =
       typeof normalizedStory.author === "object"
         ? normalizedStory.author._id

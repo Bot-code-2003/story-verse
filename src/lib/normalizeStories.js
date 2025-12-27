@@ -63,6 +63,17 @@ export async function normalizeStories(stories) {
     const ns = { ...s };
     ns.id = ns._id?.toString?.();
 
+    // ⚡ PERFORMANCE: Prefer authorSnapshot (denormalized, no populate needed)
+    if (ns.authorSnapshot && (ns.authorSnapshot.name || ns.authorSnapshot.username)) {
+      ns.author = {
+        id: ns.author?._id?.toString?.() || (typeof ns.author === 'string' ? ns.author : null),
+        username: ns.authorSnapshot.username || null,
+        name: ns.authorSnapshot.name || null,
+        profileImage: ns.authorSnapshot.profileImage || null,
+      };
+      return ns;
+    }
+
     // Case 1: Author already populated as an object
     if (ns.author && typeof ns.author === "object" && ns.author._id) {
       ns.author = {

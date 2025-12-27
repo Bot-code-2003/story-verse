@@ -203,82 +203,94 @@ export default function Home() {
     setFeaturedThisWeek(transformedFeaturedStories);
     console.log("featuredThisWeek (transformed - immediate)", transformedFeaturedStories);
 
-    // ⭐ FETCH API DATA INDEPENDENTLY (progressive rendering)
-    // Each fetch updates state as soon as it completes, allowing sections to render independently
+    // ⚡ PERFORMANCE: Single batch API call instead of 12 individual calls
     const fetchData = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        // Fetch trending stories (with cache) - limit to 6
-        fetchRouteStories("/api/stories/trending", CACHE_KEYS.TRENDING)
-          .then(list => {
-            setStories(list.length ? list.slice(0, 6) : []);
-          })
-          .catch(err => console.warn("Failed to fetch trending:", err));
-
-        // Fetch latest stories (NO CACHE - always fresh) - limit to 6
-        fetchRouteStories("/api/stories/latest")
-          .then(list => {
-            setLatest(list.length ? list.slice(0, 6) : []);
-          })
-          .catch(err => console.warn("Failed to fetch latest:", err));
-
-        // Fetch quick reads (with cache) - limit to 6
-        fetchRouteStories("/api/stories/quickreads", CACHE_KEYS.QUICK_READS)
-          .then(list => {
-            setQuickReads(list.length ? list.slice(0, 6) : []);
-          })
-          .catch(err => console.warn("Failed to fetch quick reads:", err));
-
-        // Fetch editor picks (with cache) - limit to 6
-        fetchRouteStories("/api/stories/editorpicks", CACHE_KEYS.EDITOR_PICKS)
-          .then(list => {
-            setEditorPicks(list.length ? list.slice(0, 6) : []);
-            console.log("finalEditorPicks", list.slice(0, 6));
-          })
-          .catch(err => console.warn("Failed to fetch editor picks:", err));
-
-        // Fetch genre stories independently - limit to 6 each
-        fetchRouteStories("/api/stories?genre=Fantasy", CACHE_KEYS.FANTASY)
-          .then(list => setFantasy(list.length ? list.slice(0, 6) : []))
-          .catch(err => console.warn("Failed to fetch Fantasy:", err));
-
-        fetchRouteStories("/api/stories?genre=Drama", CACHE_KEYS.DRAMA)
-          .then(list => setDrama(list.length ? list.slice(0, 6) : []))
-          .catch(err => console.warn("Failed to fetch Drama:", err));
-
-        fetchRouteStories("/api/stories?genre=Romance", CACHE_KEYS.ROMANCE)
-          .then(list => setRomance(list.length ? list.slice(0, 6) : []))
-          .catch(err => console.warn("Failed to fetch Romance:", err));
-
-        fetchRouteStories("/api/stories?genre=Slice%20of%20Life", CACHE_KEYS.SLICE_OF_LIFE)
-          .then(list => setSliceOfLife(list.length ? list.slice(0, 6) : []))
-          .catch(err => console.warn("Failed to fetch Slice of Life:", err));
-
-        fetchRouteStories("/api/stories?genre=Thriller", CACHE_KEYS.THRILLER)
-          .then(list => setThriller(list.length ? list.slice(0, 6) : []))
-          .catch(err => console.warn("Failed to fetch Thriller:", err));
-
-        fetchRouteStories("/api/stories?genre=Horror", CACHE_KEYS.HORROR)
-          .then(list => setHorror(list.length ? list.slice(0, 6) : []))
-          .catch(err => console.warn("Failed to fetch Horror:", err));
-
-        fetchRouteStories("/api/stories?genre=Comedy", CACHE_KEYS.COMEDY)
-          .then(list => setComedy(list.length ? list.slice(0, 6) : []))
-          .catch(err => console.warn("Failed to fetch Comedy:", err));
-
-        // Contest winners - commented out for future implementation
-        // fetchRouteStories("/api/contests/7k-sprint-dec-2025/stories", CACHE_KEYS.CONTEST_WINNERS)
-        //   .then(list => setContestWinners(list.length ? list.slice(0, 3) : []))
-        //   .catch(err => console.warn("Failed to fetch contest winners:", err));
-
+        // Try batch API first (preferred - single round trip)
+        const batchRes = await fetch("/api/homepage");
+        
+        if (batchRes.ok) {
+          const batchData = await batchRes.json();
+          const { data } = batchData;
+          
+          // Set all sections from batch response
+          setStories(data.trending?.slice(0, 6) || []);
+          setLatest(data.latest?.slice(0, 6) || []);
+          setQuickReads(data.quickReads?.slice(0, 6) || []);
+          setEditorPicks(data.editorPicks?.slice(0, 6) || []);
+          setFantasy(data.fantasy?.slice(0, 6) || []);
+          setDrama(data.drama?.slice(0, 6) || []);
+          setRomance(data.romance?.slice(0, 6) || []);
+          setSliceOfLife(data.sliceOfLife?.slice(0, 6) || []);
+          setThriller(data.thriller?.slice(0, 6) || []);
+          setHorror(data.horror?.slice(0, 6) || []);
+          setComedy(data.comedy?.slice(0, 6) || []);
+          
+          console.log("✅ Batch API: Loaded all homepage sections in 1 call");
+        } else {
+          throw new Error("Batch API failed, falling back to individual calls");
+        }
       } catch (err) {
-        console.error("Failed to fetch initial data:", err);
-        setError("Failed to load stories.");
+        console.warn("Batch API failed, using fallback:", err.message);
+        
+        // Fallback: Individual calls (original behavior)
+        const fetchRouteStoriesFallback = async (url) => {
+          try {
+            const res = await fetch(url);
+            if (!res.ok) return [];
+            const json = await res.json();
+            return filterLegitStories(json?.stories || []);
+          } catch (e) {
+            console.warn(`Fetch ${url} failed:`, e);
+            return [];
+          }
+        };
+
+        // Parallel fetch all sections as fallback
+        const [
+          trendingData,
+          latestData,
+          quickReadsData,
+          editorPicksData,
+          fantasyData,
+          dramaData,
+          romanceData,
+          sliceOfLifeData,
+          thrillerData,
+          horrorData,
+          comedyData,
+        ] = await Promise.all([
+          fetchRouteStoriesFallback("/api/stories/trending"),
+          fetchRouteStoriesFallback("/api/stories/latest"),
+          fetchRouteStoriesFallback("/api/stories/quickreads"),
+          fetchRouteStoriesFallback("/api/stories/editorpicks"),
+          fetchRouteStoriesFallback("/api/stories?genre=Fantasy"),
+          fetchRouteStoriesFallback("/api/stories?genre=Drama"),
+          fetchRouteStoriesFallback("/api/stories?genre=Romance"),
+          fetchRouteStoriesFallback("/api/stories?genre=Slice%20of%20Life"),
+          fetchRouteStoriesFallback("/api/stories?genre=Thriller"),
+          fetchRouteStoriesFallback("/api/stories?genre=Horror"),
+          fetchRouteStoriesFallback("/api/stories?genre=Comedy"),
+        ]);
+
+        setStories(trendingData.slice(0, 6));
+        setLatest(latestData.slice(0, 6));
+        setQuickReads(quickReadsData.slice(0, 6));
+        setEditorPicks(editorPicksData.slice(0, 6));
+        setFantasy(fantasyData.slice(0, 6));
+        setDrama(dramaData.slice(0, 6));
+        setRomance(romanceData.slice(0, 6));
+        setSliceOfLife(sliceOfLifeData.slice(0, 6));
+        setThriller(thrillerData.slice(0, 6));
+        setHorror(horrorData.slice(0, 6));
+        setComedy(comedyData.slice(0, 6));
+        
+        console.log("⚠️ Fallback: Loaded homepage with individual calls");
       } finally {
-        // Set loading to false after a short delay to allow first batch of requests to start
-        setTimeout(() => setLoading(false), 100);
+        setLoading(false);
       }
     };
 

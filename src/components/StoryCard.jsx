@@ -11,6 +11,7 @@ export default function StoryCard({ story, showAuthor = true }) {
     id = "",
     title = "Untitled",
     coverImage = "",
+    thumbnailImage = "", // ⚡ PERFORMANCE: Pre-processed 200px thumbnail
     genres = [],
     readTime = 0,
     author = null,
@@ -29,15 +30,17 @@ export default function StoryCard({ story, showAuthor = true }) {
     authorName = author.replace(/^@/, "");
   }
 
-  // ✅ Fallback chain: coverImage → genre image → null
+  // ✅ Fallback chain: thumbnailImage → coverImage → genre image → null
+  // ⚡ PERFORMANCE: Use thumbnail (200px) for list views when available
   const genreFallbackImage = getGenreFallback(genresArr);
-  const finalImage = coverImage || genreFallbackImage;
+  const finalImage = thumbnailImage || coverImage || genreFallbackImage;
 
   const storyPath = `/stories/${id}`;
 
   return (
     <Link
       href={storyPath}
+      prefetch={true} // ⚡ PERFORMANCE: Prefetch story pages for instant navigation
       className="w-full min-w-[160px] md:min-w-[200px] lg:min-w-0 group cursor-pointer transition duration-200 ease-in-out flex-shrink-0"
     >
       <div className="relative w-full aspect-[5/7] rounded-lg overflow-hidden bg-background/20">
