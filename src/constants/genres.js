@@ -26,6 +26,13 @@ export const GENRE_TILES = [
     count: "89 stories",
   },
   {
+    name: "Comedy",
+    image:
+      "https://i.pinimg.com/736x/26/71/07/267107c9ef29c0cae5c45f795d7e599a.jpg",
+    link: "/genre/comedy",
+    count: "89 stories",
+  },
+  {
     name: "Slice of Life",
     image:
       "https://cdn.pixabay.com/photo/2020/07/14/13/42/boat-5404195_1280.jpg",

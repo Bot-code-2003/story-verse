@@ -70,6 +70,16 @@ storySchema.index({ readTime: 1, published: 1, createdAt: -1 });
 // 8. Tags search (for tag filtering and discovery)
 storySchema.index({ tags: 1, published: 1, likesCount: -1 });
 
+// 9. ⚡ TEXT INDEX for fast full-text search (replaces slow regex)
+// Enables $text search on title, description, and tags
+storySchema.index(
+  { title: "text", description: "text", tags: "text" },
+  { 
+    weights: { title: 10, tags: 5, description: 1 }, // Title matches ranked highest
+    name: "story_text_search"
+  }
+);
+
 const Story = mongoose.models.Story || mongoose.model("Story", storySchema);
 
 export default Story;

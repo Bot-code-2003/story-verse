@@ -155,6 +155,11 @@ export default function Home() {
 
   // helper to fetch a route and return stories array (or empty)
   // Now with smart caching support
+  // Filter stories with readTime > 1 minute to ensure legitimate content
+  const filterLegitStories = (stories) => {
+    return stories.filter(story => (story.readTime || 0) > 1);
+  };
+
   const fetchRouteStories = async (url, cacheKey = null) => {
     try {
       // If no cache key provided, fetch directly (no cache)
@@ -165,7 +170,8 @@ export default function Home() {
           return [];
         }
         const json = await res.json();
-        return json?.stories || [];
+        // Filter for legitimate stories with readTime > 1 min
+        return filterLegitStories(json?.stories || []);
       }
 
       // Use cache with TTL
@@ -176,7 +182,8 @@ export default function Home() {
           return [];
         }
         const json = await res.json();
-        return json?.stories || [];
+        // Filter for legitimate stories with readTime > 1 min
+        return filterLegitStories(json?.stories || []);
       });
     } catch (err) {
       console.warn(`fetch ${url} error:`, err);

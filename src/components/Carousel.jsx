@@ -31,7 +31,7 @@ const slides = [
     id: 1,
     title: "A Home for Short Fiction",
     subtitle:
-      "Big ideas. Compact stories. 7,000 words max.",
+      "Big ideas. Compact stories. 4,000 words max.",
       image:
         "https://cdn.pixabay.com/photo/2024/12/30/13/23/little-red-riding-hood-9300338_1280.jpg",
         cta: "Browse Stories",

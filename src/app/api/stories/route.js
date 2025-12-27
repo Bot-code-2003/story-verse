@@ -2,8 +2,7 @@
 import { NextResponse } from "next/server";
 import { connectToDB } from "@/lib/mongodb";
 import Story from "@/models/Story";
-import User from "@/models/User";
-import { ObjectId } from "mongodb";
+import { normalizeStories } from "@/lib/normalizeStories";
 
 /* GET /api/stories?genre=<>&tag=<> */
 export async function GET(request) {
@@ -21,94 +20,32 @@ export async function GET(request) {
 
     await connectToDB();
 
-    const filters = [];
+    // Build query with exact genre match (uses index) or tag match
+    const query = { published: true };
+    
     if (genre) {
-      filters.push({ genres: genre });
+      // ⚡ PERFORMANCE: Use case-insensitive exact match with $regex anchor
+      // This still uses the index when genres is indexed
+      query.genres = { $regex: `^${genre}$`, $options: "i" };
     }
 
     if (tag) {
-      filters.push({ tags: tag });
-      filters.push({ tags: { $in: [tag] } });
+      query.tags = { $in: [tag, tag.toLowerCase()] };
     }
 
-    const query = filters.length ? { $or: filters } : {};
-
     // ⚡ PERFORMANCE: Select only fields needed for StoryCard
-    // StoryCard needs: id, title, coverImage, genres, readTime, author.username/name
-    // Excluding: description, content, likesCount, pulse, contest, etc. (saves ~70% data transfer)
-    let stories = await Story.find(query)
+    const stories = await Story.find(query)
       .select('title coverImage genres readTime author createdAt') // Only essential fields
+      .sort({ createdAt: -1 })
       .limit(18)
       .populate({
         path: "author",
-        select: "username name", // Only username and name, no bio/profileImage for list view
+        select: "username name profileImage",
       })
-      .lean(); // ⚡ CRITICAL: Returns plain JS objects (5-10x faster than Mongoose documents)
+      .lean(); // ⚡ CRITICAL: Returns plain JS objects (5-10x faster)
 
-    // Normalize author shape for any stories that have string author
-    const normalized = await Promise.all(
-      stories.map(async (s) => {
-        const ns = { ...s };
-        ns.id = ns._id?.toString?.();
-
-        if (ns.author && typeof ns.author === "object" && ns.author._id) {
-          ns.author = {
-            id: String(ns.author._id),
-            username: ns.author.username || null,
-            name: ns.author.name || null,
-            profileImage: ns.author.profileImage || null,
-          };
-          return ns;
-        }
-
-        if (typeof ns.author === "string") {
-          const authorStr = ns.author;
-
-          if (ObjectId.isValid(authorStr)) {
-            const userDoc = await User.findById(authorStr)
-              .select("username name profileImage")
-              .lean();
-            if (userDoc) {
-              ns.author = {
-                id: String(userDoc._id),
-                username: userDoc.username,
-                name: userDoc.name,
-                profileImage: userDoc.profileImage,
-              };
-              return ns;
-            }
-          }
-
-          const cleanUsername = authorStr.replace(/^@/, "");
-          const userDoc2 = await User.findOne({
-            $or: [{ username: authorStr }, { username: cleanUsername }],
-          })
-            .select("username name profileImage")
-            .lean();
-
-          if (userDoc2) {
-            ns.author = {
-              id: String(userDoc2._id),
-              username: userDoc2.username,
-              name: userDoc2.name,
-              profileImage: userDoc2.profileImage,
-            };
-            return ns;
-          }
-
-          ns.author = { id: authorStr, username: authorStr };
-          return ns;
-        }
-
-        ns.author = {
-          id: null,
-          username: null,
-          name: null,
-          profileImage: null,
-        };
-        return ns;
-      })
-    );
+    // ⚡ PERFORMANCE: Use batch author lookup (fixes N+1 problem)
+    const normalized = await normalizeStories(stories);
 
     return NextResponse.json({
       ok: true,
@@ -136,7 +73,8 @@ export async function POST(request) {
       );
     }
 
-    console.log("Creating story with body:", body);
+    const { ObjectId } = await import("mongodb");
+    const User = (await import("@/models/User")).default;
 
     // normalize tags/genres to arrays
     const tags = Array.isArray(body.tags)
@@ -156,10 +94,8 @@ export async function POST(request) {
     if (body.author) {
       const a = String(body.author).trim();
       if (ObjectId.isValid(a)) {
-        // store MongoDB ObjectId
         authorVal = new ObjectId(a);
       } else if (a) {
-        // store username string (legacy support)
         authorVal = a;
       }
     }
@@ -194,7 +130,6 @@ export async function POST(request) {
       title: created.title,
       description: created.description,
       coverImage: created.coverImage,
-      // convert author to safe shape for frontend
       author:
         created.author && typeof created.author === "object"
           ? String(created.author)

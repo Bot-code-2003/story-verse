@@ -53,9 +53,9 @@ export async function GET(req) {
       }
     }
 
-    // Filter to only include authors with at least 1 story and take the limit
+    // Filter to only include authors with at least 2 stories (more established authors)
     const activeAuthors = Array.from(authorMap.values())
-      .filter(author => author.latestStories.length > 0)
+      .filter(author => author.latestStories.length >= 2)
       .slice(0, limit);
 
     return NextResponse.json({

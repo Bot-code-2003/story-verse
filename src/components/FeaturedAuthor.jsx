@@ -106,10 +106,10 @@ export default function FeaturedAuthors() {
 
       {/* Main Carousel Card */}
       <div className="relative rounded-3xl overflow-hidden bg-[var(--foreground)]/5 border border-[var(--foreground)]/10">
-        <div className="p-6 md:p-8">
-          <div className="grid lg:grid-cols-5 gap-6 items-start">
+        <div className="p-6 md:p-8 overflow-hidden">
+          <div className="grid lg:grid-cols-5 gap-6 items-start min-w-0">
             {/* Left Side - Author Info */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 min-w-0 overflow-hidden">
               <div className="sticky top-8">
                 {/* Profile Section */}
                 <div className="flex items-start gap-4 mb-5">
@@ -141,8 +141,8 @@ export default function FeaturedAuthors() {
 
                 {/* Bio */}
                 {currentAuthor.bio && (
-                  <div className="bg-[var(--background)] rounded-2xl p-5 mb-5 border border-[var(--foreground)]/10">
-                    <p className="text-[var(--foreground)]/70 leading-relaxed text-sm">
+                  <div className="bg-[var(--background)] rounded-2xl p-5 mb-5 border border-[var(--foreground)]/10 overflow-hidden">
+                    <p className="text-[var(--foreground)]/70 leading-relaxed text-sm break-words">
   {currentAuthor.bio.length > limit
     ? currentAuthor.bio.slice(0, limit) + "..."
     : currentAuthor.bio}
@@ -178,7 +178,7 @@ export default function FeaturedAuthors() {
             </div>
 
             {/* Right Side - Latest Stories */}
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-3 min-w-0 overflow-hidden">
               <div className="flex items-center justify-between mb-5">
                 <h4 className="text-lg font-bold text-[var(--foreground)]">Latest Stories</h4>
                 <Link 
@@ -189,7 +189,7 @@ export default function FeaturedAuthors() {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                 {currentAuthor.latestStories.slice(0, 2).map((story) => {
                   const genresArr = Array.isArray(story.genres) ? story.genres : [];
                   const genreFallbackImage = getGenreFallback(genresArr);
@@ -200,7 +200,7 @@ export default function FeaturedAuthors() {
                     <Link
                       key={story.id}
                       href={storyPath}
-                      className="group cursor-pointer transition duration-200 ease-in-out"
+                      className="group cursor-pointer transition duration-200 ease-in-out min-w-0 overflow-hidden"
                     >
                       <div className="relative w-full aspect-[5/6] rounded-lg overflow-hidden bg-[var(--background)]/20">
                         {finalImage ? (
@@ -250,7 +250,7 @@ export default function FeaturedAuthors() {
                       return (
                         <Link
                           href={storyPath}
-                          className="group cursor-pointer transition duration-200 ease-in-out"
+                          className="group cursor-pointer transition duration-200 ease-in-out min-w-0 overflow-hidden"
                         >
                           <div className="relative w-full aspect-[5/6] rounded-lg overflow-hidden bg-[var(--background)]/20">
                             {finalImage ? (

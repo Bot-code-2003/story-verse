@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectToDB } from "@/lib/mongodb";
 import Story from "@/models/Story";
-import User from "@/models/User";
-import { ObjectId } from "mongodb";
+import { normalizeStories } from "@/lib/normalizeStories";
 
 export async function GET(request, props) {
   try {
@@ -18,17 +17,19 @@ export async function GET(request, props) {
 
     await connectToDB();
 
-    // Get total count for this genre
-    const totalCount = await Story.countDocuments({
+    // ⚡ PERFORMANCE: Case-insensitive exact match with regex anchor
+    // Uses index when genres is indexed
+    const genreQuery = { 
       genres: { $regex: `^${genreName}$`, $options: "i" },
-      published: true,
-    });
+      published: true 
+    };
 
-    // Case-insensitive genre match with pagination
-    let rawStories = await Story.find({
-      genres: { $regex: `^${genreName}$`, $options: "i" },
-      published: true,
-    })
+    // Get total count for this genre
+    const totalCount = await Story.countDocuments(genreQuery);
+
+    // Fetch stories with pagination
+    const rawStories = await Story.find(genreQuery)
+      .select('title coverImage genres readTime author createdAt description')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -38,77 +39,8 @@ export async function GET(request, props) {
       })
       .lean();
 
-    // --- NORMALIZE LIKE YOUR /api/stories ROUTE ---
-    const normalized = await Promise.all(
-      rawStories.map(async (s) => {
-        const ns = { ...s };
-        ns.id = ns._id?.toString?.();
-
-        // If populated author object
-        if (ns.author && typeof ns.author === "object" && ns.author._id) {
-          ns.author = {
-            id: String(ns.author._id),
-            username: ns.author.username || null,
-            name: ns.author.name || null,
-            profileImage: ns.author.profileImage || null,
-          };
-          return ns;
-        }
-
-        // If author is stored as STRING
-        if (typeof ns.author === "string") {
-          const authorStr = ns.author;
-
-          // Case 1: is ObjectId string
-          if (ObjectId.isValid(authorStr)) {
-            const userDoc = await User.findById(authorStr)
-              .select("username name profileImage")
-              .lean();
-
-            if (userDoc) {
-              ns.author = {
-                id: String(userDoc._id),
-                username: userDoc.username,
-                name: userDoc.name,
-                profileImage: userDoc.profileImage,
-              };
-              return ns;
-            }
-          }
-
-          // Case 2: find by username
-          const cleanUsername = authorStr.replace(/^@/, "");
-          const userDoc2 = await User.findOne({
-            $or: [{ username: authorStr }, { username: cleanUsername }],
-          })
-            .select("username name profileImage")
-            .lean();
-
-          if (userDoc2) {
-            ns.author = {
-              id: String(userDoc2._id),
-              username: userDoc2.username,
-              name: userDoc2.name,
-              profileImage: userDoc2.profileImage,
-            };
-            return ns;
-          }
-
-          // Fallback: store raw string
-          ns.author = { id: authorStr, username: authorStr };
-          return ns;
-        }
-
-        // Final fallback
-        ns.author = {
-          id: null,
-          username: null,
-          name: null,
-          profileImage: null,
-        };
-        return ns;
-      })
-    );
+    // ⚡ PERFORMANCE: Use batch author lookup (fixes N+1 problem)
+    const normalized = await normalizeStories(rawStories);
 
     return NextResponse.json({
       ok: true,
