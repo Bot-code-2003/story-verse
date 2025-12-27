@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const MONGODB_URI =
-  process.env.MONGODB_LOCAL_URI ||
+  process.env.MONGODB_DEV_URI ||
   process.env.DATABASE_URL ||
   "mongodb://localhost:27017/short_fiction";
 
