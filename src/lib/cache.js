@@ -17,6 +17,7 @@ const CACHE_CONFIG = {
   homepage_sliceoflife: { ttl: 21600000 }, // ✅ 6 hours
   homepage_thriller: { ttl: 21600000 }, // ✅ 6 hours
   homepage_horror: { ttl: 21600000 }, // ✅ 6 hours
+  homepage_comedy: { ttl: 21600000 }, // ✅ 6 hours
   homepage_author: { ttl: 21600000 }, // ✅ 6 hours
   contest_stories_: { ttl: 1800000 }, // ✅ 30 min - Contest stories (prefix)
   story_: { ttl: 300000 }, // ✅ 5 min - Individual stories (prefix, actual key will be story_[id])
@@ -251,6 +252,7 @@ export const CACHE_KEYS = {
   SLICE_OF_LIFE: "homepage_sliceoflife",
   THRILLER: "homepage_thriller",
   HORROR: "homepage_horror",
+  COMEDY: "homepage_comedy",
   FEATURED_AUTHOR: "homepage_author",
   CONTEST_WINNERS: "contest_stories_7k-sprint-dec-2025",
 };

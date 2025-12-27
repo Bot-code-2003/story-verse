@@ -115,7 +115,7 @@ function FeaturedThisWeek({ items }) {
       </div>
       
       {/* Horizontal Scroll Layout for All Screens */}
-      <div className="relative group">
+      <div className="relative">
         {/* Add fade masks for scroll indication if needed, sticking to simple scroll for now */}
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex gap-4 pb-4 px-1">
@@ -149,6 +149,7 @@ export default function Home() {
   const [sliceOfLife, setSliceOfLife] = useState([]);
   const [thriller, setThriller] = useState([]);
   const [horror, setHorror] = useState([]);
+  const [comedy, setComedy] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -263,6 +264,10 @@ export default function Home() {
           .then(list => setHorror(list.length ? list.slice(0, 6) : []))
           .catch(err => console.warn("Failed to fetch Horror:", err));
 
+        fetchRouteStories("/api/stories?genre=Comedy", CACHE_KEYS.COMEDY)
+          .then(list => setComedy(list.length ? list.slice(0, 6) : []))
+          .catch(err => console.warn("Failed to fetch Comedy:", err));
+
         // Contest winners - commented out for future implementation
         // fetchRouteStories("/api/contests/7k-sprint-dec-2025/stories", CACHE_KEYS.CONTEST_WINNERS)
         //   .then(list => setContestWinners(list.length ? list.slice(0, 3) : []))
@@ -372,27 +377,30 @@ export default function Home() {
           {/* 7. Genre Discovery - Visual exploration */}
           <DiscoverGenres />
 
-          {/* 8. Genre Sections - Deep dive into categories */}
+          {/* 8. Genre Sections - Ordered: Fantasy, Horror, Drama, Banner, Slice of Life, Comedy, Romance */}
           {fantasy.length > 0 && (
             <Section title="Fantasy Picks" items={fantasy} />
+          )}
+          {horror.length > 0 && (
+            <Section title="Horror" items={horror} />
           )}
           {drama.length > 0 && <Section title="Dramatic Reads" items={drama} />}
           
           {/* 9. CTA Banner - Conversion point */}
           <BecomeAuthorBanner />
           
-          {romance.length > 0 && (
-            <Section title="Romance Stories" items={romance} />
-          )}
           {sliceOfLife.length > 0 && (
             <Section title="Slice of Life" items={sliceOfLife} />
+          )}
+          {comedy.length > 0 && (
+            <Section title="Comedy" items={comedy} />
+          )}
+          {romance.length > 0 && (
+            <Section title="Romance Stories" items={romance} />
           )}
           {/* {thriller.length > 0 && (
             <Section title="Thriller" items={thriller} />
           )} */}
-          {horror.length > 0 && (
-            <Section title="Horror" items={horror} />
-          )}
         </div>
 
         <Footer />
