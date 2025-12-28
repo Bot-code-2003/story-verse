@@ -87,11 +87,27 @@ export default function MetadataStep({
                 
                 setUploadingImage(true);
                 try {
-                  const compressed = await compressStoryCover(file);
-                  setCoverImageUrl(compressed);
-                  showToast("Image uploaded and compressed", "success");
+                  // Upload to ImgBB via server API
+                  const formData = new FormData();
+                  formData.append("file", file);
+                  formData.append("type", "story");
+                  
+                  const response = await fetch("/api/upload", {
+                    method: "POST",
+                    body: formData,
+                  });
+                  
+                  const result = await response.json();
+                  
+                  if (!response.ok || !result.success) {
+                    throw new Error(result.error || "Upload failed");
+                  }
+                  
+                  // Use the cloud URL instead of base64
+                  setCoverImageUrl(result.url);
+                  showToast(`Image uploaded to cloud! (${result.savings} smaller)`, "success");
                 } catch (error) {
-                  showToast(error.message || "Failed to compress image", "error");
+                  showToast(error.message || "Failed to upload image", "error");
                 } finally {
                   setUploadingImage(false);
                   e.target.value = "";
@@ -101,7 +117,7 @@ export default function MetadataStep({
               id="cover-upload"
             />
             <div className="w-full px-6 py-4 bg-blue-600 text-white text-center rounded-lg cursor-pointer hover:bg-blue-700 transition font-medium shadow-lg hover:shadow-xl">
-              {uploadingImage ? "Compressing..." : "Upload Image"}
+              {uploadingImage ? "Uploading to cloud..." : "Upload Image"}
             </div>
           </label>
         </div>

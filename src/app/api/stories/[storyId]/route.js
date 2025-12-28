@@ -23,6 +23,8 @@ export async function GET(req, { params }) {
       ? { _id: new mongoose.Types.ObjectId(storyId) }
       : { _id: storyId };
 
+
+
     // ⚡ PERFORMANCE: For individual story page, we need ALL fields
     // (unlike list views which only need minimal fields)
     let story = await Story.findOne(query)
@@ -36,6 +38,7 @@ export async function GET(req, { params }) {
 
     if (!story)
       return NextResponse.json({ error: "Not found" }, { status: 404 });
+
 
     // Build authorData robustly
     let authorData = null;
