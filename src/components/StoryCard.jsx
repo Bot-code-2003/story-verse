@@ -3,35 +3,29 @@
 
 import { Clock } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { getGenreFallback } from "@/constants/genres";
 
 export default function StoryCard({ story, showAuthor = true }) {
-  // ✅ Safe destructuring
   const {
     id = "",
     title = "Untitled",
     coverImage = "",
-    thumbnailImage = "", // ⚡ PERFORMANCE: Pre-processed 200px thumbnail
+    thumbnailImage = "",
     genres = [],
     readTime = 0,
     author = null,
   } = story || {};
 
-  // ✅ Always normalize genres
   const genresArr = Array.isArray(genres) ? genres : [];
 
-  // ✅ Author name safety - prioritize 'name' over 'username'
   let authorName = "Unknown";
-
   if (author && typeof author === "object") {
-    // Try name first, then username, then fallback to Unknown
     authorName = author.name || author.username?.replace(/^@/, "") || "Unknown";
   } else if (typeof author === "string" && author.length < 30) {
     authorName = author.replace(/^@/, "");
   }
 
-  // ✅ Fallback chain: thumbnailImage → coverImage → genre image → null
-  // ⚡ PERFORMANCE: Use thumbnail (200px) for list views when available
   const genreFallbackImage = getGenreFallback(genresArr);
   const finalImage = thumbnailImage || coverImage || genreFallbackImage;
 
@@ -40,15 +34,18 @@ export default function StoryCard({ story, showAuthor = true }) {
   return (
     <Link
       href={storyPath}
-      prefetch={true} // ⚡ PERFORMANCE: Prefetch story pages for instant navigation
+      prefetch={true}
       className="w-full min-w-[160px] md:min-w-[200px] lg:min-w-0 group cursor-pointer transition duration-200 ease-in-out flex-shrink-0"
     >
+      {/* Aspect ratio container prevents CLS */}
       <div className="relative w-full aspect-[5/7] rounded-lg overflow-hidden bg-background/20">
         {finalImage ? (
-          <img
+          <Image
             src={finalImage}
             alt={title}
-            className="w-full h-full object-cover group-hover:scale-[1.06] transition duration-300 ease-out"
+            fill
+            sizes="(max-width: 640px) 160px, (max-width: 768px) 200px, 200px"
+            className="object-cover group-hover:scale-[1.06] transition duration-300 ease-out"
             loading="lazy"
           />
         ) : (
@@ -57,16 +54,16 @@ export default function StoryCard({ story, showAuthor = true }) {
           </div>
         )}
 
-        {/* ✅ Read Time Overlay */}
+        {/* Read Time Overlay */}
         <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-black/70 to-transparent flex items-end p-2 md:p-3">
           <div className="flex items-center text-white text-xs font-semibold space-x-1">
             <Clock className="w-3 h-3 text-white" />
-            <span className="opacity-80">{readTime} min read</span>
+            <span className="opacity-90">{readTime} min read</span>
           </div>
         </div>
       </div>
 
-      {/* ✅ Text Section */}
+      {/* Text Section */}
       <div className="pt-2 md:pt-3">
         <h4 className="text-sm md:text-base font-semibold text-foreground line-clamp-2 transition-colors">
           {title}
@@ -78,10 +75,11 @@ export default function StoryCard({ story, showAuthor = true }) {
           </p>
         )}
 
-        <p className="text-xs text-foreground/50 mt-0.5 md:mt-1 line-clamp-1">
+        <p className="text-xs text-foreground/60 mt-0.5 md:mt-1 line-clamp-1">
           {genresArr.length ? genresArr.join(" / ") : "—"}
         </p>
       </div>
     </Link>
   );
 }
+

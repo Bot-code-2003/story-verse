@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 export default function EditorsPick({ stories }) {
   const pickedStories = stories?.slice(0, 3) || [];
@@ -13,10 +14,13 @@ export default function EditorsPick({ stories }) {
       <div className="relative rounded-3xl overflow-hidden mb-12">
         {/* Background Image */}
         <div className="relative h-[300px] md:h-[200px]">
-          <img
+          <Image
             src="https://i.pinimg.com/originals/98/ad/fa/98adfaae828e28e5afef8598c089eec5.gif"
             alt="Editor's Pick Background"
-            className="absolute inset-0 w-full h-full object-cover object-center"
+            fill
+            sizes="100vw"
+            className="object-cover object-center"
+            unoptimized
           />
           <div className="absolute inset-0 bg-black/40"></div>
 
@@ -48,10 +52,12 @@ export default function EditorsPick({ stories }) {
 
               {/* Portrait Book Cover */}
               <div className="relative aspect-[2/3] w-full max-w-[240px] mx-auto rounded-xl overflow-hidden shadow-xl">
-                <img
+                <Image
                   src={story.coverImage}
                   alt={story.title}
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 240px"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
 
@@ -67,10 +73,10 @@ export default function EditorsPick({ stories }) {
                   </p>
                 )}
 
-                <div className="flex items-center justify-center gap-2 text-xs text-[var(--foreground)]/50 pt-2">
+                <div className="flex items-center justify-center gap-2 text-xs text-[var(--foreground)]/60 pt-2">
                   <span>{story.readTime} min</span>
                   <span>•</span>
-                  <span>{story.author.username || `Author ${story.author.username}`}</span>
+                  <span>{story.author?.name || story.author?.username || "Author"}</span>
                 </div>
               </div>
             </article>
@@ -80,3 +86,4 @@ export default function EditorsPick({ stories }) {
     </section>
   );
 }
+

@@ -113,6 +113,10 @@ export default function RootLayout({ children }) {
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://cdn.pixabay.com" />
+        <link rel="preconnect" href="https://i.pinimg.com" />
+        <link rel="dns-prefetch" href="https://cdn.pixabay.com" />
+        <link rel="dns-prefetch" href="https://i.pinimg.com" />
         
         {/* Favicon and App Icons */}
         <link rel="icon" href="/favicon-g.png" sizes="any" />

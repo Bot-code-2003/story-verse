@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight, BookOpen, ArrowRight, Clock } from "lucide-react";
 import { fetchWithCache, CACHE_KEYS } from "@/lib/cache";
 import { getGenreFallback } from "@/constants/genres";
@@ -10,9 +11,19 @@ export default function FeaturedAuthors() {
   const [authors, setAuthors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const limit = typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches
-  ? 80
-  : 300;
+  const [bioLimit, setBioLimit] = useState(300); // Default for SSR
+
+  // Set bio limit based on screen size (client-side only to avoid hydration mismatch)
+  useEffect(() => {
+    const updateLimit = () => {
+      setBioLimit(window.matchMedia("(max-width: 640px)").matches ? 80 : 300);
+    };
+    updateLimit();
+    
+    const mediaQuery = window.matchMedia("(max-width: 640px)");
+    mediaQuery.addEventListener("change", updateLimit);
+    return () => mediaQuery.removeEventListener("change", updateLimit);
+  }, []);
 
   useEffect(() => {
     const fetchActiveAuthors = async () => {
@@ -115,11 +126,15 @@ export default function FeaturedAuthors() {
                 <div className="flex items-start gap-4 mb-5">
                   <Link href={`/authors/${currentAuthor.username}`} className="group flex-shrink-0">
                     {currentAuthor.profileImage ? (
-                      <img
-                        src={currentAuthor.profileImage}
-                        alt={currentAuthor.name}
-                        className="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover border-2 border-[var(--foreground)]/10 shadow-lg group-hover:scale-105 transition-transform duration-300"
-                      />
+                      <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-2 border-[var(--foreground)]/10 shadow-lg group-hover:scale-105 transition-transform duration-300">
+                        <Image
+                          src={currentAuthor.profileImage}
+                          alt={currentAuthor.name}
+                          fill
+                          sizes="96px"
+                          className="object-cover"
+                        />
+                      </div>
                     ) : (
                       <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-[var(--foreground)]/10 flex items-center justify-center text-[var(--foreground)] font-bold text-2xl md:text-3xl border-2 border-[var(--foreground)]/10 shadow-lg group-hover:scale-105 transition-transform duration-300">
                         {(currentAuthor.name || "U").charAt(0).toUpperCase()}
@@ -143,8 +158,8 @@ export default function FeaturedAuthors() {
                 {currentAuthor.bio && (
                   <div className="bg-[var(--background)] rounded-2xl p-5 mb-5 border border-[var(--foreground)]/10 overflow-hidden">
                     <p className="text-[var(--foreground)]/70 leading-relaxed text-sm break-words">
-  {currentAuthor.bio.length > limit
-    ? currentAuthor.bio.slice(0, limit) + "..."
+  {currentAuthor.bio.length > bioLimit
+    ? currentAuthor.bio.slice(0, bioLimit) + "..."
     : currentAuthor.bio}
 </p>
                   </div>
@@ -204,11 +219,12 @@ export default function FeaturedAuthors() {
                     >
                       <div className="relative w-full aspect-[5/6] rounded-lg overflow-hidden bg-[var(--background)]/20">
                         {finalImage ? (
-                          <img
+                          <Image
                             src={finalImage}
                             alt={story.title}
-                            className="w-full h-full object-cover group-hover:scale-[1.06] transition duration-300 ease-out"
-                            loading="lazy"
+                            fill
+                            sizes="(max-width: 768px) 160px, 200px"
+                            className="object-cover group-hover:scale-[1.06] transition duration-300 ease-out"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-[var(--foreground)]/5 text-[var(--foreground)]/50 text-xs">
@@ -254,11 +270,12 @@ export default function FeaturedAuthors() {
                         >
                           <div className="relative w-full aspect-[5/6] rounded-lg overflow-hidden bg-[var(--background)]/20">
                             {finalImage ? (
-                              <img
+                              <Image
                                 src={finalImage}
                                 alt={story.title}
-                                className="w-full object-cover group-hover:scale-[1.06] transition duration-300 ease-out"
-                                loading="lazy"
+                                fill
+                                sizes="200px"
+                                className="object-cover group-hover:scale-[1.06] transition duration-300 ease-out"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center bg-[var(--foreground)]/5 text-[var(--foreground)]/50 text-xs">
