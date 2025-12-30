@@ -23,11 +23,11 @@ const robotoMono = Roboto_Mono({
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://thestorybits.com'),
   title: {
-    default: 'TheStoryBits - Bite-Sized Fiction Stories',
+    default: 'TheStoryBits - Short Fiction Stories in Your Coffee Break',
     template: '%s | TheStoryBits'
   },
-  description: 'Discover captivating short fiction stories in bite-sized bits. Read, write, and share quick stories across all genres with a vibrant community.',
-  keywords: ['short stories', 'story bits', 'quick reads', 'fiction', 'creative writing', 'storytelling', 'literature', 'bite-sized stories', 'fast reads', 'micro fiction'],
+  description: 'Discover captivating short fiction that fits your schedule. Complete stories in 5-15 minutes across fantasy, thriller, romance, sci-fi, and more genres. No subscriptions, no cliffhangers - just great storytelling.',
+  keywords: ['short stories', 'short fiction', 'quick reads', 'bite-sized stories', '5 minute stories', '15 minute reads', 'flash fiction', 'micro fiction', 'online stories', 'free stories', 'fantasy stories', 'thriller stories', 'romance stories', 'sci-fi stories', 'horror stories', 'creative writing', 'storytelling platform', 'read stories online', 'write stories', 'fiction community', 'coffee break reads'],
   authors: [{ name: 'TheStoryBits Team' }],
   creator: 'TheStoryBits',
   publisher: 'TheStoryBits',
@@ -41,22 +41,23 @@ export const metadata = {
     locale: 'en_US',
     url: '/',
     siteName: 'TheStoryBits',
-    title: 'TheStoryBits - Bite-Sized Fiction Stories',
-    description: 'Discover captivating short fiction stories in bite-sized bits. Read, write, and share quick stories across all genres.',
+    title: 'TheStoryBits - Short Fiction Stories in Your Coffee Break',
+    description: 'Complete stories in 5-15 minutes. Discover exceptional short fiction across all genres - fantasy, thriller, romance, and more. Free to read, ad-free experience.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'TheStoryBits - Bite-Sized Fiction Stories',
+        alt: 'TheStoryBits - Complete Short Fiction in Your Coffee Break',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'TheStoryBits - Bite-Sized Fiction Stories',
-    description: 'Discover captivating short fiction stories in bite-sized bits. Perfect for quick reads.',
-    images: ['/og-image.jpg'],
+    site: '@thestorybits', // Added for better Twitter card targeting
+    title: 'TheStoryBits - Short Fiction in Your Coffee Break',
+    description: 'Complete stories in 5-15 min. Fantasy, thriller, romance & more. Free to read, zero ads.',
+    images: ['/og-image.png'],
     creator: '@thestorybits',
   },
   robots: {
@@ -72,7 +73,7 @@ export const metadata = {
   },
   verification: {
     // Add your verification codes here when available
-    // google: 'your-google-verification-code',
+    google: 'your-google-site-verification-code', // Placeholder for Google Search Console
     // yandex: 'your-yandex-verification-code',
     // bing: 'your-bing-verification-code',
   },
@@ -80,6 +81,8 @@ export const metadata = {
     canonical: '/',
   },
   category: 'entertainment',
+  applicationName: 'TheStoryBits',
+  referrer: 'origin-when-cross-origin',
 };
 
 export const viewport = {
@@ -136,4 +139,3 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
-

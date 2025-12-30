@@ -83,7 +83,8 @@ export function AuthProvider({ children }) {
     try {
       localStorage.removeItem("sf_user");
     } catch (e) {}
-    router.push("/login");
+    // Use window.location for hard redirect to ensure clean logout
+    window.location.href = "/login";
   };
 
   return (

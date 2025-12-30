@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 import { Sun, Moon, Menu, X, Bell } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 import SearchBar from "./SearchBar";
 import AuthButtons from "./AuthButtons";
@@ -15,8 +15,12 @@ import { useNotifications } from "@/context/NotificationContext";
 export default function SiteHeader() {
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
+  const pathname = usePathname();
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
+  
+  // Hide theme toggle on landing page
+  const isLandingPage = pathname === "/";
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sfUser, setSfUser] = useState(null); // added state to store sf_user
@@ -62,7 +66,7 @@ export default function SiteHeader() {
 
   return (
     <>
-      <header className="flex items-center justify-between px-4 md:px-6 lg:px-10 py-3 relative z-50 gap-3">
+      <header className="flex items-center justify-between px-4 md:px-6 lg:px-10 py-6 relative z-50 gap-3">
         {/* Left: Logo */}
         <Link href="/">
           <h1 className="text-lg md:text-xl font-extrabold text-[var(--foreground)] cursor-pointer whitespace-nowrap">
@@ -112,23 +116,25 @@ export default function SiteHeader() {
               </Link>
             )}
             <AuthButtons />
-            <button
-              onClick={toggleTheme}
-              className="
-                p-2 rounded-full border border-[var(--foreground)]/10 
-                text-[var(--foreground)]/80 hover:bg-[var(--foreground)]/5 transition
-                flex-shrink-0
-              "
-              aria-label={`Switch to ${
-                theme === "light" ? "dark" : "light"
-              } mode`}
-            >
-              {theme === "light" ? (
-                <Moon className="w-5 h-5" />
-              ) : (
-                <Sun className="w-5 h-5" />
-              )}
-            </button>
+            {!isLandingPage && (
+              <button
+                onClick={toggleTheme}
+                className="
+                  p-2 rounded-full border border-[var(--foreground)]/10 
+                  text-[var(--foreground)]/80 hover:bg-[var(--foreground)]/5 transition
+                  flex-shrink-0
+                "
+                aria-label={`Switch to ${
+                  theme === "light" ? "dark" : "light"
+                } mode`}
+              >
+                {theme === "light" ? (
+                  <Moon className="w-5 h-5" />
+                ) : (
+                  <Sun className="w-5 h-5" />
+                )}
+              </button>
+            )}
           </div>
 
           {/* Mobile Notification Bell - Show only on small screens (hidden on md and up since desktop bell shows there) */}
@@ -171,20 +177,22 @@ export default function SiteHeader() {
 
             {/* Theme + Write */}
             <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  toggleTheme();
-                  closeMobileMenu();
-                }}
-                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg border border-[var(--foreground)]/20 text-[var(--foreground)] hover:bg-[var(--foreground)]/5 transition font-medium text-sm"
-              >
-                {theme === "light" ? (
-                  <Moon className="w-4 h-4" />
-                ) : (
-                  <Sun className="w-4 h-4" />
-                )}
-                <span>{theme === "light" ? "Dark" : "Light"}</span>
-              </button>
+              {!isLandingPage && (
+                <button
+                  onClick={() => {
+                    toggleTheme();
+                    closeMobileMenu();
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg border border-[var(--foreground)]/20 text-[var(--foreground)] hover:bg-[var(--foreground)]/5 transition font-medium text-sm"
+                >
+                  {theme === "light" ? (
+                    <Moon className="w-4 h-4" />
+                  ) : (
+                    <Sun className="w-4 h-4" />
+                  )}
+                  <span>{theme === "light" ? "Dark" : "Light"}</span>
+                </button>
+              )}
 
               {/* Contest menu - commented out for future implementation */}
               {/* <Link
