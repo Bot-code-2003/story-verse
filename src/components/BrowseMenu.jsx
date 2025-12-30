@@ -91,6 +91,7 @@ export default function BrowseMenu({ isMobile = false }) {
             border border-[var(--foreground)]/15
             transition duration-300
             pointer-events-auto
+            z-[2000]
           "
         >
           <div className="grid grid-cols-4 gap-3">

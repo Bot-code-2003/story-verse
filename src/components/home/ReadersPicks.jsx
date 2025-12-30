@@ -55,12 +55,12 @@ const ReadersPicks = () => {
         <div className="px-6 relative md:rounded-3xl overflow-hidden border-y md:border border-[#c5d8c1]/60 bg-[#e9f0e6] md:mx-6">
           {/* Background illustration */}
           <img
-            src="https://i.pinimg.com/1200x/c2/2a/f1/c22af1128a36c62120426d629ca4970a.jpg"
+            src="https://i.pinimg.com/736x/89/2d/26/892d26fcde05c5c3dc9fe6587c00feb2.jpg"
             alt=""
             className="absolute inset-0 w-full h-full object-cover"
           />
           {/* Soft wash layer */}
-          <div className="absolute inset-0 bg-[#f3f7f2]/50" />
+          <div className="absolute inset-0 bg-[#f3f7f2]/10" />
 
           {/* Content Area */}
           <div className="relative">

@@ -66,7 +66,7 @@ export default function SiteHeader() {
 
   return (
     <>
-      <header className="flex items-center justify-between px-4 md:px-6 lg:px-10 py-6 relative z-50 gap-3">
+      <header className="flex items-center justify-between px-4 md:px-6 lg:px-10 py-6 relative z-[100] gap-3">
         {/* Left: Logo */}
         <Link href="/">
           <h1 className="text-lg md:text-xl font-extrabold text-[var(--foreground)] cursor-pointer whitespace-nowrap">
@@ -116,7 +116,7 @@ export default function SiteHeader() {
               </Link>
             )}
             <AuthButtons />
-            {!isLandingPage && (
+            {!isLandingPage && user && (
               <button
                 onClick={toggleTheme}
                 className="
@@ -177,7 +177,7 @@ export default function SiteHeader() {
 
             {/* Theme + Write */}
             <div className="flex gap-3">
-              {!isLandingPage && (
+              {!isLandingPage && user && (
                 <button
                   onClick={() => {
                     toggleTheme();
