@@ -151,7 +151,7 @@ const HeroSection = () => {
               onClick={() => setIsAuthModalOpen(true)}
               className="w-full sm:w-auto group inline-flex items-center justify-center gap-3 px-8 sm:px-10 py-3.5 sm:py-4 rounded-full bg-[#2d3a2a] hover:bg-[#1d2a1a] text-white font-bold text-base sm:text-lg transition-all duration-300 hover:shadow-xl active:scale-95"
             >
-              Start Reading
+              Get Started
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
 
