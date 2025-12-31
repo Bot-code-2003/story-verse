@@ -29,7 +29,8 @@ export default function Footer() {
             {/* Brand Column */}
             <div className="space-y-4">
               <Link href="/" className="flex items-center gap-2">
-                <BookOpen className="w-6 h-6 text-[var(--foreground)]" />
+                {/* <BookOpen className="w-6 h-6 text-[var(--foreground)]" /> */}
+                <img src="/favicon-g.png" className="w-5 h-5" alt="" />
                 <span className="text-xl font-bold text-[var(--foreground)]">
                   TheStoryBits
                 </span>

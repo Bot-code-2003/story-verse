@@ -47,8 +47,8 @@ const slides = [
       "Like and save stories to read anytime, anywhere.",
     image:
       "https://cdn.pixabay.com/photo/2025/05/24/09/47/fairy-tale-9619388_1280.jpg",
-    cta: "Sign In to Save",
-    ctaHref: "/login",
+    // cta: "Sign In to Save",
+    // ctaHref: "/login",
     pos: "bottom",
   },
 ];

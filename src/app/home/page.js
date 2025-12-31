@@ -399,7 +399,7 @@ export default function Home() {
           {drama.length > 0 && <Section title="Dramatic Reads" items={drama} />}
           
           {/* 9. CTA Banner - Conversion point */}
-          <BecomeAuthorBanner />
+          {/* <BecomeAuthorBanner /> */}
           
           {sliceOfLife.length > 0 && (
             <Section title="Slice of Life" items={sliceOfLife} />

@@ -3,10 +3,16 @@
 import React from "react";
 import Link from "next/link";
 import { GENRE_TILES } from "@/constants/genres";
+import { Flame } from "lucide-react";
+
 
 const Genres = () => {
   return (
     <section className="relative py-16 md:py-24 bg-[#e7f2e4] overflow-hidden">
+      <div className="absolute top-10 left-10 text-[#5a7a53]/10 -rotate-12 lg:block">
+        {/* Responsive icon: 60px on mobile, 120px on desktop */}
+        <Flame className="w-[60px] h-[60px] md:w-[120px] md:h-[120px]" />
+      </div>
       <div className="max-w-7xl mx-auto relative z-10 px-6">
         
         {/* Header - Minimal and clean */}

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Heart, MessageCircle } from "lucide-react";
+import { Drum } from "lucide-react";
 
 /* -------------------------------- mock data -------------------------------- */
 const FLOATING_COMMENTS = [
@@ -25,7 +26,7 @@ const FLOATING_COMMENTS = [
   },
   {
     user: "Sam Torres",
-    text: "I keep thinking about the last chapter.",
+    text: "I keep thinking about that final line.",
     likes: 38,
     avatar: "https://i.pinimg.com/736x/00/9f/c0/009fc09a302e18d5cb0c1ecc75d728e5.jpg",
   },
@@ -46,6 +47,13 @@ const FLOATING_COMMENTS = [
 const Community = () => {
   return (
     <section className="relative py-16 md:py-24 px-6 bg-[#e7f2e4] overflow-hidden">
+      <div className="absolute top-0 sm:top-10 left-10 sm:left-50 text-[#5a7a53]/10 -rotate-12 lg:block">
+        {/* Responsive icon: 60px on mobile, 120px on desktop */}
+        <Drum className="w-[60px] h-[60px] md:w-[120px] md:h-[120px]" />
+      </div>
+      <div className="absolute top-10 sm:top-40 right-10 sm:right-50 text-[#5a7a53]/10 rotate-12 lg:block">
+        <Drum className="w-[60px] h-[60px] md:w-[120px] md:h-[120px]" />
+      </div>
       {/* Decorative background elements */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-20 left-10 w-64 h-64 bg-[#5a7a53] rounded-full blur-3xl" />
