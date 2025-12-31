@@ -82,6 +82,11 @@ export function AuthProvider({ children }) {
     setUser(null);
     try {
       localStorage.removeItem("sf_user");
+      // Reset theme to light on logout
+      localStorage.setItem("theme", "light");
+      if (typeof document !== "undefined") {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
     } catch (e) {}
     // Use window.location for hard redirect to ensure clean logout
     window.location.href = "/login";

@@ -27,19 +27,19 @@ const FLOATING_COMMENTS = [
     user: "Sam Torres",
     text: "I keep thinking about the last chapter.",
     likes: 38,
-    avatar: "https://i.pinimg.com/1200x/f4/52/0b/f4520b97cf31e3dc1782976b43790b15.jpg",
+    avatar: "https://i.pinimg.com/736x/00/9f/c0/009fc09a302e18d5cb0c1ecc75d728e5.jpg",
   },
   {
     user: "Ava Chen",
     text: "The writing made me slow down in the best way.",
     likes: 54,
-    avatar: "https://i.pinimg.com/736x/fa/11/d0/fa11d05275ba52485c2f964eef620f52.jpg",
+    avatar: "https://i.pinimg.com/736x/da/e7/d6/dae7d6ab8e2abd3e74d776a5fd49a6cb.jpg",
   },
   {
     user: "Leo Park",
     text: "Stories like this remind me why I read.",
     likes: 43,
-    avatar: "https://i.pinimg.com/736x/71/2d/58/712d5802368e0a7cafc9f530e328daf4.jpg",
+    avatar: "https://i.pinimg.com/736x/96/8f/14/968f14e1e60d0819dd356adfa5d614ec.jpg",
   },
 ];
 

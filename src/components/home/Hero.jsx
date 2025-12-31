@@ -102,28 +102,28 @@ const HeroSection = () => {
           {/* Top Left - Tucked into corner for mobile */}
           <FloatingCard 
             story={heroStories[0]} 
-            className="top-20 left-10 sm:top-12 sm:left-12 md:top-16 md:left-20" 
+            className="top-5 left-10 sm:top-12 sm:left-12 md:top-16 md:left-20" 
             rotation="rotate-[-6deg] sm:rotate-[-8deg]"
             parallaxOffset={Math.min(scrollY * 0.2, maxParallaxOffset)} // Adjust speed as needed
           />
           {/* Top Right */}
           <FloatingCard 
             story={heroStories[1]} 
-            className="top-20 right-10 sm:top-12 sm:right-12 md:top-16 md:right-20" 
+            className="top-5 right-10 sm:top-12 sm:right-12 md:top-16 md:right-20" 
             rotation="rotate-[6deg] sm:rotate-[8deg]"
             parallaxOffset={Math.min(scrollY * 0.3, maxParallaxOffset)} // Adjust speed as needed
           />
           {/* Bottom Left */}
           <FloatingCard 
             story={heroStories[2]} 
-            className="bottom-20 left-10 sm:bottom-12 sm:left-12 md:bottom-16 md:left-20" 
+            className="bottom-5 left-10 sm:bottom-12 sm:left-12 md:bottom-16 md:left-20" 
             rotation="rotate-[4deg] sm:rotate-[6deg]"
             parallaxOffset={Math.min(scrollY * 0.1, maxParallaxOffset)} // Adjust speed as needed
           />
           {/* Bottom Right */}
           <FloatingCard 
             story={heroStories[3]} 
-            className="bottom-20 right-10 sm:bottom-12 sm:right-12 md:bottom-16 md:right-20" 
+            className="bottom-5 right-10 sm:bottom-12 sm:right-12 md:bottom-16 md:right-20" 
             rotation="rotate-[-4deg] sm:rotate-[-6deg]"
             parallaxOffset={Math.min(scrollY * 0.25, maxParallaxOffset)} // Adjust speed as needed
           />

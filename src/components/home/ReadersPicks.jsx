@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { FEATURED_STORIES } from "@/constants/featured_stories";
 import StoryCard from "../StoryCard";
@@ -95,11 +96,22 @@ const ReadersPicks = () => {
           </div>
         </div>
 
-        {/* Footer quote */}
-        <div className="mt-10 text-center px-6">
+        {/* Footer quote & CTA */}
+        <div className="mt-10 text-center px-6 space-y-6">
           <p className="font-serif italic text-[#5a7a53] text-sm md:text-lg">
             Like what you taste? There's plenty more where that came from.
           </p>
+          
+          {/* Sign up CTA */}
+          <div className="flex justify-center">
+            <Link
+              href="/login?redirect=/home"
+              className="group inline-flex items-center gap-3 px-8 py-4 rounded-full bg-[#5a7a53] hover:bg-[#4a6344] text-white font-bold text-base md:text-lg transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95"
+            >
+              Sign up to read more
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
         </div>
       </div>
     </section>

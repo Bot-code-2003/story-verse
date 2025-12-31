@@ -66,7 +66,7 @@ export default function SiteHeader() {
 
   return (
     <>
-      <header className="flex items-center justify-between px-4 md:px-6 lg:px-10 py-6 relative z-[100] gap-3">
+      <header className="flex items-center justify-between px-4 md:px-6 lg:px-10 py-6 relative z-[200] gap-3">
         {/* Left: Logo */}
         <Link href="/">
           <h1 className="text-lg md:text-xl font-extrabold text-[var(--foreground)] cursor-pointer whitespace-nowrap">
@@ -170,7 +170,7 @@ export default function SiteHeader() {
 
       {/* Mobile/Tablet Menu */}
       {mobileMenuOpen && (
-        <div className="fixed top-0 left-0 right-0 bottom-0 lg:hidden bg-[var(--background)] z-40 overflow-y-auto pt-20">
+        <div className="fixed top-0 left-0 right-0 bottom-0 lg:hidden bg-[var(--background)] z-[150] overflow-y-auto pt-20">
           <div className="px-4 py-6 space-y-4">
             {/* Search Bar */}
             <SearchBar />
