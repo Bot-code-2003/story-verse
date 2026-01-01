@@ -68,10 +68,21 @@ export const FEATURED_STORIES = [
     "id": "694f890a920aaf27bfc71dc2",
     "title": "When the Wind Forgets to Blow",
     "author": "Starlit Journals",
-    "coverImage": "https://i.ibb.co/HL80TDBs/Gemini-Generated-Image-puo951puo951puo9.jpg",
+    "coverImage": "https://i.ibb.co/PZpcVYzS/story-1767286033328.webp",
     "genres": [
       "Romance",
     ],
     "readTime": 10
+  },
+  {
+    "id": "694f8a11613baf95f13bab46",
+    "title": "Velvet in the Rain",
+    "author": "Starlit Journals",
+    "coverImage": "https://i.ibb.co/N6wmmVvt/story-1767286352180.webp",
+    "genres": [
+      "Romance",
+    "Slice of Life"
+    ],
+    "readTime": 8
   }
 ];

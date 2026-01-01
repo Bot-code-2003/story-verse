@@ -39,16 +39,16 @@ export default function StoryHero({
   };
 
   return (
-    <div className="pt-12 sm:pt-24 pb-16 px-6">
+    <div className="pt-6 sm:pt-16 pb-16 px-6">
       <div className="max-w-4xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-10 items-center">
           {/* Left: Title, Description, Author, Buttons */}
           <div className="space-y-4 lg:col-span-2">
-            <h1 className="text-3xl md:text-3xl lg:text-5xl font-bold tracking-tight leading-[1.1] text-[var(--foreground)]">
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold tracking-tight leading-[1.1] text-[var(--foreground)]">
               {story.title}
             </h1>
             {story.description && (
-              <p className="text-base md:text-lg text-[var(--foreground)]/70 leading-relaxed">
+              <p className="text-base md:text-md text-[var(--foreground)]/70 leading-relaxed">
                 {story.description}
               </p>
             )}
