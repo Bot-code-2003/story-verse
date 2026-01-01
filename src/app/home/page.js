@@ -105,7 +105,7 @@ function FeaturedThisWeek({ items }) {
     <section className=" relative z-10 mb-10">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold text-[var(--foreground)]">
-          Featured This Week
+          Featured Stories
         </h3>
         {/* Scroll hint visible on all screens */}
         <span className="text-xs text-[var(--foreground)]/50 flex items-center gap-1">

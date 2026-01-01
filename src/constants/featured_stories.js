@@ -1,48 +1,5 @@
 export const FEATURED_STORIES = [
   {
-    "id": "694eb8e73a748d888079b5da",
-    "title": "Vincent",
-    "author": "Aaron David",
-    "coverImage": "https://i.ibb.co/1JX3yTNt/0fddb8bd08cc.webp",
-    "genres": [
-      "Fantasy"
-    ],
-    "readTime": 13
-  },
-  {
-    "id": "694ab29d585c27903a41490d",
-    "title": "Murder & Robbery",
-    "author": "@merry-forest",
-    "coverImage": "https://i.ibb.co/QFt0xh2m/5d1cdbb1c80e.webp",
-    "genres": [
-      "Fantasy",
-      "Thriller",
-      "Horror"
-    ],
-    "readTime": 14
-  },
-  {
-    "id": "69355933cdab065d273496e5",
-    "title": "The Boy Who Carried the Sun Through Winter",
-    "author": "Aarin Hale",
-    "coverImage": "https://i.ibb.co/wFzqLrpH/ae41352d79e2.webp",
-    "genres": [
-      "Fantasy"
-    ],
-    "readTime": 13
-  },
-  {
-    "id": "693d1d0459f1aec7e54942ff",
-    "title": "Before the First Lie Was Told",
-    "author": "Dharma",
-    "coverImage": "https://i.ibb.co/XZM6mwB7/5018bb70226e.webp",
-    "genres": [
-      "Fantasy",
-      "Drama"
-    ],
-    "readTime": 11
-  },
-  {
     "id": "6943d187279d8260bf46808b",
     "title": "The Skin Telephone",
     "author": "Forgotten Ritual",
@@ -54,28 +11,6 @@ export const FEATURED_STORIES = [
     "readTime": 8
   },
   {
-    "id": "693e492b054ee2f9aebd361f",
-    "title": "A Small Tax on Miracles",
-    "author": "Dharma",
-    "coverImage": "https://i.ibb.co/Kx3yDZYt/2729fd4e094a.webp",
-    "genres": [
-      "Drama",
-      "Slice of Life"
-    ],
-    "readTime": 13
-  },
-  {
-    "id": "693ec8b5945dc639e08f963c",
-    "title": "The Lactation Ward",
-    "author": "Forgotten Ritual",
-    "coverImage": "https://i.ibb.co/xtKNL19b/dde9c236b80c.webp",
-    "genres": [
-      "Horror",
-      "Thriller"
-    ],
-    "readTime": 14
-  },
-  {
     "id": "69358203cdab065d27349aa9",
     "title": "My Mother Is Falling in Love With the Man She Could Have Married",
     "author": "Mira Soren",
@@ -85,5 +20,58 @@ export const FEATURED_STORIES = [
       "Slice of Life"
     ],
     "readTime": 9
+  },
+  {
+    "id": "694566813a34a78e49e3e482",
+    "title": "The Proxy Daughters",
+    "author": "Forgotten Ritual",
+    "coverImage": "https://i.ibb.co/MLXjjy1/The-Proxy-Daughters.webp",
+    "genres": [
+      "Horror",
+      "Thriller"
+    ],
+    "readTime": 11
+  },
+  {
+    "id": "69563b395c6234987addd15a",
+    "title": "An Occurrence at Owl Creek Bridge",
+    "author": "Thriller Archives",
+    "coverImage": "https://i.ibb.co/xS3p0VLv/story-1767258902228.webp",
+    "genres": [
+      "Thriller"
+    ],
+    "readTime": 14
+  },
+  {
+    "id": "694581540f3e2033412a91e4",
+    "title": "What He Fixed by Breaking",
+    "author": "Aarin Hale",
+    "coverImage": "https://i.ibb.co/cKgxmM8B/What-He-Fixed-by-Breaking.webp",
+    "genres": [
+      "Fantasy",
+    "Slice of Life",
+    "Drama"
+    ],
+    "readTime": 7
+  },
+  {
+    "id": "69565e64cfea22882082fa46",
+    "title": "The Ransom of Red Chief",
+    "author": "Comedy Archives",
+    "coverImage": "https://i.ibb.co/JRtmjrPW/story-1767267913583.webp",
+    "genres": [
+      "Comedy",
+    ],
+    "readTime": 13
+  },
+  {
+    "id": "694f890a920aaf27bfc71dc2",
+    "title": "When the Wind Forgets to Blow",
+    "author": "Starlit Journals",
+    "coverImage": "https://i.ibb.co/HL80TDBs/Gemini-Generated-Image-puo951puo951puo9.jpg",
+    "genres": [
+      "Romance",
+    ],
+    "readTime": 10
   }
 ];

@@ -10,10 +10,10 @@ import { AuthModal } from "@/components/AuthModal";
 /* -------------------------------- Constants ------------------------------- */
 
 const HERO_FEATURED_IDS = [
-  "69355933cdab065d273496e5",
-  "6943d187279d8260bf46808b",
-  "693e492b054ee2f9aebd361f",
-  "69358203cdab065d27349aa9",
+  "6943d187279d8260bf46808b",  // The Skin Telephone
+  "69358203cdab065d27349aa9",  // My Mother Is Falling in Love...
+  "694566813a34a78e49e3e482",  // The Proxy Daughters
+  "69563b395c6234987addd15a",  // An Occurrence at Owl Creek Bridge
 ];
 
 /* -------------------------------- Sub-Components --------------------------- */

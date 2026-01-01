@@ -4,16 +4,16 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function EditorsPick({ stories }) {
-  const pickedStories = stories?.slice(0, 3) || [];
+  const pickedStories = stories?.slice(0, 4) || [];
 
   if (pickedStories.length === 0) return null;
 
   return (
-    <section className="mb-20 bg-gradient-to-b from-[var(--foreground)]/10 to-transparent p-6 rounded-3xl">
+    <section className="mb-20 bg-gradient-to-b from-[var(--foreground)]/10 to-transparent p-3 sm:p-6 rounded-3xl">
       {/* Hero Banner with Background */}
       <div className="relative rounded-3xl overflow-hidden mb-12">
         {/* Background Image */}
-        <div className="relative h-[300px] md:h-[200px]">
+        <div className="relative h-[150px] md:h-[200px]">
           <Image
             src="https://i.pinimg.com/originals/98/ad/fa/98adfaae828e28e5afef8598c089eec5.gif"
             alt="Editor's Pick Background"
@@ -26,18 +26,18 @@ export default function EditorsPick({ stories }) {
 
           {/* Centered Text */}
           <div className="relative h-full flex flex-col items-center justify-center text-center px-6">
-            <h3 className="text-5xl md:text-6xl font-bold text-white mb-4">
+            <h3 className="text-3xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
               Editor's Pick
             </h3>
-            <p className="text-xl text-white/90">
-              Three captivating stories hand-selected for you
+            <p className="text-md sm:text-xl text-white/90">
+              captivating stories hand-selected for you
             </p>
           </div>
         </div>
       </div>
 
       {/* Stories Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 px-4">
         {pickedStories.map((story, index) => (
           <Link
             key={story.id}
@@ -46,12 +46,17 @@ export default function EditorsPick({ stories }) {
           >
             <article className="text-center space-y-4">
               {/* Number */}
-              <div className="text-6xl font-bold text-blue-500 mb-4">
+              <div className="text-3xl sm:text-6xl font-bold text-blue-500 mb-4">
                 0{index + 1}
               </div>
 
               {/* Portrait Book Cover */}
               <div className="relative aspect-[2/3] w-full max-w-[240px] mx-auto rounded-xl overflow-hidden shadow-xl">
+                {/* Read Time Badge - Moved Here */}
+                <div className="absolute top-3 right-3 z-10 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded-lg pointer-events-none">
+                  {story.readTime} min
+                </div>
+
                 <Image
                   src={story.coverImage}
                   alt={story.title}
@@ -63,20 +68,13 @@ export default function EditorsPick({ stories }) {
 
               {/* Text Content */}
               <div className="space-y-2 pt-4">
-                <h4 className="text-xl font-bold text-[var(--foreground)] leading-tight uppercase tracking-wide">
+                <h4 className="text-base sm:text-xl font-bold text-[var(--foreground)] leading-tight uppercase tracking-wide">
                   {story.title}
                 </h4>
 
-                {story.description && (
-                  <p className="text-[var(--foreground)]/60 text-sm leading-relaxed line-clamp-2 max-w-xs mx-auto">
-                    {story.description}
-                  </p>
-                )}
-
-                <div className="flex items-center justify-center gap-2 text-xs text-[var(--foreground)]/60 pt-2">
-                  <span>{story.readTime} min</span>
-                  <span>•</span>
-                  <span>{story.author?.name || story.author?.username || "Author"}</span>
+                {/* Read time removed from here, only author remains */}
+                <div className="text-xs text-[var(--foreground)]/60 pt-2">
+                  <span>By {story.author?.name || story.author?.username || "Author"}</span>
                 </div>
               </div>
             </article>
@@ -86,4 +84,3 @@ export default function EditorsPick({ stories }) {
     </section>
   );
 }
-
