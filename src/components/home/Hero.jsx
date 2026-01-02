@@ -17,8 +17,9 @@ const HERO_FEATURED_IDS = [
   "694566813a34a78e49e3e482", 
   "69563b395c6234987addd15a",
   "694f890a920aaf27bfc71dc2",
-  "694f8a11613baf95f13bab46"
-
+  "694f8a11613baf95f13bab46",
+  "694581540f3e2033412a91e4",
+  "69565e64cfea22882082fa46",
   // Add more IDs here if you have them in your DB
 ];
 
@@ -137,17 +138,19 @@ const HeroSection = () => {
 
       {/* --- OVERLAY LAYER: Fade + Vignette --- */}
       {/* This radial gradient ensures text is legible regardless of the images behind it */}
-        {/* <div className="absolute inset-0 z-10 pointer-events-none 
-  bg-[radial-gradient(circle_at_center,_rgba(242,247,240,0.96)_0%,_rgba(242,247,240,0.92)_35%,_rgba(242,247,240,0.75)_55%,_transparent_75%)]" 
-/> */}
+       <div
+  className="absolute inset-0 z-10 pointer-events-none
+  bg-[radial-gradient(circle_at_center,_rgba(242,247,240,0.97)_0%,_rgba(242,247,240,0.94)_22%,_rgba(242,247,240,0.80)_32%,_transparent_52%)]"
+/>
+
+
 
  {/* <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#f2f7f0] via-transparent to-[#f2f7f0]/50 pointer-events-none" /> */}
 
       {/* --- CONTENT LAYER --- */}
       <section className="relative z-20 max-w-3xl mx-auto px-6 w-full text-center">
         
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000
-bg-[#f2f7f0]/55 backdrop-blur-md rounded-3xl px-6 sm:px-10 py-10 shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
+<div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
 
    {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2d3a2a]/5 border border-[#2d3a2a]/10 backdrop-blur-sm mx-auto">

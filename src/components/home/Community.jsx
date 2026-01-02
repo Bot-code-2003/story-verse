@@ -63,7 +63,7 @@ const Community = () => {
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header Section */}
         <div className="text-center mb-12 md:mb-16">
-          <h2 className="text-4xl md:text-6xl font-serif font-bold text-[#2d3a2a] leading-tight mb-6">
+          <h2 className="text-2xl md:text-6xl font-serif font-bold text-[#2d3a2a] leading-tight mb-6">
             A space for readers
             <br />
             <span className="text-[#5a7a53]">who take their time.</span>
