@@ -7,7 +7,6 @@ import SiteHeader from "@/components/SiteHeader";
 import Footer from "@/components/Footer";
 import StoryCard from "@/components/StoryCard";
 import { useAuth } from "@/context/AuthContext";
-import { fetchWithCache, CACHE_KEYS } from "@/lib/cache";
 import { GENRE_TILES } from "@/constants/genres";
 import { ArrowRight, BookOpen, Heart, MessageCircle, Users, Sparkles, TrendingUp, Globe, Star } from "lucide-react";
 import HeroSection from "@/components/home/Hero";
@@ -22,8 +21,6 @@ export default function LandingPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
-  const [trendingStories, setTrendingStories] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check authentication
@@ -38,36 +35,6 @@ export default function LandingPage() {
     
     checkAuth();
   }, [user, router]);
-
-  // Fetch trending stories for showcase with caching
-  useEffect(() => {
-    const fetchTrending = async () => {
-      try {
-        // Use cache-first approach with 6-hour TTL
-        const stories = await fetchWithCache(
-          CACHE_KEYS.TRENDING,
-          async () => {
-            const res = await fetch("/api/stories/trending");
-            if (!res.ok) {
-              throw new Error(`HTTP error! status: ${res.status}`);
-            }
-            const data = await res.json();
-            return data.stories || [];
-          }
-        );
-        setTrendingStories(stories.slice(0, 6)); // Show only 6
-      } catch (error) {
-        console.error("Failed to fetch trending stories:", error);
-        setTrendingStories([]); // Set empty array on error
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (!isChecking) {
-      fetchTrending();
-    }
-  }, [isChecking]);
 
   if (isChecking) {
     return <div className="min-h-screen bg-[var(--background)]" />; 
@@ -125,11 +92,11 @@ export default function LandingPage() {
         {/* HERO SECTION */}
         <HeroSection />
 
-        {/* TRENDING NOW SECTION */}
-<TrendingSection 
+        {/* TRENDING NOW SECTION - Removed for now */}
+        {/* <TrendingSection 
   trendingStories={trendingStories} 
   loading={loading} 
-/>
+/> */}
 
         <Genres />
 

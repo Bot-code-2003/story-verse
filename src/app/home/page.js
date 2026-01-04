@@ -2,8 +2,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fetchWithCache, CACHE_KEYS } from "@/lib/cache";
 import { FEATURED_STORIES } from "@/constants/featured_stories"; // Import featured stories
+import {
+  EDITOR_PICKS,
+  QUICK_READS,
+  FANTASY_STORIES,
+  DRAMA_STORIES,
+  ROMANCE_STORIES,
+  SLICE_OF_LIFE_STORIES,
+  THRILLER_STORIES,
+  HORROR_STORIES,
+  COMEDY_STORIES,
+} from "@/constants/homepage_data";
 
 import Carousel from "@/components/Carousel";
 import StoryCard from "@/components/StoryCard";
@@ -74,7 +84,7 @@ function Section({ title, items }) {
       </div>
       
       {/* Desktop: 6-column grid (no scroll) */}
-      <div className="hidden lg:grid lg:grid-cols-6 gap-8 lg:gap-10 pb-12">
+      <div className="hidden lg:grid lg:grid-cols-6 gap-8 lg:gap-6 pb-12">
         {items.map((story) => (
           <StoryCard key={story.id} story={story} />
         ))}
@@ -133,195 +143,58 @@ function FeaturedThisWeek({ items }) {
 // End of FeaturedThisWeek component
 
 export default function Home() {
-  // global / main lists
-  const [stories, setStories] = useState([]); // using trending as the main 'stories' fallback
+  // STATIC DATA - Imported from homepage_data.js
+  const editorPicks = EDITOR_PICKS.slice(0, 6);
+  const quickReads = QUICK_READS.slice(0, 6);
+  const fantasy = FANTASY_STORIES.slice(0, 6);
+  const drama = DRAMA_STORIES.slice(0, 6);
+  const romance = ROMANCE_STORIES.slice(0, 6);
+  const sliceOfLife = SLICE_OF_LIFE_STORIES.slice(0, 6);
+  const thriller = THRILLER_STORIES.slice(0, 6);
+  const horror = HORROR_STORIES.slice(0, 6);
+  const comedy = COMEDY_STORIES.slice(0, 6);
+
+  // Featured This Week - from featured_stories.js
+  const transformedFeaturedStories = FEATURED_STORIES.slice(0, 20).map(story => ({
+    ...story,
+    id: story._id?.$oid || story._id || story.id,
+    author: story.author?.$oid || story.author
+  }));
+  const featuredThisWeek = transformedFeaturedStories;
+
+  // DYNAMIC DATA - Only New Releases fetches from backend
   const [latest, setLatest] = useState([]);
-  const [quickReads, setQuickReads] = useState([]);
-  const [editorPicks, setEditorPicks] = useState([]); // ⭐ editor picks
-  const [featuredThisWeek, setFeaturedThisWeek] = useState([]); // ⭐ featured this week
-  // Contest-related state - commented out for future implementation
-  // const [contestWinners, setContestWinners] = useState([]); // 🏆 contest winners
-
-  // genre-specific lists - Only active genres
-  const [fantasy, setFantasy] = useState([]);
-  const [drama, setDrama] = useState([]);
-  const [romance, setRomance] = useState([]);
-  const [sliceOfLife, setSliceOfLife] = useState([]);
-  const [thriller, setThriller] = useState([]);
-  const [horror, setHorror] = useState([]);
-  const [comedy, setComedy] = useState([]);
-
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // helper to fetch a route and return stories array (or empty)
-  // Now with smart caching support
   // Filter stories with readTime > 1 minute to ensure legitimate content
   const filterLegitStories = (stories) => {
     return stories.filter(story => (story.readTime || 0) > 1);
   };
 
-  const fetchRouteStories = async (url, cacheKey = null) => {
-    try {
-      // If no cache key provided, fetch directly (no cache)
-      if (!cacheKey) {
-        const res = await fetch(url);
-        if (!res.ok) {
-          console.warn(`fetch ${url} failed:`, res.status);
-          return [];
-        }
-        const json = await res.json();
-        // Filter for legitimate stories with readTime > 1 min
-        return filterLegitStories(json?.stories || []);
-      }
-
-      // Use cache with TTL
-      return await fetchWithCache(cacheKey, async () => {
-        const res = await fetch(url);
-        if (!res.ok) {
-          console.warn(`fetch ${url} failed:`, res.status);
-          return [];
-        }
-        const json = await res.json();
-        // Filter for legitimate stories with readTime > 1 min
-        return filterLegitStories(json?.stories || []);
-      });
-    } catch (err) {
-      console.warn(`fetch ${url} error:`, err);
-      return [];
-    }
-  };
-
-
   useEffect(() => {
-    // ⭐ SET HARDCODED DATA IMMEDIATELY (no waiting for API calls)
-    const transformedFeaturedStories = FEATURED_STORIES.slice(0, 20).map(story => ({
-      ...story,
-      id: story._id?.$oid || story._id || story.id, // Extract ID from MongoDB structure
-      author: story.author?.$oid || story.author // Handle author ID if needed
-    }));
-    setFeaturedThisWeek(transformedFeaturedStories);
-    console.log("featuredThisWeek (transformed - immediate)", transformedFeaturedStories);
-
-    // ⚡ PERFORMANCE: Single batch API call instead of 12 individual calls
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-
+    const fetchLatest = async () => {
       try {
-        // Try batch API first (preferred - single round trip)
-        const batchRes = await fetch("/api/homepage");
-        
-        if (batchRes.ok) {
-          const batchData = await batchRes.json();
-          const { data } = batchData;
-          
-          // Set all sections from batch response
-          setStories(data.trending?.slice(0, 6) || []);
-          setLatest(data.latest?.slice(0, 6) || []);
-          setQuickReads(data.quickReads?.slice(0, 6) || []);
-          setEditorPicks(data.editorPicks?.slice(0, 6) || []);
-          setFantasy(data.fantasy?.slice(0, 6) || []);
-          setDrama(data.drama?.slice(0, 6) || []);
-          setRomance(data.romance?.slice(0, 6) || []);
-          setSliceOfLife(data.sliceOfLife?.slice(0, 6) || []);
-          setThriller(data.thriller?.slice(0, 6) || []);
-          setHorror(data.horror?.slice(0, 6) || []);
-          setComedy(data.comedy?.slice(0, 6) || []);
-          
-          console.log("✅ Batch API: Loaded all homepage sections in 1 call");
-        } else {
-          throw new Error("Batch API failed, falling back to individual calls");
+        const res = await fetch("/api/stories/latest");
+        if (!res.ok) {
+          console.warn("fetch /api/stories/latest failed:", res.status);
+          setLatest([]);
+          return;
         }
+        const json = await res.json();
+        setLatest(filterLegitStories(json?.stories || []));
       } catch (err) {
-        console.warn("Batch API failed, using fallback:", err.message);
-        
-        // Fallback: Individual calls (original behavior)
-        const fetchRouteStoriesFallback = async (url) => {
-          try {
-            const res = await fetch(url);
-            if (!res.ok) return [];
-            const json = await res.json();
-            return filterLegitStories(json?.stories || []);
-          } catch (e) {
-            console.warn(`Fetch ${url} failed:`, e);
-            return [];
-          }
-        };
-
-        // Parallel fetch all sections as fallback
-        const [
-          trendingData,
-          latestData,
-          quickReadsData,
-          editorPicksData,
-          fantasyData,
-          dramaData,
-          romanceData,
-          sliceOfLifeData,
-          thrillerData,
-          horrorData,
-          comedyData,
-        ] = await Promise.all([
-          fetchRouteStoriesFallback("/api/stories/trending"),
-          fetchRouteStoriesFallback("/api/stories/latest"),
-          fetchRouteStoriesFallback("/api/stories/quickreads"),
-          fetchRouteStoriesFallback("/api/stories/editorpicks"),
-          fetchRouteStoriesFallback("/api/stories?genre=Fantasy"),
-          fetchRouteStoriesFallback("/api/stories?genre=Drama"),
-          fetchRouteStoriesFallback("/api/stories?genre=Romance"),
-          fetchRouteStoriesFallback("/api/stories?genre=Slice%20of%20Life"),
-          fetchRouteStoriesFallback("/api/stories?genre=Thriller"),
-          fetchRouteStoriesFallback("/api/stories?genre=Horror"),
-          fetchRouteStoriesFallback("/api/stories?genre=Comedy"),
-        ]);
-
-        setStories(trendingData.slice(0, 6));
-        setLatest(latestData.slice(0, 6));
-        setQuickReads(quickReadsData.slice(0, 6));
-        setEditorPicks(editorPicksData.slice(0, 6));
-        setFantasy(fantasyData.slice(0, 6));
-        setDrama(dramaData.slice(0, 6));
-        setRomance(romanceData.slice(0, 6));
-        setSliceOfLife(sliceOfLifeData.slice(0, 6));
-        setThriller(thrillerData.slice(0, 6));
-        setHorror(horrorData.slice(0, 6));
-        setComedy(comedyData.slice(0, 6));
-        
-        console.log("⚠️ Fallback: Loaded homepage with individual calls");
+        console.warn("fetch /api/stories/latest error:", err);
+        setLatest([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchLatest();
   }, []);
 
   // Derived UI lists
-  const trending = stories.slice(0, 6); // trending comes from /api/stories/trending
-
-  // New Releases: prefer backend 'latest'; fallback to sorting 'stories' by createdAt
-  const newReleases =
-    latest && latest.length
-      ? latest.slice(0, 6)
-      : [...stories]
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 6);
-
-
-  // --- Error State Only (removed global loading) ---
-  // Sections will show skeletons individually if not loaded
-
-  if (error) {
-    return (
-      <main className="min-h-screen w-full bg-[var(--background)]">
-        <SiteHeader />
-        <div className="text-center py-20 text-red-500">Error: {error}</div>
-        <Footer />
-      </main>
-    );
-  }
-
+  const newReleases = latest.slice(0, 12);
 
   return (
     <main className="min-h-screen w-full bg-[var(--background)]">

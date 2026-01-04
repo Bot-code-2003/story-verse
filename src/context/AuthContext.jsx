@@ -45,6 +45,8 @@ export function AuthProvider({ children }) {
     const data = await res.json();
     setUser(data);
     localStorage.setItem("sf_user", JSON.stringify(data));
+    // Dispatch custom event to notify ThemeContext
+    window.dispatchEvent(new Event("authChange"));
     return data;
   };
 
@@ -75,6 +77,8 @@ export function AuthProvider({ children }) {
     const data = await res.json();
     setUser(data);
     localStorage.setItem("sf_user", JSON.stringify(data));
+    // Dispatch custom event to notify ThemeContext
+    window.dispatchEvent(new Event("authChange"));
     return data;
   };
 
@@ -82,11 +86,13 @@ export function AuthProvider({ children }) {
     setUser(null);
     try {
       localStorage.removeItem("sf_user");
-      // Reset theme to light on logout
-      localStorage.setItem("theme", "light");
+      // Remove theme from localStorage on logout
+      localStorage.removeItem("theme");
       if (typeof document !== "undefined") {
         document.documentElement.setAttribute("data-theme", "light");
       }
+      // Dispatch custom event to notify ThemeContext
+      window.dispatchEvent(new Event("authChange"));
     } catch (e) {}
     // Use window.location for hard redirect to ensure clean logout
     window.location.href = "/login";

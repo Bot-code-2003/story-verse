@@ -153,29 +153,30 @@ const HeroSection = () => {
 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
 
    {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2d3a2a]/5 border border-[#2d3a2a]/10 backdrop-blur-sm mx-auto">
+          {/* <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2d3a2a]/5 border border-[#2d3a2a]/10 backdrop-blur-sm mx-auto">
             <span className="w-2 h-2 rounded-full bg-green-600 animate-pulse" />
             <span className="text-xs font-semibold tracking-wide uppercase text-[#5a7a53]">
               New Stories Added Weekly
             </span>
-          </div>
+          </div> */}
 
           {/* Main Headline */}
           <h1 className="text-2xl sm:text-4xl md:text-6xl font-serif font-bold text-[#1a2118] leading-[1.05] tracking-tight drop-shadow-sm">
-            Stories that <br />
+            Your perfect <br />
             <span className="italic text-[#4a6345] relative inline-block">
-              linger
+              coffee break
               <svg className="absolute w-full h-3 -bottom-1 left-0 text-[#a8c5a3]" viewBox="0 0 100 10" preserveAspectRatio="none">
                  <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="3" fill="none" />
               </svg>
             </span> 
-            long after.
+            {/* add a space charecter before escape */}
+            &nbsp;escape.
           </h1>
 
           {/* Subheadline */}
           <p className="text-lg sm:text-2xl text-[#4b5548] max-w-2xl mx-auto leading-relaxed font-medium">
-            A curated collection of bite-sized fiction. <br className="hidden sm:block"/>
-            Escape reality for <span className="text-[#2d3a2a] font-bold decoration-2 underline decoration-[#a8c5a3]/50">5-15 minutes</span> at a time.
+            Complete stories in <span className="text-[#2d3a2a] font-bold decoration-2 underline decoration-[#a8c5a3]/50">5-15 minutes</span>. <br className="hidden sm:block"/>
+            Perfect for your commute, lunch break, or waiting in line.
           </p>
 
           {/* CTAs */}

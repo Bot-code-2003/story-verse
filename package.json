@@ -8,13 +8,16 @@
     "start": "next start",
     "lint": "eslint",
     "tw-init": "tailwindcss init",
+    "export-homepage": "node scripts/export-homepage-data.js",
     "db:indexes:create": "node scripts/createIndexes.js",
     "db:indexes:verify": "node scripts/verifyIndexes.js",
     "db:indexes:drop": "node scripts/dropIndexes.js",
     "db:analyze": "node scripts/analyzeQueries.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.962.0",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.3",
     "lucide-react": "^0.555.0",
     "lz-string": "^1.5.0",
     "mongoose": "^9.0.0",
