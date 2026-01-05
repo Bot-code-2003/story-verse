@@ -16,6 +16,7 @@ import Community from "@/components/home/Community";
 import Writers from "@/components/home/Writers";
 import BecomeAuthorBanner from "@/components/BecomeAuthorBanner";
 import ReadersPicks from "@/components/home/ReadersPicks";
+import QuickReads from "@/components/home/QuickReads";
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -97,14 +98,16 @@ export default function LandingPage() {
   trendingStories={trendingStories} 
   loading={loading} 
 /> */}
+        <ReadersPicks />
 
         <Genres />
+
 
         <Community />
 
         {/* <Writers /> */}
 
-        <ReadersPicks />
+        <QuickReads />
 
         <BecomeAuthorBanner />
       </main>

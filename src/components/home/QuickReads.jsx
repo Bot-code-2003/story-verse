@@ -1,34 +1,15 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { FEATURED_STORIES } from "@/constants/featured_stories";
+import { QUICK_READS } from "@/constants/homepage_data";
 import StoryCard from "../StoryCard";
-
-/* ------------------------------ config ------------------------------ */
-
-const PICKED_IDS = [
-  "6943d187279d8260bf46808b",
-  "694566813a34a78e49e3e482",
-  "694581540f3e2033412a91e4",
-  "69565e64cfea22882082fa46",
-  "694f890a920aaf27bfc71dc2",
-  "69358203cdab065d27349aa9"
-];
 
 /* ------------------------------ component ------------------------------ */
 
-const ReadersPicks = () => {
-  const pickedStories = useMemo(
-    () =>
-      FEATURED_STORIES.filter(story =>
-        PICKED_IDS.includes(story.id)
-      ),
-    []
-  );
-
-  if (!pickedStories.length) return null;
+const QuickReads = () => {
+  if (!QUICK_READS.length) return null;
 
   return (
     <section className="py-16 md:py-28 bg-[#e7f2e4]">
@@ -38,11 +19,11 @@ const ReadersPicks = () => {
         <div className="flex items-end justify-between px-6 mb-10">
           <div className="flex-1">
             <h2 className="text-3xl md:text-5xl font-serif font-bold text-[#2d3a2a] mb-2">
-              Get a taste
+              Quick Reads
             </h2>
             <div className="h-1.5 w-16 md:w-24 bg-[#c5d8c1] rounded-full" />
             <p className="mt-4 text-base md:text-lg text-[#5a6358] max-w-2xl">
-              A curated sampler of what TheStoryBits has to offer. Dive in and discover your next favorite read.
+              Short on time? Dive into these bite-sized stories—perfect for a quick escape. Each one takes 10 minutes or less.
             </p>
           </div>
 
@@ -76,7 +57,7 @@ const ReadersPicks = () => {
                     msOverflowStyle: 'none' 
                 }}
               >
-                {pickedStories.map((story, index) => (
+                {QUICK_READS.map((story, index) => (
                   <div
                     key={story.id || index}
                     className="snap-start flex-shrink-0 w-[150px]" 
@@ -89,28 +70,10 @@ const ReadersPicks = () => {
 
             {/* ---- DESKTOP GRID ---- */}
             <div className="hidden lg:grid grid-cols-6 gap-8 p-14">
-              {pickedStories.map((story, index) => (
+              {QUICK_READS.map((story, index) => (
                 <StoryCard key={story.id || index} story={story} index={index} />
               ))}
             </div>
-          </div>
-        </div>
-
-        {/* Footer quote & CTA */}
-        <div className="mt-10 text-center px-6 space-y-6">
-          <p className="font-serif italic text-[#5a7a53] text-sm md:text-lg">
-            Like what you taste? There's plenty more where that came from.
-          </p>
-          
-          {/* Sign up CTA */}
-          <div className="flex justify-center">
-            <Link
-              href="/login?redirect=/home"
-              className="group inline-flex items-center gap-3 px-8 py-4 rounded-full bg-[#5a7a53] hover:bg-[#4a6344] text-white font-bold text-base md:text-lg transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95"
-            >
-              Sign up to read more
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
           </div>
         </div>
       </div>
@@ -118,4 +81,4 @@ const ReadersPicks = () => {
   );
 };
 
-export default ReadersPicks;
+export default QuickReads;

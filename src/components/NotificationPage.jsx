@@ -137,18 +137,18 @@ export default function NotificationPage() {
               {/* Image - 1/4 width */}
               <div className="w-1/4 flex-shrink-0">
                 <img
-                  src="https://i.pinimg.com/1200x/f3/73/8c/f3738cbe9005d8341e1b7d0bc4cd2bd5.jpg"  // <-- CHANGE THIS IMAGE
-                  alt="thestorybits christmas announcement"
+                  src="https://i.pinimg.com/736x/c5/72/4d/c5724db5213fa06208f2d1e5677d15c9.jpg"  // <-- CHANGE THIS IMAGE
+                  alt="thestorybits New Year announcement"
                   className="w-24 h-24 rounded-lg object-cover"
                 />
               </div>
               {/* Title + Message - 3/4 width */}
               <div className="w-3/4">
                 <h3 className="text-sm font-semibold text-[var(--foreground)] mb-1">
-                  Merry Christmas  {/* <-- CHANGE THIS TITLE */}
+                  New Year! {/* <-- CHANGE THIS TITLE */}
                 </h3>
                 <p className="text-xs text-[var(--foreground)]/70 leading-relaxed">
-                  Wishing you a warm, quiet Christmas.
+                  Wishing you a warm, quiet New Year.
                 </p>
               </div>
             </div>
